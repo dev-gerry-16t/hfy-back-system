@@ -26,6 +26,7 @@ const config = {
 
 const app = express();
 sql.connect(config);
+
 const port = process.env.port || GLOBAL_CONSTANTS.PORT;
 app.listen(port, () => {
   console.log(
