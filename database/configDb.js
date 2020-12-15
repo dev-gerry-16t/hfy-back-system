@@ -5,6 +5,7 @@ const {
   PASS_DATABASE,
   SERVER_DATABASE,
   DATABASE_NAME,
+  DATABASE_PORT,
 } = GLOBAL_CONSTANTS;
 
 const CONFIG = {
@@ -12,6 +13,7 @@ const CONFIG = {
   password: PASS_DATABASE,
   server: SERVER_DATABASE,
   database: DATABASE_NAME,
+  port: DATABASE_PORT,
 //   pool: {
 //       max: 10,
 //       min: 0,
