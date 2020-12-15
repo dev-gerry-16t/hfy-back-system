@@ -19,7 +19,39 @@ app.use(bodyParser.json());
 
 const router = express.Router();
 
+const executeLoginUser = async (params, res) => {
+  const { email, password } = params;
+  try {
+    const request = new sql.Request();
+    request.input("email", sql.VarChar, email);
+    request.input("pass", sql.VarChar, password);
+    request.execute("SPLoginUserv2", (err, result) => {
+      if (email === null || password === null) {
+        res
+          .status(400)
+          .send({ response: "Los parametros de entrada son incorrectos" });
+      } else {
+        if (err) {
+          res.status(500).send({ response: "Error de servidor" });
+        } else if (result.recordset.length === 0) {
+          res.status(500).send({ response: "Usuario o contraseña incorrectos" });
+        } else if (result) {
+          res.status(200).send({ response: result.recordset });
+        }
+      }
+    });
+  } catch (err) {
+    console.log("ERROR", err);
+    // ... error checks
+  }
+};
+
 app.get("/test", (req, res) => {
-  console.log("Entre al back");
-  res.status(200).send("Bienvenido a back homify v.0.0.1");
+  console.log("Welcome to backend test, conection is successfully");
+  res.status(200).send("Bienvenido a back homify v.0.0.2");
+});
+
+app.post("/loginUser", (req, res) => {
+  const params = req.body;
+  executeLoginUser(params, res);
 });

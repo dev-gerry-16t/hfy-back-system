@@ -12,11 +12,11 @@ const CONFIG = {
   password: PASS_DATABASE,
   server: SERVER_DATABASE,
   database: DATABASE_NAME,
-  // pool: {
-  //     max: 10,
-  //     min: 0,
-  //     idleTimeoutMillis: 30000
-  // }
+//   pool: {
+//       max: 10,
+//       min: 0,
+//       idleTimeoutMillis: 30000
+//   }
 };
 
 module.exports = CONFIG;
