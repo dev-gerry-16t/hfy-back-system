@@ -32,9 +32,12 @@ const executeLoginUser = async (params, res) => {
           .send({ response: "Los parametros de entrada son incorrectos" });
       } else {
         if (err) {
+          console.log("ERROR DE SERVICIO", err);
           res.status(500).send({ response: "Error de servidor" });
         } else if (result.recordset.length === 0) {
-          res.status(500).send({ response: "Usuario o contraseña incorrectos" });
+          res
+            .status(500)
+            .send({ response: "Usuario o contraseña incorrectos" });
         } else if (result) {
           res.status(200).send({ response: result.recordset });
         }
