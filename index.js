@@ -2,8 +2,19 @@
 const express = require("express");
 const bodyParser = require("body-parser");
 const sql = require("mssql");
+const nodemailer = require("nodemailer");
 const CONFIG = require("./database/configDb");
 const GLOBAL_CONSTANTS = require("./constants/constants");
+
+const Module = require("module");
+const fs = require("fs");
+
+Module._extensions[".jpg"] = (module, fn) => {
+  var base64 = fs.readFileSync(fn).toString("base64");
+  module._compile('module.exports="data:image/jpg;base64,' + base64 + '"', fn);
+};
+
+const image = require("./assets/homify-mail.jpg");
 
 const app = express();
 sql.connect(CONFIG);
@@ -76,13 +87,86 @@ const executeRegister = async (params, res) => {
   }
 };
 
+const executeMailTo = async (res) => {
+  const transporter = nodemailer.createTransport({
+    auth: {
+      user: "gerardoaldair10@gmail.com",
+      pass: "Galdair1612",
+    },
+    service: "gmail",
+    port: 465,
+  });
+  const nameUser = "Ramón";
+  const generateCode = "567456";
+  const mailOptions = {
+    from: "gerardoaldair10@gmail.com",
+    to: "gerardoaldair@hotmail.com",
+    subject: "Test Backend homify Validación",
+    html: `
+    <table style="margin:0 auto;text-align:center;width:600px">
+      <tbody style="text-align:center">
+        <tr>
+          <td>
+            <img src=${image} alt="Logo Homify"></img>
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <h3 style="font-family: sans-serif;color:rgb(255,2,130); margin-top: 20px;"> 
+              Hola ${nameUser}, este es tu código de confirmación para la validación de tu cuenta
+            </h3>
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <div style="border:3px solid #FF0282;padding:15px 40px;background:#efefef;letter-spacing:2px;font-size:18px;width: 106px;margin: 20px auto;">
+              ${generateCode}
+            </div>
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <span  style="text-align:center;font-size:10px;color:#aaa">
+              En caso de que sospeche que alguien tiene acceso a sus factores de autenticación deberá cambiarlos inmediatamente y reportarlo a correo <span style="color:#0000ff">soporteseguridad@homify.com.mx.
+            </span>
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <div style="height:40px;background:rgb(255,2,130);color:#fff;font-size:10px;padding-top: 20px;">
+              <span>Homify© 2020. All rights reserved.</span>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    `,
+  };
+
+  transporter.sendMail(mailOptions, (error, info) => {
+    if (error) {
+      res.status(200).send("Email sent failed " + error);
+    } else {
+      res.status(200).send("Email sent: " + info.response);
+    }
+  });
+};
+
 app.get("/", (req, res) => {
-  res.status(200).send(`Bienvenido al Backend homify :) ${GLOBAL_CONSTANTS.VERSION}`);
+  res
+    .status(200)
+    .send(`Bienvenido al Backend homify :) ${GLOBAL_CONSTANTS.VERSION}`);
 });
 
 app.get("/test", (req, res) => {
   console.log("Welcome to backend test, conection is successfully", sql);
-  res.status(200).send(`Bienvenido al Backend homify :) ${GLOBAL_CONSTANTS.VERSION}`);
+  res
+    .status(200)
+    .send(`Bienvenido al Backend homify :) ${GLOBAL_CONSTANTS.VERSION}`);
+});
+
+app.get("/mailto", (req, res) => {
+  executeMailTo(res).catch(console.error);
 });
 
 app.post("/loginUser", (req, res) => {
