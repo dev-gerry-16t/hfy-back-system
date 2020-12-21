@@ -4,7 +4,7 @@ const GLOBAL_CONSTANTS = {
   USER_DATABASE: "admin",
   PASS_DATABASE: "Hfy2020Db#",
   SERVER_DATABASE: "hfy-database-1.cuvtxvydqsnt.us-east-2.rds.amazonaws.com",
-  DATABASE_NAME: "homifysys",
+  DATABASE_NAME: "HOMIFYDBTEST",
   DATABASE_PORT: 1433,
 };
 
