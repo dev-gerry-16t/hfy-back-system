@@ -11,7 +11,7 @@ var router = express.Router();
 router.get("/", ControllerTest.test);
 router.get("/test", ControllerTest.testPath);
 router.get("/mailto", ControllerRegister.mailto);
-router.post("/loginUser", ControllerLogin.login);
+router.post("/systemUser/validateLogin", ControllerLogin.login);
 router.post("/registerUser", ControllerRegister.register);
 router.post("/customerType/getAllCustomer", ControllerRegister.customerType);
 router.post("/personType/getAllPerson", ControllerRegister.personType);
