@@ -29,76 +29,25 @@ const executeRegister = async (params, res) => {
 };
 
 const executeMailTo = async (params) => {
-  const { sender, receiver, code } = params;
-  console.log("params", params);
-  //   const transporter = nodemailer.createTransport({
-  //     auth: {
-  //       user: "gerardoaldair10@gmail.com",
-  //       pass: "Galdair1612",
-  //     },
-  //     service: "gmail",
-  //     port: 465,
-  //   });
+  const { receiver, content, user, pass, host, port, subject } = params;
 
   const transporter = nodemailer.createTransport({
     auth: {
-      user: "admin@homify.ai",
-      pass: "Hfy2020Db#",
+      user,
+      pass,
     },
-    host: "giowm1210.siteground.biz",
-    port: 465,
+    host,
+    port,
   });
-
-  const nameUser = "Noe";
-  const generateCode = code;
   const mailOptions = {
-    from: "admin@homify.ai",
-    to: "gerardoaldair@hotmail.com",
-    subject: "Test Backend homify Validación",
-    html: `
-      <table style="margin:0 auto;text-align:center;width:600px">
-        <tbody style="text-align:center">
-          <tr>
-            <td>
-              <img src=${image} alt="Logo Homify"></img>
-            </td>
-          </tr>
-          <tr>
-            <td>
-              <h3 style="font-family: sans-serif;color:rgb(255,2,130); margin-top: 20px;"> 
-                Hola ${nameUser}, este es tu código de confirmación para la validación de tu cuenta
-              </h3>
-            </td>
-          </tr>
-          <tr>
-            <td>
-              <div style="border:3px solid #FF0282;padding:15px 40px;background:#efefef;letter-spacing:2px;font-size:18px;width: 106px;margin: 20px auto;">
-                ${generateCode}
-              </div>
-            </td>
-          </tr>
-          <tr>
-            <td>
-              <span  style="text-align:center;font-size:10px;color:#aaa">
-                En caso de que sospeche que alguien tiene acceso a sus factores de autenticación deberá cambiarlos inmediatamente y reportarlo a correo <span style="color:#0000ff">soporteseguridad@homify.com.mx.
-              </span>
-            </td>
-          </tr>
-          <tr>
-            <td>
-              <div style="height:40px;background:rgb(255,2,130);color:#fff;font-size:10px;padding-top: 20px;">
-                <span>Homify© 2020. All rights reserved.</span>
-              </div>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-      `,
+    from: user,
+    to: receiver,
+    subject,
+    html: content,
   };
 
   transporter.sendMail(mailOptions, (error, info) => {
-    console.log("error", error);
-    console.log("info", info);
+    console.log("error mail", error);
   });
 };
 
@@ -154,26 +103,24 @@ const executeEmailSentAES = async (param) => {
     idEmailTemplate = 1,
     idRequestSignUp,
     idUserSender,
-    idUserReceiver = "",
+    idUserReceiver = null,
     sender,
     receiver,
     subject,
     content,
     jsonServiceResponse = [],
     offset,
+    jsonEmailServerConfig,
   } = param;
-
+  console.log("param", jsonEmailServerConfig);
+  const configEmailServer = JSON.parse(jsonEmailServerConfig);
   try {
     const request = new sql.Request();
     request.input("p_intIdEmailStatus", sql.Int, idEmailStatus);
     request.input("p_intIdEmailTemplate", sql.Int, idEmailTemplate);
-    request.input(
-      "p_uidIdRequestSignUp",
-      sql.TYPES.UniqueIdentifier,
-      idRequestSignUp
-    );
-    request.input("p_uidIdUserSender", sql.UniqueIdentifier, idUserSender);
-    request.input("p_uidIdUserReceiver", sql.UniqueIdentifier, idUserReceiver);
+    request.input("p_nvcIdRequesSignUp", sql.NVarChar, idRequestSignUp);
+    request.input("p_nvcIdUserSender", sql.NVarChar, idUserSender);
+    request.input("p_nvcIdUserReceiver", sql.NVarChar, idUserReceiver);
     request.input("p_nvcSender", sql.NVarChar, sender);
     request.input("p_nvcReceiver", sql.NVarChar, receiver);
     request.input("p_nvcSubject", sql.NVarChar, subject);
@@ -184,10 +131,19 @@ const executeEmailSentAES = async (param) => {
       jsonServiceResponse
     );
     request.input("p_chrOffset", sql.Char, offset);
-    request.execute("comSch.USPaddEmailSent", (err, result) => {
-      console.log("err", err);
-
-      console.log("result", result);
+    await request.execute("comSch.USPaddEmailSent", async (err, result) => {
+      if (err) {
+        console.log("err", err);
+      } else if (result) {
+        await executeMailTo({
+          sender,
+          receiver,
+          content,
+          subject,
+          offset,
+          ...configEmailServer,
+        });
+      }
     });
   } catch (error) {}
 };
@@ -219,29 +175,14 @@ const executeRequestSignUpPSU = async (param, res) => {
     request.input("p_nvcPhoneNumber", sql.NVarChar, phoneNumber);
     request.input("p_chrOffset", sql.Char, offset);
     request.execute("authSch.USPrequestSignUp", async (err, result, value) => {
-      //   console.log("err", err);
-      //   console.log("result", result);
-      //   console.log("value", value);
-      //   console.log("result.recordset.stateCode", result.recordset);
-      console.log("result", result);
       if (err) {
         res.status(500).send({});
       } else {
         if (result.recordset[0].stateCode === 400) {
           res.status(400).send({ result: result.recordset[0].message });
         } else {
-          const objectResponseDataBase = {
-            idRequestSignUp: result.recordset[0].idRequestSignUp,
-            idUserSender: result.recordset[0].idUserSender,
-            sender: result.recordset[0].sender,
-            receiver: result.recordset[0].receiver,
-            subject: result.recordset[0].subject,
-            content: result.recordset[0].content,
-            code: result.recordset[0].code,
-            offset: offset,
-          };
-          //await executeEmailSentAES(objectResponseDataBase);
-          executeMailTo(objectResponseDataBase);
+          const objectResponseDataBase = { offset, ...result.recordset[0] };
+          await executeEmailSentAES(objectResponseDataBase);
           res.status(200).send({
             result: { idRequestSignUp: result.recordset[0].idRequestSignUp },
           });
@@ -257,18 +198,17 @@ const executeRequestSignUpVCFSU = async (param, res) => {
   const { idRequestSignUp, code, offset } = param;
   try {
     const request = new sql.Request();
-    request.input("p_uidIdRequestSignUp", sql.VarChar, idRequestSignUp);
+    request.input("p_nvcIdRequestSignUp", sql.NVarChar, idRequestSignUp);
     request.input("p_vchCode", sql.VarChar, code);
     request.input("p_chrOffset", sql.Char, offset);
     request.execute("authSch.USPverifyCodeForSignUp", (err, result) => {
       if (err) {
+        console.log("error", err);
         res.status(500).send({ result: "Error en los parametros" });
       } else {
-        res
-          .status(200)
-          .send({
-            result: { idRequestSignUp: result.recordset[0].idRequestSignUp },
-          });
+        res.status(200).send({
+          result: { idRequestSignUp },
+        });
       }
     });
   } catch (error) {}
