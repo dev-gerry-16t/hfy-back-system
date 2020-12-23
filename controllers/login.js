@@ -28,9 +28,9 @@ const executeLoginUser = async (params, res) => {
           result.recordset.length === 0 ||
           result.recordset[0].stateCode === 500
         ) {
-          res.status(500).send({ response: result.recordset });
+          res.status(500).send({ response: result.recordset[0] });
         } else if (result) {
-          res.status(200).send({ response: result.recordset });
+          res.status(200).send({ response: result.recordset[0] });
         }
       }
     });

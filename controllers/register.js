@@ -112,7 +112,6 @@ const executeEmailSentAES = async (param) => {
     offset,
     jsonEmailServerConfig,
   } = param;
-  console.log("param", jsonEmailServerConfig);
   const configEmailServer = JSON.parse(jsonEmailServerConfig);
   try {
     const request = new sql.Request();
@@ -179,7 +178,7 @@ const executeRequestSignUpPSU = async (param, res) => {
         res.status(500).send({});
       } else {
         if (result.recordset[0].stateCode === 400) {
-          res.status(400).send({ result: result.recordset[0].message });
+          res.status(400).send({ response: result.recordset[0] });
         } else {
           const objectResponseDataBase = { offset, ...result.recordset[0] };
           await executeEmailSentAES(objectResponseDataBase);
