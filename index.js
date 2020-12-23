@@ -7,6 +7,7 @@ const GLOBAL_CONSTANTS = require("./constants/constants");
 
 const app = express();
 sql.connect(CONFIG);
+const projectRoutes = require("./routes/routes");
 
 const port = process.env.PORT || GLOBAL_CONSTANTS.PORT;
 app.listen(port, () => {
@@ -28,69 +29,4 @@ app.use((req, res, next) => {
   next();
 });
 
-const router = express.Router();
-
-const executeLoginUser = async (params, res) => {
-  const { email, password } = params;
-  try {
-    const request = new sql.Request();
-    request.input("email", sql.VarChar, email);
-    request.input("pass", sql.VarChar, password);
-    request.execute("SPLoginUserv2", (err, result) => {
-      if (email === null || password === null) {
-        res
-          .status(400)
-          .send({ response: "Los parametros de entrada son incorrectos" });
-      } else {
-        if (err) {
-          res.status(500).send({ response: "Error de servidor" });
-        } else if (result.recordset.length === 0) {
-          res
-            .status(500)
-            .send({ response: "Usuario o contraseña incorrectos" });
-        } else if (result) {
-          res.status(200).send({ response: result.recordset });
-        }
-      }
-    });
-  } catch (err) {
-    console.log("ERROR", err);
-    // ... error checks
-  }
-};
-
-const executeRegister = async (params, res) => {
-  const { email, password, name, surname } = params;
-  try {
-    const request = new sql.Request();
-    request.input("name", sql.VarChar, name);
-    request.input("surname", sql.VarChar, surname);
-    request.input("email", sql.VarChar, email);
-    request.input("pass", sql.VarChar, password);
-    request.execute("SPRegisterUser", (err, result) => {
-      res.status(200).send({ response: result });
-    });
-  } catch (err) {
-    console.log("ERROR", err);
-    // ... error checks
-  }
-};
-
-app.get("/", (req, res) => {
-  res.status(200).send(`Bienvenido al Backend homify :) ${GLOBAL_CONSTANTS.VERSION}`);
-});
-
-app.get("/test", (req, res) => {
-  console.log("Welcome to backend test, conection is successfully", sql);
-  res.status(200).send(`Bienvenido al Backend homify :) ${GLOBAL_CONSTANTS.VERSION}`);
-});
-
-app.post("/loginUser", (req, res) => {
-  const params = req.body;
-  executeLoginUser(params, res);
-});
-
-app.post("/registerUser", (req, res) => {
-  const params = req.body;
-  executeRegister(params, res);
-});
+app.use("/api", projectRoutes);
