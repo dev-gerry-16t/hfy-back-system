@@ -6,7 +6,7 @@ const GLOBAL_CONSTANTS = {
   SERVER_DATABASE: "hfy-database-1.cuvtxvydqsnt.us-east-2.rds.amazonaws.com",
   DATABASE_NAME: "HOMIFYDBTEST",
   DATABASE_PORT: 1433,
-  MASTER_KEY_PERMISION: "HfyAuth2020Db#",
+  MASTER_KEY_PERMISSION: "HfyAuth2020Db#",
 };
 
 module.exports = GLOBAL_CONSTANTS;

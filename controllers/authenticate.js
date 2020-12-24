@@ -6,7 +6,7 @@ const verifyToken = (req, res, next) => {
   console.log("token", token);
   if (!token) return res.status(401).json({ error: "Acceso denegado" });
   try {
-    const verified = jwt.verify(token, GLOBAL_CONSTANTS.MASTER_KEY_PERMISION);
+    const verified = jwt.verify(token, GLOBAL_CONSTANTS.MASTER_KEY_PERMISSION);
     req.user = verified;
     next();
   } catch (error) {

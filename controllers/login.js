@@ -40,7 +40,7 @@ const executeLoginUser = async (params, res) => {
           };
           const token = jwt.sign(
             payload,
-            GLOBAL_CONSTANTS.MASTER_KEY_PERMISION,
+            GLOBAL_CONSTANTS.MASTER_KEY_PERMISSION,
             {
               expiresIn: 3600,
             }
