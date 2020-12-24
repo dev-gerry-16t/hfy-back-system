@@ -1,4 +1,6 @@
 const sql = require("mssql");
+const jwt = require("jsonwebtoken");
+const GLOBAL_CONSTANTS = require("../constants/constants");
 
 const executeLoginUser = async (params, res) => {
   const {
@@ -30,7 +32,21 @@ const executeLoginUser = async (params, res) => {
         ) {
           res.status(500).send({ response: result.recordset[0] });
         } else if (result) {
-          res.status(200).send({ response: result.recordset[0] });
+          console.log("result", result);
+          const idUser = result.recordset[0].isSystemUser;
+          const payload = {
+            name: email,
+            idSystemUser: idUser,
+          };
+          const token = jwt.sign(
+            payload,
+            GLOBAL_CONSTANTS.MASTER_KEY_PERMISION,
+            {
+              expiresIn: 3600,
+            }
+          );
+
+          res.status(200).send({ response: { idSystemUser: idUser, token } });
         }
       }
     });

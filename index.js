@@ -4,10 +4,12 @@ const bodyParser = require("body-parser");
 const sql = require("mssql");
 const CONFIG = require("./database/configDb");
 const GLOBAL_CONSTANTS = require("./constants/constants");
+const verifyToken = require("./controllers/authenticate");
 
 const app = express();
 sql.connect(CONFIG);
 const projectRoutes = require("./routes/routes");
+const protectRoutes = require("./routes/protectRoutes");
 
 const port = process.env.PORT || GLOBAL_CONSTANTS.PORT;
 app.listen(port, () => {
@@ -17,7 +19,6 @@ app.listen(port, () => {
 });
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
-
 app.use((req, res, next) => {
   res.header("Access-Control-Allow-Origin", "*");
   res.header(
@@ -30,3 +31,4 @@ app.use((req, res, next) => {
 });
 
 app.use("/api", projectRoutes);
+app.use("/apiAccess", verifyToken, protectRoutes);
