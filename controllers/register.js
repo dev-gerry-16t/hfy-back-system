@@ -30,7 +30,6 @@ const executeRegister = async (params, res) => {
 
 const executeMailTo = async (params) => {
   const { receiver, content, user, pass, host, port, subject } = params;
-
   const transporter = nodemailer.createTransport({
     auth: {
       user,
@@ -177,8 +176,11 @@ const executeRequestSignUpPSU = async (param, res) => {
       if (err) {
         res.status(500).send({});
       } else {
-        if (result.recordset[0].stateCode === 400) {
-          res.status(400).send({ response: result.recordset[0] });
+        const resultRecordset = result.recordset[0];
+        if (resultRecordset.stateCode !== 200) {
+          res
+            .status(resultRecordset.stateCode)
+            .send({ response: resultRecordset });
         } else {
           const objectResponseDataBase = { offset, ...result.recordset[0] };
           await executeEmailSentAES(objectResponseDataBase);
@@ -203,11 +205,18 @@ const executeRequestSignUpVCFSU = async (param, res) => {
     request.execute("authSch.USPverifyCodeForSignUp", (err, result) => {
       if (err) {
         console.log("error", err);
-        res.status(500).send({ result: "Error en los parametros" });
+        res.status(500).send({ response: "Error en los parametros" });
       } else {
-        res.status(200).send({
-          result: { idRequestSignUp },
-        });
+        const resultRecordset = result.recordset[0];
+        if (resultRecordset.stateCode !== 200) {
+          res
+            .status(resultRecordset.stateCode)
+            .send({ response: resultRecordset });
+        } else {
+          res.status(200).send({
+            response: resultRecordset,
+          });
+        }
       }
     });
   } catch (error) {}
