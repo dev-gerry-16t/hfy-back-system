@@ -33,7 +33,7 @@ const executeLoginUser = async (params, res) => {
           res.status(500).send({ response: result.recordset[0] });
         } else if (result) {
           console.log("result", result);
-          const idUser = result.recordset[0].isSystemUser;
+          const idUser = result.recordset[0].idSystemUser;
           const payload = {
             name: email,
             idSystemUser: idUser,
