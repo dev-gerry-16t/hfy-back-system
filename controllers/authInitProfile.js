@@ -31,14 +31,13 @@ const executeMenuUserProfile = async (params, res) => {
     request.input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser);
     request.input("p_nvcIdLoginHistory", sql.NVarChar, idLoginHistory);
     request.execute("authSch.USPgetMenuTemplate", (err, result) => {
-        console.log('result',result);
-        if (err) {
+      if (err) {
         res.status(500).send({ response: "Error en los parametros" });
       } else {
         const resultRecordset = result.recordset;
         result;
         res.status(200).send({
-          response: resultRecordset[0],
+          response: resultRecordset,
         });
       }
     });

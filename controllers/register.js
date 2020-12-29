@@ -107,7 +107,7 @@ const executeEmailSentAES = async (param) => {
     receiver,
     subject,
     content,
-    jsonServiceResponse = [],
+    jsonServiceResponse,
     offset,
     jsonEmailServerConfig,
   } = param;
@@ -183,7 +183,11 @@ const executeRequestSignUpPSU = async (param, res) => {
             .status(resultRecordset.stateCode)
             .send({ response: resultRecordset });
         } else {
-          const objectResponseDataBase = { offset, ...result.recordset[0] };
+          const objectResponseDataBase = {
+            ...result.recordset[0],
+            offset,
+            jsonServiceResponse: result.recordset[0].stateCode,
+          };
           await executeEmailSentAES(objectResponseDataBase);
           res.status(200).send({
             result: { idRequestSignUp: result.recordset[0].idRequestSignUp },
