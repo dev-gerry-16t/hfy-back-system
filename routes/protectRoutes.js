@@ -1,8 +1,8 @@
 "use strict";
 
-var express = require("express");
-
-var router = express.Router();
+const express = require("express");
+const router = express.Router();
+const ControllerAuth = require("../controllers/authInitProfile");
 
 router.post("/testToken", (req, res) => {
   res.json({
@@ -13,5 +13,8 @@ router.post("/testToken", (req, res) => {
     },
   });
 });
+
+router.post("/systemUser/userProfile", ControllerAuth.userProfile);
+router.post("/systemUser/menuProfile", ControllerAuth.userMenuProfile);
 
 module.exports = router;

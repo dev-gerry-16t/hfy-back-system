@@ -107,7 +107,7 @@ const executeEmailSentAES = async (param) => {
     receiver,
     subject,
     content,
-    jsonServiceResponse = [],
+    jsonServiceResponse,
     offset,
     jsonEmailServerConfig,
   } = param;
@@ -172,6 +172,7 @@ const executeRequestSignUpPSU = async (param, res) => {
     request.input("p_nvcMothersMaidenName", sql.NVarChar, mothersMaidenName);
     request.input("p_nvcPhoneNumber", sql.NVarChar, phoneNumber);
     request.input("p_chrOffset", sql.Char, offset);
+    request.input("p_bitHasAcceptedTC", sql.Bit, 1);
     request.execute("authSch.USPrequestSignUp", async (err, result, value) => {
       if (err) {
         res.status(500).send({});
@@ -182,7 +183,11 @@ const executeRequestSignUpPSU = async (param, res) => {
             .status(resultRecordset.stateCode)
             .send({ response: resultRecordset });
         } else {
-          const objectResponseDataBase = { offset, ...result.recordset[0] };
+          const objectResponseDataBase = {
+            ...result.recordset[0],
+            offset,
+            jsonServiceResponse: result.recordset[0].stateCode,
+          };
           await executeEmailSentAES(objectResponseDataBase);
           res.status(200).send({
             result: { idRequestSignUp: result.recordset[0].idRequestSignUp },
