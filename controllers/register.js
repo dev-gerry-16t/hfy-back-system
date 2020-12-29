@@ -172,6 +172,7 @@ const executeRequestSignUpPSU = async (param, res) => {
     request.input("p_nvcMothersMaidenName", sql.NVarChar, mothersMaidenName);
     request.input("p_nvcPhoneNumber", sql.NVarChar, phoneNumber);
     request.input("p_chrOffset", sql.Char, offset);
+    request.input("p_bitHasAcceptedTC", sql.Bit, 1);
     request.execute("authSch.USPrequestSignUp", async (err, result, value) => {
       if (err) {
         res.status(500).send({});

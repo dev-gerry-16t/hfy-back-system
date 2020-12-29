@@ -32,8 +32,8 @@ const executeLoginUser = async (params, res) => {
         ) {
           res.status(500).send({ response: result.recordset[0] });
         } else if (result) {
-          console.log("result", result);
           const idUser = result.recordset[0].idSystemUser;
+          const tokenExpires = result.recordset[0].tokenExpiration;
           const payload = {
             name: email,
             idSystemUser: idUser,
@@ -42,7 +42,7 @@ const executeLoginUser = async (params, res) => {
             payload,
             GLOBAL_CONSTANTS.MASTER_KEY_PERMISSION,
             {
-              expiresIn: 3600,
+              expiresIn: tokenExpires,
             }
           );
 
