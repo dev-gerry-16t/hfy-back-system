@@ -22,5 +22,6 @@ router.post(
   "/customer/getTendantCoincidences",
   ControllerCustomer.getTendantCoincidences
 );
+router.post("/customer/addProperty", ControllerCustomer.addProperty);
 
 module.exports = router;
