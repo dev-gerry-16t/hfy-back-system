@@ -1,5 +1,5 @@
 const sql = require("mssql");
-const imageThumbnail = require("image-thumbnail");
+//const imageThumbnail = require("image-thumbnail");
 const AWS = require("aws-sdk");
 const GLOBAL_CONSTANTS = require("../constants/constants");
 
@@ -51,28 +51,28 @@ const ControllerTest = {
     );
   },
   viewThumbnail: async (req, res) => {
-    const fileType = "jpg";
-    s3.getObject(
-      {
-        Bucket: "homify-docs-users",
-        Key: `8A7198C9-AE07-4ADD-AF34-60E84758296D.${fileType}`,
-      },
-      async (err, data) => {
-        const options = {
-          width: 30,
-          responseType: "buffer",
-          jpegOptions: { force: false, quality: 50 },
-        };
-        const thumbnail = await imageThumbnail(data.Body, options);
-        console.log(thumbnail);
-        const buff = new Buffer.from(thumbnail, "binary");
-        res.writeHead(200, {
-          "Content-Type": "image/png",
-          "Content-Length": buff.length,
-        });
-        res.end(buff);
-      }
-    );
+    // const fileType = "jpg";
+    // s3.getObject(
+    //   {
+    //     Bucket: "homify-docs-users",
+    //     Key: `8A7198C9-AE07-4ADD-AF34-60E84758296D.${fileType}`,
+    //   },
+    //   async (err, data) => {
+    //     const options = {
+    //       width: 30,
+    //       responseType: "buffer",
+    //       jpegOptions: { force: false, quality: 50 },
+    //     };
+    //     const thumbnail = await imageThumbnail(data.Body, options);
+    //     console.log(thumbnail);
+    //     const buff = new Buffer.from(thumbnail, "binary");
+    //     res.writeHead(200, {
+    //       "Content-Type": "image/png",
+    //       "Content-Length": buff.length,
+    //     });
+    //     res.end(buff);
+    //   }
+    // );
   },
   downloadFiles: async (req, res) => {
     const fileType = "jpg";
