@@ -27,8 +27,13 @@ app.listen(port, () => {
 });
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
-app.use(cors({origin: true, credentials: true}));
+app.use(cors({ origin: true, credentials: true }));
 app.use(upload);
 
+app.get("/", (req, res) => {
+  res
+    .status(200)
+    .send(`Bienvenido al Backend homify :) ${GLOBAL_CONSTANTS.VERSION}`);
+});
 app.use("/api", projectRoutes);
 app.use("/apiAccess", verifyToken, protectRoutes);
