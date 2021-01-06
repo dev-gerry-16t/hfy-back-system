@@ -154,7 +154,6 @@ const executeRequestSignUpPSU = async (param, res) => {
     idInvitation = null,
     hasAcceptedTC = 1,
   } = param;
-
   try {
     const request = new sql.Request();
     request.input("p_nvcUsernameRequested", sql.NVarChar, username);
@@ -204,7 +203,7 @@ const executeRequestSignUpVCFSU = async (param, res) => {
     request.input("p_nvcIdRequestSignUp", sql.NVarChar, idRequestSignUp);
     request.input("p_vchCode", sql.VarChar, code);
     request.input("p_chrOffset", sql.Char, offset);
-    //request.input("p_uidIdInvitation", sql.NVarChar, idInvitation);
+    request.input("p_nvcIdInvitation", sql.NVarChar, idInvitation);
     request.execute("authSch.USPverifyCodeForSignUp", (err, result) => {
       if (err) {
         console.log("error", err);
