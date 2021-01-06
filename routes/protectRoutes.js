@@ -19,8 +19,8 @@ router.post("/systemUser/userProfile", ControllerAuth.userProfile);
 router.post("/systemUser/menuProfile", ControllerAuth.userMenuProfile);
 router.post("/customer/getCustomerById", ControllerCustomer.getCustomerById);
 router.post(
-  "/customer/getTendantCoincidences",
-  ControllerCustomer.getTendantCoincidences
+  "/customer/getTenantCoincidences",
+  ControllerCustomer.getTenantCoincidences
 );
 router.post("/customer/addProperty", ControllerCustomer.addProperty);
 router.post(

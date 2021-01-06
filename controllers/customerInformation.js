@@ -30,7 +30,7 @@ const executeGetCustomerById = async (params, res) => {
   }
 };
 
-const executeTendantCoincidences = async (params, res) => {
+const executeTenantCoincidences = async (params, res) => {
   const {
     idCustomer,
     idSystemUser,
@@ -83,6 +83,7 @@ const executeAddProperty = async (params, res) => {
     offset = "-06:00",
   } = params;
   try {
+    const parseDepartment = JSON.stringify(departament);
     const request = new sql.Request();
     request.input("p_nvcIdCustomer", sql.NVarChar, idCustomer);
     request.input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser);
@@ -104,7 +105,7 @@ const executeAddProperty = async (params, res) => {
       secondStreetReference
     );
     request.input("p_intTotalSuites", sql.Int, totalSuites);
-    request.input("p_nvcDepartment", sql.NVarChar, departament);
+    request.input("p_nvcDepartment", sql.NVarChar, parseDepartment);
     request.input("p_chrOffset", sql.Char, offset);
     request.input("p_nvcIdLoginHistory", sql.NVarChar, idLoginHistory);
     request.execute("customerSch.USPaddProperty", (err, result) => {
@@ -112,8 +113,9 @@ const executeAddProperty = async (params, res) => {
         res.status(500).send({ response: "Error en los parametros" });
       } else {
         const resultRecordset = result.recordset;
-        res.status(200).send({
-          response: resultRecordset,
+        const statusResponse = resultRecordset[0].stateCode;
+        res.status(statusResponse).send({
+          response: resultRecordset[0],
         });
       }
     });
@@ -233,6 +235,58 @@ const executeMailTo = async (params) => {
   });
 };
 
+const executeEmailSentAES = async (param) => {
+  const {
+    idEmailStatus = 1,
+    idEmailTemplate = 1,
+    idRequestSignUp,
+    idUserSender,
+    idUserReceiver = null,
+    sender,
+    receiver,
+    subject,
+    content,
+    jsonServiceResponse,
+    offset,
+    jsonEmailServerConfig,
+    idInvitation,
+  } = param;
+  const configEmailServer = JSON.parse(jsonEmailServerConfig);
+  try {
+    const request = new sql.Request();
+    request.input("p_intIdEmailStatus", sql.Int, idEmailStatus);
+    request.input("p_intIdEmailTemplate", sql.Int, idEmailTemplate);
+    request.input("p_nvcIdRequesSignUp", sql.NVarChar, idRequestSignUp);
+    request.input("p_nvcIdUserSender", sql.NVarChar, idUserSender);
+    request.input("p_nvcIdUserReceiver", sql.NVarChar, idUserReceiver);
+    request.input("p_nvcSender", sql.NVarChar, sender);
+    request.input("p_nvcReceiver", sql.NVarChar, receiver);
+    request.input("p_nvcSubject", sql.NVarChar, subject);
+    request.input("p_nvcContent", sql.NVarChar, content);
+    request.input(
+      "p_nvcJsonServiceResponse",
+      sql.NVarChar,
+      jsonServiceResponse
+    );
+    request.input("p_chrOffset", sql.Char, offset);
+    request.input("p_nvcIdInvitation", sql.NVarChar, idInvitation);
+    await request.execute("comSch.USPaddEmailSent", async (err, result) => {
+      if (err) {
+        console.log("err", err);
+      } else if (result) {
+        await executeMailTo({
+          sender,
+          receiver,
+          content,
+          subject,
+          offset,
+          ...configEmailServer,
+        });
+      }
+    });
+  } catch (error) {}
+};
+
 const executeSendTenantInvitation = async (params, res) => {
   const {
     idCustomer,
@@ -267,22 +321,12 @@ const executeSendTenantInvitation = async (params, res) => {
               .status(resultRecordset.stateCode)
               .send({ response: resultRecordset });
           } else {
-            const {
-              sender,
-              receiver,
-              content,
-              subject,
-              jsonEmailServerConfig,
-            } = resultRecordset;
-            const configEmailServer = JSON.parse(jsonEmailServerConfig);
-            await executeMailTo({
-              sender,
-              receiver,
-              content,
-              subject,
+            const objectResponseDataBase = {
+              ...result.recordset[0],
               offset,
-              ...configEmailServer,
-            });
+              jsonServiceResponse: result.recordset[0].stateCode,
+            };
+            await executeEmailSentAES(objectResponseDataBase);
             res.status(200).send({
               result: resultRecordset,
             });
@@ -301,9 +345,9 @@ const ControllerCustomer = {
     const params = req.body;
     executeGetCustomerById(params, res);
   },
-  getTendantCoincidences: (req, res) => {
+  getTenantCoincidences: (req, res) => {
     const params = req.body;
-    executeTendantCoincidences(params, res);
+    executeTenantCoincidences(params, res);
   },
   addProperty: (req, res) => {
     const params = req.body;
