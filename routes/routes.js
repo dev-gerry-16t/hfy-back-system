@@ -22,5 +22,9 @@ router.post("/personType/getAllPerson", ControllerRegister.personType);
 router.post("/endorsement/getAllEndorsement", ControllerRegister.endorsement);
 router.post("/requestSignUp", ControllerRegister.signUp);
 router.post("/requestSignUp/verifyCode", ControllerRegister.verifyCode);
+router.get(
+  "/customerType/getInvitation/:idInvitation",
+  ControllerRegister.getInvitation
+);
 
 module.exports = router;

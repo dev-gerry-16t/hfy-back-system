@@ -1,15 +1,6 @@
 const sql = require("mssql");
 const nodemailer = require("nodemailer");
-const Module = require("module");
-const fs = require("fs");
 const ERROR_SQL = require("../constants/errors");
-
-Module._extensions[".jpg"] = (module, fn) => {
-  var base64 = fs.readFileSync(fn).toString("base64");
-  module._compile('module.exports="data:image/jpg;base64,' + base64 + '"', fn);
-};
-
-const image = require("../assets/homify-mail.jpg");
 
 const executeRegister = async (params, res) => {
   const { email, password, name, surname } = params;
@@ -110,6 +101,7 @@ const executeEmailSentAES = async (param) => {
     jsonServiceResponse,
     offset,
     jsonEmailServerConfig,
+    idInvitation,
   } = param;
   const configEmailServer = JSON.parse(jsonEmailServerConfig);
   try {
@@ -129,6 +121,7 @@ const executeEmailSentAES = async (param) => {
       jsonServiceResponse
     );
     request.input("p_chrOffset", sql.Char, offset);
+    request.input("p_nvcIdInvitation", sql.NVarChar, idInvitation);
     await request.execute("comSch.USPaddEmailSent", async (err, result) => {
       if (err) {
         console.log("err", err);
@@ -158,6 +151,8 @@ const executeRequestSignUpPSU = async (param, res) => {
     mothersMaidenName,
     phoneNumber,
     offset = "-06:00",
+    idInvitation = null,
+    hasAcceptedTC = 1,
   } = param;
 
   try {
@@ -172,7 +167,8 @@ const executeRequestSignUpPSU = async (param, res) => {
     request.input("p_nvcMothersMaidenName", sql.NVarChar, mothersMaidenName);
     request.input("p_nvcPhoneNumber", sql.NVarChar, phoneNumber);
     request.input("p_chrOffset", sql.Char, offset);
-    request.input("p_bitHasAcceptedTC", sql.Bit, 1);
+    request.input("p_bitHasAcceptedTC", sql.Bit, hasAcceptedTC);
+    request.input("p_nvcIdInvitation", sql.NVarChar, idInvitation);
     request.execute("authSch.USPrequestSignUp", async (err, result, value) => {
       if (err) {
         res.status(500).send({});
@@ -186,6 +182,7 @@ const executeRequestSignUpPSU = async (param, res) => {
           const objectResponseDataBase = {
             ...result.recordset[0],
             offset,
+            idInvitation,
             jsonServiceResponse: result.recordset[0].stateCode,
           };
           await executeEmailSentAES(objectResponseDataBase);
@@ -201,12 +198,13 @@ const executeRequestSignUpPSU = async (param, res) => {
 };
 
 const executeRequestSignUpVCFSU = async (param, res) => {
-  const { idRequestSignUp, code, offset } = param;
+  const { idRequestSignUp, code, offset, idInvitation = null } = param;
   try {
     const request = new sql.Request();
     request.input("p_nvcIdRequestSignUp", sql.NVarChar, idRequestSignUp);
     request.input("p_vchCode", sql.VarChar, code);
     request.input("p_chrOffset", sql.Char, offset);
+    //request.input("p_uidIdInvitation", sql.NVarChar, idInvitation);
     request.execute("authSch.USPverifyCodeForSignUp", (err, result) => {
       if (err) {
         console.log("error", err);
@@ -222,6 +220,24 @@ const executeRequestSignUpVCFSU = async (param, res) => {
             response: resultRecordset,
           });
         }
+      }
+    });
+  } catch (error) {}
+};
+
+const executeGetInvitation = async (param, res) => {
+  const { idInvitation } = param;
+  try {
+    const request = new sql.Request();
+    request.input("p_nvcIdInvitation", sql.NVarChar, idInvitation);
+    request.execute("customerSch.USPgetInvitation", (err, result) => {
+      if (err) {
+        res.status(500).send({ response: "Error en los parametros" });
+      } else {
+        const resultRecordset = result.recordset[0];
+        res.status(200).send({
+          response: resultRecordset,
+        });
       }
     });
   } catch (error) {}
@@ -254,6 +270,10 @@ const ControllerRegister = {
   verifyCode: (req, res) => {
     const params = req.body;
     executeRequestSignUpVCFSU(params, res);
+  },
+  getInvitation: (req, res) => {
+    const params = req.params;
+    executeGetInvitation(params, res);
   },
 };
 
