@@ -91,9 +91,9 @@ const executeAddProperty = async (params, res) => {
     request.input("p_nvcSuite", sql.NVarChar, suite);
     request.input("p_nvcStreetNumber", sql.NVarChar, streetNumber);
     request.input("p_nvcNeighborhood", sql.NVarChar, neighborhood);
-    request.input("p_nvcState", sql.NVarChar, state);
+    //request.input("p_nvcState", sql.NVarChar, state);
     request.input("p_nvcCity", sql.NVarChar, city);
-    request.input("p_nvcZipCode", sql.NVarChar, zipCode);
+    //request.input("p_nvcZipCode", sql.NVarChar, zipCode);
     request.input(
       "p_nvcFirstStreetReference",
       sql.NVarChar,
@@ -108,6 +108,7 @@ const executeAddProperty = async (params, res) => {
     request.input("p_nvcDepartment", sql.NVarChar, parseDepartment);
     request.input("p_chrOffset", sql.Char, offset);
     request.input("p_nvcIdLoginHistory", sql.NVarChar, idLoginHistory);
+    request.input("p_intIdZipCode", sql.Int, zipCode);
     request.execute("customerSch.USPaddProperty", (err, result) => {
       if (err) {
         res.status(500).send({ response: "Error en los parametros" });
@@ -207,6 +208,245 @@ const executeGetAllApartments = async (params, res) => {
         }
       }
     );
+  } catch (err) {
+    console.log("ERROR", err);
+    // ... error checks
+  }
+};
+
+const executeGetCustomerTenants = async (params, res) => {
+  const { idCustomer, idSystemUser, idLoginHistory, type } = params;
+  try {
+    const request = new sql.Request();
+    request.input("p_nvcIdCustomer", sql.NVarChar, idCustomer);
+    request.input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser);
+    request.input("p_nvcIdLoginHistory", sql.NVarChar, idLoginHistory);
+    request.input("p_intType", sql.Int, type);
+    request.execute("customerSch.USPgetAllCustomerTenants", (err, result) => {
+      if (err) {
+        res.status(500).send({ response: "Error en los parametros" });
+      } else {
+        const resultRecordset = result.recordset;
+        res.status(200).send({
+          response: resultRecordset,
+        });
+      }
+    });
+  } catch (err) {
+    console.log("ERROR", err);
+    // ... error checks
+  }
+};
+
+const executeGetTenantsById = async (params, res) => {
+  const {
+    idCustomer,
+    idSystemUser,
+    idLoginHistory,
+    idCustomerTenant,
+    offset = "-06:00",
+  } = params;
+  try {
+    const request = new sql.Request();
+    request.input("p_nvcIdCustomer", sql.NVarChar, idCustomer);
+    request.input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser);
+    request.input("p_nvcIdLoginHistory", sql.NVarChar, idLoginHistory);
+    request.input("p_nvcIdCustomerTenant", sql.NVarChar, idCustomerTenant);
+    request.input("p_chrOffset", sql.Char, offset);
+    request.execute("customerSch.USPgetCustomerTenantById", (err, result) => {
+      if (err) {
+        res.status(500).send({ response: "Error en los parametros" });
+      } else {
+        const resultRecordset = result.recordset;
+        res.status(200).send({
+          response: resultRecordset,
+        });
+      }
+    });
+  } catch (err) {
+    console.log("ERROR", err);
+    // ... error checks
+  }
+};
+
+const executeGetAllBanks = async (params, res) => {
+  const { idCustomer, idSystemUser, idLoginHistory, type } = params;
+  try {
+    const request = new sql.Request();
+    request.input("p_nvcIdCustomer", sql.NVarChar, idCustomer);
+    request.input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser);
+    request.input("p_nvcIdLoginHistory", sql.NVarChar, idLoginHistory);
+    request.input("p_intType", sql.Int, type);
+    request.execute("catPaymentSch.USPgetAllBanks", (err, result) => {
+      if (err) {
+        res.status(500).send({ response: "Error en los parametros" });
+      } else {
+        const resultRecordset = result.recordset;
+        res.status(200).send({
+          response: resultRecordset,
+        });
+      }
+    });
+  } catch (err) {
+    console.log("ERROR", err);
+    // ... error checks
+  }
+};
+
+const executeGetAdressZipCode = async (params, res) => {
+  const { idCustomer, idSystemUser, idLoginHistory, type, zipCode } = params;
+  try {
+    const request = new sql.Request();
+    request.input("p_nvcIdCustomer", sql.NVarChar, idCustomer);
+    request.input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser);
+    request.input("p_nvcIdLoginHistory", sql.NVarChar, idLoginHistory);
+    request.input("p_nvcZipCode", sql.NVarChar, zipCode);
+    request.input("p_intType", sql.Int, type);
+    request.execute("addressSch.USPgetAddressByZipCode", (err, result) => {
+      if (err) {
+        res.status(500).send({ response: "Error en los parametros" });
+      } else {
+        const resultRecordset1 = result.recordsets[0];
+        const resultRecordset2 = result.recordsets[1];
+        res.status(200).send({
+          response1: resultRecordset1,
+          response2: resultRecordset2,
+        });
+      }
+    });
+  } catch (err) {
+    console.log("ERROR", err);
+    // ... error checks
+  }
+};
+
+const executeGetAllPayments = async (params, res) => {
+  const {
+    idCustomer,
+    idSystemUser,
+    idLoginHistory,
+    type,
+    idCustomerTenant,
+    idContract,
+    offset = "-06:00",
+  } = params;
+  try {
+    const request = new sql.Request();
+    request.input("p_nvcIdCustomer", sql.NVarChar, idCustomer);
+    request.input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser);
+    request.input("p_nvcIdLoginHistory", sql.NVarChar, idLoginHistory);
+    request.input("p_nvcIdCustomerTenant", sql.NVarChar, idCustomerTenant);
+    request.input("p_nvcIdContract", sql.NVarChar, idContract);
+    request.input("p_intType", sql.Int, type);
+    request.input("p_chrOffset", sql.Char, offset);
+    request.execute("catPaymentSch.USPgetAllPaymentTypes", (err, result) => {
+      if (err) {
+        res.status(500).send({ response: "Error en los parametros" });
+      } else {
+        const resultRecordset = result.recordset;
+        res.status(200).send({
+          response: resultRecordset,
+        });
+      }
+    });
+  } catch (err) {
+    console.log("ERROR", err);
+    // ... error checks
+  }
+};
+
+const executeGetAllPaymentInContract = async (params, res) => {
+  const {
+    idCustomer,
+    idSystemUser,
+    idLoginHistory,
+    idCustomerTenant,
+    idContract,
+    idIncidence,
+    idPaymentType,
+    paymentDate,
+    amount,
+    advancingRents,
+    documents,
+    offset = "-06:00",
+  } = params;
+  try {
+    const request = new sql.Request();
+    request.input("p_nvcIdCustomer", sql.NVarChar, idCustomer);
+    request.input("p_nvcIdCustomerTenant", sql.NVarChar, idCustomerTenant);
+    request.input("p_nvcIdContract", sql.NVarChar, idContract);
+    request.input("p_nvcIdIncidence", sql.NVarChar, idIncidence);
+    request.input("p_intIdPaymentType", sql.Int, idPaymentType);
+    request.input("p_datPaymentDate", sql.Date, paymentDate);
+    request.input("p_decAmount", sql.Decimal, amount);
+    request.input("p_intAdvancingRents", sql.Int, advancingRents);
+    request.input("p_nvcDocuments", sql.NVarChar, documents);
+    request.input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser);
+    request.input("p_nvcIdLoginHistory", sql.NVarChar, idLoginHistory);
+    request.input("p_chrOffset", sql.Char, offset);
+    request.execute("paymentSch.USPaddPaymentInContract", (err, result) => {
+      if (err) {
+        res.status(500).send({ response: "Error en los parametros" });
+      } else {
+        const resultRecordset = result.recordset;
+        if (resultRecordset[0].stateCode !== 200) {
+          res
+            .status(resultRecordset[0].stateCode)
+            .send({ response: resultRecordset });
+        } else {
+          res.status(200).send({
+            response: resultRecordset,
+          });
+        }
+      }
+    });
+  } catch (err) {
+    console.log("ERROR", err);
+    // ... error checks
+  }
+};
+
+const executeRequestAdvance = async (params, res) => {
+  const {
+    idCustomer,
+    idSystemUser,
+    idLoginHistory,
+    idContract,
+    advanceRents,
+    accountHolder,
+    accountNumber,
+    clabeNumber,
+    idBank,
+    offset = "-06:00",
+  } = params;
+  try {
+    const request = new sql.Request();
+    request.input("p_nvcIdCustomer", sql.NVarChar, idCustomer);
+    request.input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser);
+    request.input("p_nvcIdLoginHistory", sql.NVarChar, idLoginHistory);
+    request.input("p_nvcIdContract", sql.NVarChar, idContract);
+    request.input("p_intMaximumAdvanceRents", sql.Int, advanceRents);
+    request.input("p_nvcAccountHolder", sql.NVarChar, accountHolder);
+    request.input("p_nvcAccountNumber", sql.NVarChar, accountNumber);
+    request.input("p_nvcClabeNumber", sql.NVarChar, clabeNumber);
+    request.input("p_nvcIdBank", sql.NVarChar, idBank);
+    request.input("p_chrOffset", sql.Char, offset);
+    request.execute("customerSch.USPrequestAdvancePymt", (err, result) => {
+      if (err) {
+        res.status(500).send({ response: "Error en los parametros" });
+      } else {
+        const resultRecordset = result.recordset;
+        if (resultRecordset[0].stateCode !== 200) {
+          res.status(resultRecordset[0].stateCode).send({
+            response: resultRecordset,
+          });
+        } else {
+          res.status(200).send({
+            response: resultRecordset,
+          });
+        }
+      }
+    });
   } catch (err) {
     console.log("ERROR", err);
     // ... error checks
@@ -371,6 +611,34 @@ const ControllerCustomer = {
   getStatsChart: (req, res) => {
     const params = req.body;
     executeGetStatsChart(params, res);
+  },
+  getCustomerTenants: (req, res) => {
+    const params = req.body;
+    executeGetCustomerTenants(params, res);
+  },
+  getAllBanks: (req, res) => {
+    const params = req.body;
+    executeGetAllBanks(params, res);
+  },
+  requestAdvance: (req, res) => {
+    const params = req.body;
+    executeRequestAdvance(params, res);
+  },
+  getAdressZipCode: (req, res) => {
+    const params = req.body;
+    executeGetAdressZipCode(params, res);
+  },
+  getCustomerTenantsById: (req, res) => {
+    const params = req.body;
+    executeGetTenantsById(params, res);
+  },
+  getAllPayments: (req, res) => {
+    const params = req.body;
+    executeGetAllPayments(params, res);
+  },
+  getAllPaymentInContract: (req, res) => {
+    const params = req.body;
+    executeGetAllPaymentInContract(params, res);
   },
 };
 
