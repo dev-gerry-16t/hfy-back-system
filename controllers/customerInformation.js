@@ -75,7 +75,7 @@ const executeAddProperty = async (params, res) => {
     neighborhood,
     city,
     state,
-    zipCode,
+    idZipCode,
     firstStreetReference,
     secondStreetReference,
     totalSuites,
@@ -108,7 +108,7 @@ const executeAddProperty = async (params, res) => {
     request.input("p_nvcDepartment", sql.NVarChar, parseDepartment);
     request.input("p_chrOffset", sql.Char, offset);
     request.input("p_nvcIdLoginHistory", sql.NVarChar, idLoginHistory);
-    request.input("p_intIdZipCode", sql.Int, zipCode);
+    request.input("p_intIdZipCode", sql.Int, idZipCode);
     request.execute("customerSch.USPaddProperty", (err, result) => {
       if (err) {
         res.status(500).send({ response: "Error en los parametros" });
