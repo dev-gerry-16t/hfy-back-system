@@ -19,7 +19,7 @@ const storage = multer.memoryStorage({
     callback(null, "");
   },
 });
-const upload = multer({ storage }).single("image");
+const upload = multer(storage).single("file");
 app.listen(port, () => {
   console.log(
     `Welcome to homify backend, you are connected to port ${GLOBAL_CONSTANTS.PORT} in version ${GLOBAL_CONSTANTS.VERSION}`
