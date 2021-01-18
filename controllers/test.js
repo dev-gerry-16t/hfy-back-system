@@ -34,13 +34,17 @@ const ControllerTest = {
     });
   },
   viewFiles: async (req, res) => {
+    const params = req.params;
     const fileType = "jpg";
+    const bucketSource = params.bucketSource.toLowerCase();
+    console.log("params", params);
     s3.getObject(
       {
-        Bucket: "homify-docs-users",
-        Key: `8A7198C9-AE07-4ADD-AF34-60E84758296D.${fileType}`,
+        Bucket: bucketSource,
+        Key: params.idDocument,
       },
       (err, data) => {
+        if (err) throw err;
         const buff = new Buffer.from(data.Body, "binary");
         res.writeHead(200, {
           "Content-Type": "image/png",

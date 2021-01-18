@@ -55,6 +55,8 @@ router.post(
 
 //Documents//
 router.post("/addDocument", ControllerDocuments.addDocument);
+router.post("/customer/getAllDocumentTypes", ControllerDocuments.getAllDocumentTypes);
+router.post("/customer/getPaymentInContractDocument", ControllerDocuments.getPaymentInContractDocument);
 //Documents//
 
 module.exports = router;
