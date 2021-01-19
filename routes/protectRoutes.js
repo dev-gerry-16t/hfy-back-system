@@ -5,15 +5,7 @@ const router = express.Router();
 const ControllerAuth = require("../controllers/authInitProfile");
 const ControllerCustomer = require("../controllers/customerInformation");
 const ControllerDocuments = require("../controllers/repositoryDocuments");
-router.post("/testToken", (req, res) => {
-  res.json({
-    error: null,
-    data: {
-      title: "mi ruta protegida",
-      user: req.user,
-    },
-  });
-});
+const ControllerMessages = require("../controllers/messagesUser");
 
 router.post("/systemUser/userProfile", ControllerAuth.userProfile);
 router.post("/systemUser/menuProfile", ControllerAuth.userMenuProfile);
@@ -55,8 +47,25 @@ router.post(
 
 //Documents//
 router.post("/addDocument", ControllerDocuments.addDocument);
-router.post("/customer/getAllDocumentTypes", ControllerDocuments.getAllDocumentTypes);
-router.post("/customer/getPaymentInContractDocument", ControllerDocuments.getPaymentInContractDocument);
+router.post(
+  "/customer/getAllDocumentTypes",
+  ControllerDocuments.getAllDocumentTypes
+);
+router.post(
+  "/customer/getPaymentInContractDocument",
+  ControllerDocuments.getPaymentInContractDocument
+);
 //Documents//
+
+//Messages//
+router.post(
+  "/customer/addCustomerMessage",
+  ControllerMessages.addCustomerMessage
+);
+router.post(
+  "/customer/getCustomerMessage",
+  ControllerMessages.getCustomerMessage
+);
+//Messages//
 
 module.exports = router;

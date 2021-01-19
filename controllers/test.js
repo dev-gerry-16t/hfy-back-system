@@ -37,7 +37,6 @@ const ControllerTest = {
     const params = req.params;
     const fileType = "jpg";
     const bucketSource = params.bucketSource.toLowerCase();
-    console.log("params", params);
     s3.getObject(
       {
         Bucket: bucketSource,
