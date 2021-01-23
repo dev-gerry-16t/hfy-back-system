@@ -10,7 +10,7 @@ var router = express.Router();
 
 router.get("/", ControllerTest.test);
 router.get("/test", ControllerTest.testPath);
-router.get("/viewObjects", ControllerTest.viewFiles);
+router.get("/viewFile/:idDocument/:bucketSource", ControllerTest.viewFiles);
 router.get("/viewThumbnail", ControllerTest.viewThumbnail);
 router.get("/downloadFile", ControllerTest.downloadFiles);
 router.post("/uploadBucket", ControllerTest.upload);
