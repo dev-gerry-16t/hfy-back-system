@@ -137,6 +137,39 @@ const executeGetPaymentInContractDocument = async (params, res) => {
   }
 };
 
+const executeGetTypeFormDocument = async (params, res) => {
+  const {
+    idCustomer,
+    idCustomerTenant,
+    idTypeForm,
+    idSystemUser,
+    idLoginHistory,
+    offset = "-06:00",
+  } = params;
+  try {
+    const request = new sql.Request();
+    request.input("p_nvcIdCustomer", sql.NVarChar, idCustomer);
+    request.input("p_nvcIdCustomerTenant", sql.NVarChar, idCustomerTenant);
+    request.input("p_nvcIdTypeForm", sql.NVarChar, idTypeForm);
+    request.input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser);
+    request.input("p_nvcIdLoginHistory", sql.NVarChar, idLoginHistory);
+    request.input("p_chrOffset", sql.Char, offset);
+    request.execute("customerSch.USPgetTypeFormDocument", (err, result) => {
+      if (err) {
+        res.status(500).send({ response: "Error en los parametros" });
+      } else {
+        const resultRecordset = result.recordset;
+        res.status(200).send({
+          response: resultRecordset,
+        });
+      }
+    });
+  } catch (err) {
+    console.log("ERROR", err);
+    // ... error checks
+  }
+};
+
 const ControllerDocuments = {
   addDocument: (req, res) => {
     const params = JSON.parse(req.body.fileProperties);
@@ -150,6 +183,10 @@ const ControllerDocuments = {
   getPaymentInContractDocument: (req, res) => {
     const params = req.body;
     executeGetPaymentInContractDocument(params, res);
+  },
+  getTypeFormDocument: (req, res) => {
+    const params = req.body;
+    executeGetTypeFormDocument(params, res);
   },
 };
 
