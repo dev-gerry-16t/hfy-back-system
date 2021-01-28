@@ -76,6 +76,10 @@ router.post(
 //TypeForm//
 router.post("/typeForm/getTypeForm", ControllerTypeForm.getTypeForm);
 router.post("/typeForm/setTypeForm", ControllerTypeForm.setTypeForm);
+router.put(
+  "/typeForm/addTypeFormDocument/:idDocument",
+  ControllerTypeForm.addTypeFormDocument
+);
 //TypeForm//
 
 module.exports = router;

@@ -35,54 +35,55 @@ const executeGetTypeForm = async (params, res) => {
 
 const executeSetTypeForm = async (params, res) => {
   const {
-    idCustomer,
-    idCustomerTenant,
-    idSystemUser,
-    idLoginHistory,
+    idCustomer = null,
+    idCustomerTenant = null,
+    idSystemUser = null,
+    idLoginHistory = null,
     offset = "-06:00",
-    idTypeForm,
-    givenName,
-    lastName,
-    mothersMaidenName,
-    phoneNumber,
-    emailAddress,
-    taxId,
-    citizenId,
-    hasCar,
-    carriagePlate,
-    street,
-    suite,
-    streetNumber,
-    idZipCode,
-    neighborhood,
-    isOwn,
-    currentTimeRange,
-    currentTime,
-    jobPosition,
-    economicDependents,
-    companyName,
-    currentSalary,
-    antiquityTimeRange,
-    antiquity,
-    bossName,
-    bossEmailAddress,
-    hasEndorsement,
-    endorsementGivenName,
-    endorsementLastName,
-    endorsementMothersMaidenName,
-    endorsementEmailAddress,
-    endorsementPhoneNumber,
-    collateralPropertyStreet,
-    collateralPropertySuite,
-    collateralPropertyStreetNumber,
-    collateralPropertyIdZipCoode,
-    collateralPropertyNeighborhood,
-    documentNumber,
-    documentSignedAt,
-    notaryOfficeNumber,
-    notaryName,
-    signedAtPlace,
+    idTypeForm = null,
+    givenName = null,
+    lastName = null,
+    mothersMaidenName = null,
+    phoneNumber = null,
+    emailAddress = null,
+    taxId = null,
+    citizenId = null,
+    hasCar = null,
+    carriagePlate = null,
+    street = null,
+    suite = null,
+    streetNumber = null,
+    idZipCode = null,
+    neighborhood = null,
+    isOwn = null,
+    currentTimeRange = null,
+    currentTime = null,
+    jobPosition = null,
+    economicDependents = null,
+    companyName = null,
+    currentSalary = null,
+    antiquityTimeRange = null,
+    antiquity = null,
+    bossName = null,
+    bossEmailAddress = null,
+    hasEndorsement = null,
+    endorsementGivenName = null,
+    endorsementLastName = null,
+    endorsementMothersMaidenName = null,
+    endorsementEmailAddress = null,
+    endorsementPhoneNumber = null,
+    collateralPropertyStreet = null,
+    collateralPropertySuite = null,
+    collateralPropertyStreetNumber = null,
+    collateralPropertyIdZipCoode = null,
+    collateralPropertyNeighborhood = null,
+    documentNumber = null,
+    documentSignedAt = null,
+    notaryOfficeNumber = null,
+    notaryName = null,
+    signedAtPlace = null,
   } = params;
+  console.log("params", params);
   try {
     const request = new sql.Request();
     request.input("p_nvcIdCustomer", sql.NVarChar, idCustomer);
@@ -90,7 +91,7 @@ const executeSetTypeForm = async (params, res) => {
     request.input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser);
     request.input("p_nvcIdLoginHistory", sql.NVarChar, idLoginHistory);
     request.input("p_chrOffset", sql.Char, offset);
-    request.input("p_nvcIdtTypeForm", sql.NVarChar, idTypeForm);
+    request.input("p_nvcIdTypeForm", sql.NVarChar, idTypeForm);
     request.input("p_nvcGivenName", sql.NVarChar, givenName);
     request.input("p_nvcLastName", sql.NVarChar, lastName);
     request.input("p_nvcMothersMaidenName", sql.NVarChar, mothersMaidenName);
@@ -179,6 +180,48 @@ const executeSetTypeForm = async (params, res) => {
         res.status(500).send({ response: "Error en los parametros" });
       } else {
         const resultRecordset = result.recordset;
+        if (resultRecordset[0].stateCode !== 200) {
+          res.status(500).send({ response: "Error en los parametros" });
+        } else {
+          res.status(200).send({
+            response: resultRecordset,
+          });
+        }
+      }
+    });
+  } catch (err) {
+    console.log("ERROR", err);
+    // ... error checks
+  }
+};
+
+const executeAddTypeFormDocument = async (params, res, url) => {
+  const {
+    idCustomer,
+    idTypeForm,
+    idCustomerTenant,
+    type,
+    idSystemUser,
+    idLoginHistory,
+    offset = "-06:00",
+  } = params;
+  const { idDocument } = url;
+  try {
+    const request = new sql.Request();
+    request.input("p_nvcIdCustomer", sql.NVarChar, idCustomer);
+    request.input("p_nvcIdTypeForm", sql.NVarChar, idTypeForm);
+    request.input("p_nvcIdCustomerTenant", sql.NVarChar, idCustomerTenant);
+    request.input("p_nvcIdDocument", sql.NVarChar, idDocument);
+    request.input("p_intType", sql.Int, type);
+    request.input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser);
+    request.input("p_nvcIdLoginHistory", sql.NVarChar, idLoginHistory);
+    request.input("p_chrOffset", sql.Char, offset);
+    request.execute("customerSch.USPaddTypeFormDocument", (err, result) => {
+      console.log("err, result", err, result);
+      if (err) {
+        res.status(500).send({ response: "Error en los parametros" });
+      } else {
+        const resultRecordset = result.recordset;
         res.status(200).send({
           response: resultRecordset,
         });
@@ -198,6 +241,11 @@ const ControllerTypeForm = {
   setTypeForm: (req, res) => {
     const params = req.body;
     executeSetTypeForm(params, res);
+  },
+  addTypeFormDocument: (req, res) => {
+    const params = req.body;
+    const paramsUrl = req.params;
+    executeAddTypeFormDocument(params, res, paramsUrl);
   },
 };
 
