@@ -16,7 +16,6 @@ const executeGetTypeForm = async (params, res) => {
     request.input("p_nvcIdLoginHistory", sql.NVarChar, idLoginHistory);
     request.input("p_chrOffset", sql.Char, offset);
     request.execute("customerSch.USPgetTypeForm", (err, result) => {
-      console.log("err, result", err, result);
       if (err) {
         res.status(500).send({ response: "Error en los parametros" });
       } else {

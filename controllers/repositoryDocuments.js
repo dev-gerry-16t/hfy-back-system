@@ -142,6 +142,7 @@ const executeGetTypeFormDocument = async (params, res) => {
     idCustomer,
     idCustomerTenant,
     idTypeForm,
+    type,
     idSystemUser,
     idLoginHistory,
     offset = "-06:00",
@@ -151,6 +152,7 @@ const executeGetTypeFormDocument = async (params, res) => {
     request.input("p_nvcIdCustomer", sql.NVarChar, idCustomer);
     request.input("p_nvcIdCustomerTenant", sql.NVarChar, idCustomerTenant);
     request.input("p_nvcIdTypeForm", sql.NVarChar, idTypeForm);
+    request.input("p_intType", sql.Int, type);
     request.input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser);
     request.input("p_nvcIdLoginHistory", sql.NVarChar, idLoginHistory);
     request.input("p_chrOffset", sql.Char, offset);
