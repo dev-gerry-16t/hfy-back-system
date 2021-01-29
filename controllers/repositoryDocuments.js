@@ -172,6 +172,35 @@ const executeGetTypeFormDocument = async (params, res) => {
   }
 };
 
+const executeGetCustTenantDashboardById = async (params, res) => {
+  const {
+    idCustomer,
+    idSystemUser,
+    idLoginHistory,
+    offset = "-06:00",
+  } = params;
+  try {
+    const request = new sql.Request();
+    request.input("p_nvcIdCustomer", sql.NVarChar, idCustomer);
+    request.input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser);
+    request.input("p_nvcIdLoginHistory", sql.NVarChar, idLoginHistory);
+    request.input("p_chrOffset", sql.Char, offset);
+    request.execute("customerSch.USPgetCustTenantDashboardById", (err, result) => {
+      if (err) {
+        res.status(500).send({ response: "Error en los parametros" });
+      } else {
+        const resultRecordset = result.recordset;
+        res.status(200).send({
+          response: resultRecordset,
+        });
+      }
+    });
+  } catch (err) {
+    console.log("ERROR", err);
+    // ... error checks
+  }
+};
+
 const ControllerDocuments = {
   addDocument: (req, res) => {
     const params = JSON.parse(req.body.fileProperties);
@@ -189,6 +218,10 @@ const ControllerDocuments = {
   getTypeFormDocument: (req, res) => {
     const params = req.body;
     executeGetTypeFormDocument(params, res);
+  },
+  getCustTenantDashboardById: (req, res) => {
+    const params = req.body;
+    executeGetCustTenantDashboardById(params, res);
   },
 };
 

@@ -60,6 +60,10 @@ router.post(
   "/typeForm/getTypeFormDocument",
   ControllerDocuments.getTypeFormDocument
 );
+router.post(
+  "/customer/getCustTenantDashboardById",
+  ControllerDocuments.getCustTenantDashboardById
+);
 //Documents//
 
 //Messages//
