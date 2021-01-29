@@ -34,24 +34,26 @@ const ControllerTest = {
     });
   },
   viewFiles: async (req, res) => {
-    const params = req.params;
-    const fileType = "jpg";
-    const bucketSource = params.bucketSource.toLowerCase();
-    s3.getObject(
-      {
-        Bucket: bucketSource,
-        Key: params.idDocument,
-      },
-      (err, data) => {
-        if (err) throw err;
-        const buff = new Buffer.from(data.Body, "binary");
-        res.writeHead(200, {
-          "Content-Type": "image/png",
-          "Content-Length": buff.length,
-        });
-        res.end(buff);
-      }
-    );
+    try {
+      const params = req.params;
+      const fileType = "jpg";
+      const bucketSource = params.bucketSource.toLowerCase();
+      s3.getObject(
+        {
+          Bucket: bucketSource,
+          Key: params.idDocument,
+        },
+        (err, data) => {
+          if (err) throw err;
+          const buff = new Buffer.from(data.Body, "binary");
+          res.writeHead(200, {
+            "Content-Type": "image/png",
+            "Content-Length": buff.length,
+          });
+          res.end(buff);
+        }
+      );
+    } catch (error) {}
   },
   viewThumbnail: async (req, res) => {
     // const fileType = "jpg";

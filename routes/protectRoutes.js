@@ -57,8 +57,8 @@ router.post(
   ControllerDocuments.getPaymentInContractDocument
 );
 router.post(
-  "/getTypeFormDocument",
-  ControllerDocuments.getPaymentInContractDocument
+  "/typeForm/getTypeFormDocument",
+  ControllerDocuments.getTypeFormDocument
 );
 //Documents//
 
@@ -74,8 +74,12 @@ router.post(
 //Messages//
 
 //TypeForm//
-router.post("/getTypeForm", ControllerTypeForm.getTypeForm);
-router.post("/setTypeForm", ControllerTypeForm.setTypeForm);
+router.post("/typeForm/getTypeForm", ControllerTypeForm.getTypeForm);
+router.post("/typeForm/setTypeForm", ControllerTypeForm.setTypeForm);
+router.put(
+  "/typeForm/addTypeFormDocument/:idDocument",
+  ControllerTypeForm.addTypeFormDocument
+);
 //TypeForm//
 
 module.exports = router;
