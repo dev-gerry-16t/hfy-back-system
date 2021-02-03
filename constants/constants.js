@@ -1,5 +1,5 @@
 const GLOBAL_CONSTANTS = {
-  VERSION: "v0.0.15",
+  VERSION: "v0.0.16",
   PORT: 3001,
   USER_DATABASE: "admin",
   PASS_DATABASE: "Hfy2020Db#",
