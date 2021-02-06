@@ -3,8 +3,8 @@ const AWS = require("aws-sdk");
 const GLOBAL_CONSTANTS = require("../constants/constants");
 
 const s3 = new AWS.S3({
-  accessKeyId: "AKIAJZ2VBYROHPNFRTKA",
-  secretAccessKey: "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",
+  accessKeyId: GLOBAL_CONSTANTS.ACCESS_KEY_ID,
+  secretAccessKey: GLOBAL_CONSTANTS.SECRET_ACCESS_KEY,
 });
 
 const executeAddDocument = async (params, res, file) => {
@@ -185,16 +185,19 @@ const executeGetCustTenantDashboardById = async (params, res) => {
     request.input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser);
     request.input("p_nvcIdLoginHistory", sql.NVarChar, idLoginHistory);
     request.input("p_chrOffset", sql.Char, offset);
-    request.execute("customerSch.USPgetCustTenantDashboardById", (err, result) => {
-      if (err) {
-        res.status(500).send({ response: "Error en los parametros" });
-      } else {
-        const resultRecordset = result.recordset;
-        res.status(200).send({
-          response: resultRecordset,
-        });
+    request.execute(
+      "customerSch.USPgetCustTenantDashboardById",
+      (err, result) => {
+        if (err) {
+          res.status(500).send({ response: "Error en los parametros" });
+        } else {
+          const resultRecordset = result.recordset;
+          res.status(200).send({
+            response: resultRecordset,
+          });
+        }
       }
-    });
+    );
   } catch (err) {
     console.log("ERROR", err);
     // ... error checks
