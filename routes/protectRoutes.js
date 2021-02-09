@@ -7,9 +7,14 @@ const ControllerCustomer = require("../controllers/customerInformation");
 const ControllerDocuments = require("../controllers/repositoryDocuments");
 const ControllerMessages = require("../controllers/messagesUser");
 const ControllerTypeForm = require("../controllers/typeForm");
+const ControllerCatalogs = require("../controllers/catalogs");
 
 router.post("/systemUser/userProfile", ControllerAuth.userProfile);
 router.post("/systemUser/menuProfile", ControllerAuth.userMenuProfile);
+router.put(
+  "/systemUser/setUserProfile/:idSystemUser",
+  ControllerAuth.setUserProfile
+);
 router.post("/customer/getCustomerById", ControllerCustomer.getCustomerById);
 router.post(
   "/customer/getTenantCoincidences",
@@ -79,11 +84,32 @@ router.post(
 
 //TypeForm//
 router.post("/typeForm/getTypeForm", ControllerTypeForm.getTypeForm);
+router.post(
+  "/typeForm/getCustomerTypeForm",
+  ControllerTypeForm.getCustomerTypeForm
+);
 router.post("/typeForm/setTypeForm", ControllerTypeForm.setTypeForm);
+router.post("/typeForm/setTypeFormOwner", ControllerTypeForm.setTypeFormOwner);
 router.put(
   "/typeForm/addTypeFormDocument/:idDocument",
   ControllerTypeForm.addTypeFormDocument
 );
+router.post(
+  "/typeForm/setTypeFormReference",
+  ControllerTypeForm.setTypeFormReference
+);
 //TypeForm//
+
+//Catalogos//
+router.post(
+  "/catalogs/getAllMaritalStatus",
+  ControllerCatalogs.getAllMaritalStatus
+);
+router.post(
+  "/catalogs/getAllPropertyTypes",
+  ControllerCatalogs.getAllPropertyTypes
+);
+router.post("/catalogs/getAllPolicies", ControllerCatalogs.getAllPolicies);
+//Catalogos//
 
 module.exports = router;

@@ -26,5 +26,14 @@ router.get(
   "/customerType/getInvitation/:idInvitation",
   ControllerRegister.getInvitation
 );
+router.post("/requestRecoveryPass", ControllerRecover.requestRecoveryPass);
+router.put(
+  "/recoveryPass/:idRequestRecoveryPassword",
+  ControllerRecover.recoveryPass
+);
+router.post(
+  "/verifyCodeRecoveryPass",
+  ControllerRecover.verifyCodeRecoveryPass
+);
 
 module.exports = router;

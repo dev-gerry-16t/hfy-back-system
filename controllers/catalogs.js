@@ -1,79 +1,25 @@
 const sql = require("mssql");
 
-const executeUserProfile = async (params, res) => {
-  const { idSystemUser, token, offset = "-06:00" } = params;
-  try {
-    const request = new sql.Request();
-    request.input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser);
-    request.input("p_nvcToken", sql.NVarChar, token);
-    request.input("p_chrOffset", sql.Char, offset);
-    request.execute("authSch.USPgetUserProfile", (err, result) => {
-      if (err) {
-        res.status(500).send({ response: "Error en los parametros" });
-      } else {
-        const resultRecordset = result.recordset;
-        result;
-        res.status(200).send({
-          response: resultRecordset[0],
-        });
-      }
-    });
-  } catch (err) {
-    console.log("ERROR", err);
-    // ... error checks
-  }
-};
-
-const executeMenuUserProfile = async (params, res) => {
-  const { idSystemUser, idLoginHistory } = params;
-  try {
-    const request = new sql.Request();
-    request.input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser);
-    request.input("p_nvcIdLoginHistory", sql.NVarChar, idLoginHistory);
-    request.execute("authSch.USPgetMenuTemplate", (err, result) => {
-      if (err) {
-        res.status(500).send({ response: "Error en los parametros" });
-      } else {
-        const resultRecordset = result.recordset;
-        result;
-        res.status(200).send({
-          response: resultRecordset,
-        });
-      }
-    });
-  } catch (err) {
-    console.log("ERROR", err);
-    // ... error checks
-  }
-};
-
-const executeSetUserProfile = async (params, res, url) => {
+const executeGetAllMaritalStatus = async (params, res) => {
   const {
     idCustomer,
+    idCustomerTenant = null,
+    idSystemUser,
     idLoginHistory,
-    documentName,
-    extension,
-    preview,
-    thumbnail,
-    offset = "-06:00",
+    type,
   } = params;
-  const { idSystemUser } = url;
   try {
     const request = new sql.Request();
     request.input("p_nvcIdCustomer", sql.NVarChar, idCustomer);
+    request.input("p_nvcIdCustomerTenant", sql.NVarChar, idCustomerTenant);
     request.input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser);
     request.input("p_nvcIdLoginHistory", sql.NVarChar, idLoginHistory);
-    request.input("p_nvcDocumentName", sql.NVarChar, documentName);
-    request.input("p_nvcExtension", sql.NVarChar, extension);
-    request.input("p_nvcPreview", sql.NVarChar, preview);
-    request.input("p_nvcThumbnail", sql.NVarChar, thumbnail);
-    request.input("p_chrOffset", sql.Char, offset);
-    request.execute("authSch.USPsetUserProfile", (err, result) => {
+    request.input("p_intType", sql.Int, type);
+    request.execute("catCustomerSch.USPgetAllMaritalStatus", (err, result) => {
       if (err) {
         res.status(500).send({ response: "Error en los parametros" });
       } else {
         const resultRecordset = result.recordset;
-        result;
         res.status(200).send({
           response: resultRecordset,
         });
@@ -85,20 +31,81 @@ const executeSetUserProfile = async (params, res, url) => {
   }
 };
 
-const ControllerAuth = {
-  userProfile: (req, res) => {
+const executeGetAllPropertyTypes = async (params, res) => {
+  const {
+    idCustomer,
+    idCustomerTenant = null,
+    idSystemUser,
+    idLoginHistory,
+    type,
+  } = params;
+  try {
+    const request = new sql.Request();
+    request.input("p_nvcIdCustomer", sql.NVarChar, idCustomer);
+    request.input("p_nvcIdCustomerTenant", sql.NVarChar, idCustomerTenant);
+    request.input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser);
+    request.input("p_nvcIdLoginHistory", sql.NVarChar, idLoginHistory);
+    request.input("p_intType", sql.Int, type);
+    request.execute("catCustomerSch.USPgetAllPropertyTypes", (err, result) => {
+      if (err) {
+        res.status(500).send({ response: "Error en los parametros" });
+      } else {
+        const resultRecordset = result.recordset;
+        res.status(200).send({
+          response: resultRecordset,
+        });
+      }
+    });
+  } catch (err) {
+    console.log("ERROR", err);
+    // ... error checks
+  }
+};
+
+const executeGetAllPolicies = async (params, res) => {
+  const {
+    idCustomer,
+    idCustomerTenant = null,
+    idSystemUser,
+    idLoginHistory,
+    type,
+  } = params;
+  try {
+    const request = new sql.Request();
+    request.input("p_nvcIdCustomer", sql.NVarChar, idCustomer);
+    request.input("p_nvcIdCustomerTenant", sql.NVarChar, idCustomerTenant);
+    request.input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser);
+    request.input("p_nvcIdLoginHistory", sql.NVarChar, idLoginHistory);
+    request.input("p_intType", sql.Int, type);
+    request.execute("catCustomerSch.USPgetAllPolicies", (err, result) => {
+      if (err) {
+        res.status(500).send({ response: "Error en los parametros" });
+      } else {
+        const resultRecordset = result.recordset;
+        res.status(200).send({
+          response: resultRecordset,
+        });
+      }
+    });
+  } catch (err) {
+    console.log("ERROR", err);
+    // ... error checks
+  }
+};
+
+const ControllerCatalogs = {
+  getAllMaritalStatus: (req, res) => {
     const params = req.body;
-    executeUserProfile(params, res);
+    executeGetAllMaritalStatus(params, res);
   },
-  userMenuProfile: (req, res) => {
+  getAllPropertyTypes: (req, res) => {
     const params = req.body;
-    executeMenuUserProfile(params, res);
+    executeGetAllPropertyTypes(params, res);
   },
-  setUserProfile: (req, res) => {
+  getAllPolicies: (req, res) => {
     const params = req.body;
-    const url = req.params;
-    executeSetUserProfile(params, res, url);
+    executeGetAllPolicies(params, res);
   },
 };
 
-module.exports = ControllerAuth;
+module.exports = ControllerCatalogs;
