@@ -11,6 +11,10 @@ const ControllerCatalogs = require("../controllers/catalogs");
 
 router.post("/systemUser/userProfile", ControllerAuth.userProfile);
 router.post("/systemUser/menuProfile", ControllerAuth.userMenuProfile);
+router.put(
+  "/systemUser/setUserProfile/:idSystemUser",
+  ControllerAuth.setUserProfile
+);
 router.post("/customer/getCustomerById", ControllerCustomer.getCustomerById);
 router.post(
   "/customer/getTenantCoincidences",
