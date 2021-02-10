@@ -197,7 +197,16 @@ const executeRequestSignUpPSU = async (param, res) => {
 };
 
 const executeRequestSignUpVCFSU = async (param, res) => {
-  const { idRequestSignUp, code, offset, idInvitation = null } = param;
+  const {
+    idRequestSignUp,
+    code,
+    offset = "-06:00",
+    idInvitation = null,
+  } = param;
+  console.log("idRequestSignUp", idRequestSignUp);
+  console.log("code", code);
+  console.log("offset", offset);
+  console.log("idInvitation", idInvitation);
   try {
     const request = new sql.Request();
     request.input("p_nvcIdRequestSignUp", sql.NVarChar, idRequestSignUp);
@@ -205,6 +214,7 @@ const executeRequestSignUpVCFSU = async (param, res) => {
     request.input("p_chrOffset", sql.Char, offset);
     request.input("p_nvcIdInvitation", sql.NVarChar, idInvitation);
     request.execute("authSch.USPverifyCodeForSignUp", (err, result) => {
+      console.log("err, result", err, result);
       if (err) {
         console.log("error", err);
         res.status(500).send({ response: "Error en los parametros" });

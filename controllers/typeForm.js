@@ -3,6 +3,7 @@ const sql = require("mssql");
 const executeGetTypeForm = async (params, res) => {
   const {
     idCustomer,
+    idContract,
     idCustomerTenant,
     idSystemUser,
     idLoginHistory,
@@ -11,6 +12,7 @@ const executeGetTypeForm = async (params, res) => {
   try {
     const request = new sql.Request();
     request.input("p_nvcIdCustomer", sql.NVarChar, idCustomer);
+    request.input("p_nvcIdContract", sql.NVarChar, idContract);
     request.input("p_nvcIdCustomerTenant", sql.NVarChar, idCustomerTenant);
     request.input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser);
     request.input("p_nvcIdLoginHistory", sql.NVarChar, idLoginHistory);
@@ -38,6 +40,7 @@ const executeGetCustomerTypeForm = async (params, res) => {
     idCustomer,
     idSystemUser,
     idLoginHistory,
+    idContract,
     offset = "-06:00",
   } = params;
   try {
@@ -45,6 +48,7 @@ const executeGetCustomerTypeForm = async (params, res) => {
     request.input("p_nvcIdCustomer", sql.NVarChar, idCustomer);
     request.input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser);
     request.input("p_nvcIdLoginHistory", sql.NVarChar, idLoginHistory);
+    request.input("p_nvcIdContract", sql.NVarChar, idContract);
     request.input("p_chrOffset", sql.Char, offset);
     request.execute("customerSch.USPgetCustomerTypeForm", (err, result) => {
       if (err) {
@@ -130,6 +134,11 @@ const executeSetTypeForm = async (params, res) => {
     idSystemUser = null,
     idLoginHistory = null,
     offset = "-06:00",
+    idCountryNationality = null,
+    idType = null,
+    idTypeNumber = null,
+    placeOfIssue = null,
+    idOccupationActivity = null,
     idTypeForm = null,
     givenName = null,
     lastName = null,
@@ -148,7 +157,6 @@ const executeSetTypeForm = async (params, res) => {
     isOwn = null,
     currentTimeRange = null,
     currentTime = null,
-    jobPosition = null,
     economicDependents = null,
     companyName = null,
     currentSalary = null,
@@ -181,6 +189,11 @@ const executeSetTypeForm = async (params, res) => {
     request.input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser);
     request.input("p_nvcIdLoginHistory", sql.NVarChar, idLoginHistory);
     request.input("p_chrOffset", sql.Char, offset);
+    request.input("p_intIdCountryNationality", sql.Int, idCountryNationality);
+    request.input("p_intIdType", sql.Int, idType);
+    request.input("p_nvcIdTypeNumber", sql.NVarChar, idTypeNumber);
+    request.input("p_nvcPlaceOfIssue", sql.NVarChar, placeOfIssue);
+    request.input("p_intIdOccupationActivity", sql.Int, idOccupationActivity);
     request.input("p_nvcIdTypeForm", sql.NVarChar, idTypeForm);
     request.input("p_nvcGivenName", sql.NVarChar, givenName);
     request.input("p_nvcLastName", sql.NVarChar, lastName);
@@ -199,7 +212,6 @@ const executeSetTypeForm = async (params, res) => {
     request.input("p_bitIsOwn", sql.Bit, isOwn);
     request.input("p_chrCurrentTimeRange", sql.Char, currentTimeRange);
     request.input("p_intCurrentTime", sql.Int, currentTime);
-    request.input("p_nvcJobPosition", sql.NVarChar, jobPosition);
     request.input("p_intEconomicDependents", sql.Int, economicDependents);
     request.input("p_nvcCompanyName", sql.NVarChar, companyName);
     request.input("p_decCurrentSalary", sql.Decimal, currentSalary);
@@ -321,8 +333,12 @@ const executeSetTypeFormOwner = async (params, res) => {
     clabeNumber = null,
     signingAvailabilityAt = null,
     idPolicy = null,
-    electorKey = null,
-    passportId = null,
+    idContract = null,
+    idCountryNationality = null,
+    idType = null,
+    idTypeNumber = null,
+    placeOfIssue = null,
+    accountNumber = null,
   } = params;
 
   try {
@@ -331,6 +347,12 @@ const executeSetTypeFormOwner = async (params, res) => {
     request.input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser);
     request.input("p_nvcIdLoginHistory", sql.NVarChar, idLoginHistory);
     request.input("p_chrOffset", sql.Char, offset);
+    request.input("p_nvcIdContract", sql.NVarChar, idContract);
+    request.input("p_intIdCountryNationality", sql.Int, idCountryNationality);
+    request.input("p_intIdType", sql.Int, idType);
+    request.input("p_nvcIdTypeNumber", sql.NVarChar, idTypeNumber);
+    request.input("p_nvcPlaceOfIssue", sql.NVarChar, placeOfIssue);
+    request.input("p_nvcAccountNumber", sql.NVarChar, accountNumber);
     request.input("p_nvcIdTypeForm", sql.NVarChar, idTypeForm);
     request.input("p_bitIsOwner", sql.Bit, isOwner);
     request.input("p_nvcGivenName", sql.NVarChar, givenName);
@@ -374,8 +396,7 @@ const executeSetTypeFormOwner = async (params, res) => {
       signingAvailabilityAt
     );
     request.input("p_nvcIdPolicy", sql.NVarChar, idPolicy);
-    request.input("p_nvcElectorKey", sql.NVarChar, electorKey);
-    request.input("p_nvcPassportId", sql.NVarChar, passportId);
+
     request.execute("customerSch.USPsetCustomerTypeForm", (err, result) => {
       if (err) {
         res.status(500).send({ response: "Error en los parametros" });
