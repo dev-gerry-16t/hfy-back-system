@@ -77,7 +77,7 @@ const executeGetAllNationalities = async (params, res) => {
     request.input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser);
     request.input("p_nvcIdLoginHistory", sql.NVarChar, idLoginHistory);
     request.input("p_intType", sql.Int, type);
-    request.execute("addressSch.USPgetAllNationalities", (err, result) => {
+    request.execute("catCustomerSch.USPgetAllNationalities", (err, result) => {
       if (err) {
         res.status(500).send({ response: "Error en los parametros" });
       } else {

@@ -40,9 +40,10 @@ const executeGetCustomerTypeForm = async (params, res) => {
     idCustomer,
     idSystemUser,
     idLoginHistory,
-    idContract,
+    idContract = null,
     offset = "-06:00",
   } = params;
+  
   try {
     const request = new sql.Request();
     request.input("p_nvcIdCustomer", sql.NVarChar, idCustomer);
@@ -51,6 +52,7 @@ const executeGetCustomerTypeForm = async (params, res) => {
     request.input("p_nvcIdContract", sql.NVarChar, idContract);
     request.input("p_chrOffset", sql.Char, offset);
     request.execute("customerSch.USPgetCustomerTypeForm", (err, result) => {
+      console.log("err, result", err, result);
       if (err) {
         res.status(500).send({ response: "Error en los parametros" });
       } else {
