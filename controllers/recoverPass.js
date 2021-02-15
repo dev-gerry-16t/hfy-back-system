@@ -69,7 +69,6 @@ const executeRequestRecoveryPass = async (params, res) => {
 
 const executeVerifyCodeRecoveryPass = async (param, res) => {
   const { idRequestRecoveryPassword, code, offset } = param;
-  console.log("idRequestRecoveryPassword", idRequestRecoveryPassword, code);
   try {
     const request = new sql.Request();
     request.input(
@@ -82,7 +81,6 @@ const executeVerifyCodeRecoveryPass = async (param, res) => {
     request.execute(
       "authSch.USPverifyCodeForRecoveryPassword",
       (err, result) => {
-        console.log("err, result", err, result);
         if (err) {
           console.log("error", err);
           res.status(500).send({ response: "Error en los parametros" });

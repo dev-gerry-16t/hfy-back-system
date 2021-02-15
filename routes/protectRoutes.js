@@ -110,6 +110,15 @@ router.post(
   ControllerCatalogs.getAllPropertyTypes
 );
 router.post("/catalogs/getAllPolicies", ControllerCatalogs.getAllPolicies);
+router.post(
+  "/catalogs/getAllNationalities",
+  ControllerCatalogs.getAllNationalities
+);
+router.post("/catalogs/getAllIDTypes", ControllerCatalogs.getAllIDTypes);
+router.post(
+  "/catalogs/getAllOccupations",
+  ControllerCatalogs.getAllOccupations
+);
 //Catalogos//
 
 module.exports = router;

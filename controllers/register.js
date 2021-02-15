@@ -197,7 +197,12 @@ const executeRequestSignUpPSU = async (param, res) => {
 };
 
 const executeRequestSignUpVCFSU = async (param, res) => {
-  const { idRequestSignUp, code, offset, idInvitation = null } = param;
+  const {
+    idRequestSignUp,
+    code,
+    offset = "-06:00",
+    idInvitation = null,
+  } = param;
   try {
     const request = new sql.Request();
     request.input("p_nvcIdRequestSignUp", sql.NVarChar, idRequestSignUp);
