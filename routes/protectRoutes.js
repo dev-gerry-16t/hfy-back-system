@@ -8,6 +8,7 @@ const ControllerDocuments = require("../controllers/repositoryDocuments");
 const ControllerMessages = require("../controllers/messagesUser");
 const ControllerTypeForm = require("../controllers/typeForm");
 const ControllerCatalogs = require("../controllers/catalogs");
+const ControllerAdmin = require("../controllers/adminServices");
 
 router.post("/systemUser/userProfile", ControllerAuth.userProfile);
 router.post("/systemUser/menuProfile", ControllerAuth.userMenuProfile);
@@ -120,5 +121,19 @@ router.post(
   ControllerCatalogs.getAllOccupations
 );
 //Catalogos//
+
+//Admin//
+router.post("/admin/getContractStats", ControllerAdmin.getContractStats);
+router.post(
+  "/admin/getContractCoincidences",
+  ControllerAdmin.getContractCoincidences
+);
+router.post(
+  "/admin/getContractIndicatorsChart",
+  ControllerAdmin.getContractIndicatorsChart
+);
+router.post("/admin/searchCustomer", ControllerAdmin.searchCustomer);
+router.post("/admin/addProspect", ControllerAdmin.addProspect);
+//Admin//
 
 module.exports = router;
