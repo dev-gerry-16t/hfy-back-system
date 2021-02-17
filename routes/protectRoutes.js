@@ -120,6 +120,10 @@ router.post(
   "/catalogs/getAllOccupations",
   ControllerCatalogs.getAllOccupations
 );
+router.post(
+  "/catalogs/getAllPolicyStatus",
+  ControllerCatalogs.getAllPolicyStatus
+);
 //Catalogos//
 
 //Admin//
@@ -134,6 +138,7 @@ router.post(
 );
 router.post("/admin/searchCustomer", ControllerAdmin.searchCustomer);
 router.post("/admin/addProspect", ControllerAdmin.addProspect);
+router.put("/admin/updateContract/:idContract", ControllerAdmin.updateContract);
 //Admin//
 
 module.exports = router;

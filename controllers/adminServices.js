@@ -15,7 +15,7 @@ const executeEmailSentAES = async (param) => {
     subject = null,
     content = null,
     jsonServiceResponse = null,
-    offset = null,
+    offset = "-06:00",
     jsonEmailServerConfig = null,
     idInvitation = null,
   } = param;
@@ -267,6 +267,46 @@ const executeAddProspect = async (params, res) => {
   }
 };
 
+const executeUpdateContract = async (params, res, url) => {
+  const {
+    idCustomer,
+    idCustomerTenant,
+    idPolicyStatus,
+    rating,
+    isApproved,
+    idSystemUser,
+    idLoginHistory,
+    offset = "-06:00",
+  } = params;
+  const { idContract } = url;
+  try {
+    const request = new sql.Request();
+    request.input("p_nvcIdContract", sql.NVarChar, idContract);
+    request.input("p_nvcIdCustomer", sql.NVarChar, idCustomer);
+    request.input("p_nvcIdCustomerTenant", sql.NVarChar, idCustomerTenant);
+    request.input("p_intIdPolicyStatus", sql.Int, idPolicyStatus);
+    request.input("p_decRating", sql.Decimal, rating);
+    request.input("p_bitIsApproved", sql.Bit, isApproved);
+    request.input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser);
+    request.input("p_nvcIdLoginHistory", sql.NVarChar, idLoginHistory);
+    request.input("p_chrOffset", sql.Char, offset);
+    request.execute("customerSch.USPupdateContract", (err, result) => {
+      if (err) {
+        res.status(500).send({ response: "Error en los parametros" });
+      } else {
+        const resultRecordset = result.recordset;
+        result;
+        res.status(200).send({
+          response: resultRecordset,
+        });
+      }
+    });
+  } catch (err) {
+    console.log("ERROR", err);
+    // ... error checks
+  }
+};
+
 const ControllerAdmin = {
   getContractStats: (req, res) => {
     const params = req.body;
@@ -287,6 +327,11 @@ const ControllerAdmin = {
   addProspect: (req, res) => {
     const params = req.body;
     executeAddProspect(params, res);
+  },
+  updateContract: (req, res) => {
+    const params = req.body;
+    const url = req.params;
+    executeUpdateContract(params, res, url);
   },
 };
 
