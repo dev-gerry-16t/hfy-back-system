@@ -148,7 +148,10 @@ router.post(
   "/admin/getAgentByIdContract",
   ControllerAdmin.getAgentByIdContract
 );
-
+router.put(
+  "/admin/switchCustomerInContract/:idContract",
+  ControllerAdmin.switchCustomerInContract
+);
 //Admin//
 
 module.exports = router;

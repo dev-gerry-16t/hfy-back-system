@@ -305,7 +305,7 @@ const executeSetTypeForm = async (params, res) => {
     );
 
     request.execute("customerSch.USPsetTypeForm", (err, result) => {
-      console.log('err',err);
+      console.log("err", err);
       if (err) {
         res.status(500).send({ response: "Error en los parametros" });
       } else {
@@ -368,6 +368,7 @@ const executeSetTypeFormOwner = async (params, res) => {
     idTypeNumber = null,
     placeOfIssue = null,
     accountNumber = null,
+    hasInsurance = null,
   } = params;
 
   try {
@@ -425,6 +426,7 @@ const executeSetTypeFormOwner = async (params, res) => {
       signingAvailabilityAt
     );
     request.input("p_nvcIdPolicy", sql.NVarChar, idPolicy);
+    request.input("p_bitHasInsurance", sql.Bit, hasInsurance);
 
     request.execute("customerSch.USPsetCustomerTypeForm", (err, result) => {
       if (err) {
