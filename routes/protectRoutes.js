@@ -139,6 +139,16 @@ router.post(
 router.post("/admin/searchCustomer", ControllerAdmin.searchCustomer);
 router.post("/admin/addProspect", ControllerAdmin.addProspect);
 router.put("/admin/updateContract/:idContract", ControllerAdmin.updateContract);
+router.post("/admin/getByIdContract", ControllerAdmin.getByIdContract);
+router.post(
+  "/admin/getTenantByIdContract",
+  ControllerAdmin.getTenantByIdContract
+);
+router.post(
+  "/admin/getAgentByIdContract",
+  ControllerAdmin.getAgentByIdContract
+);
+
 //Admin//
 
 module.exports = router;

@@ -307,6 +307,103 @@ const executeUpdateContract = async (params, res, url) => {
   }
 };
 
+const executeGetByIdContract = async (params, res) => {
+  const {
+    idContract,
+    idSystemUser,
+    idLoginHistory,
+    offset = "-06:00",
+  } = params;
+  try {
+    const request = new sql.Request();
+    request.input("p_nvcIdContract", sql.NVarChar, idContract);
+    request.input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser);
+    request.input("p_nvcIdLoginHistory", sql.NVarChar, idLoginHistory);
+    request.input("p_chrOffset", sql.Char, offset);
+    request.execute("customerSch.USPgetCustomerByIdContract", (err, result) => {
+      if (err) {
+        res.status(500).send({ response: "Error en los parametros" });
+      } else {
+        const resultRecordset = result.recordset;
+        result;
+        res.status(200).send({
+          response: resultRecordset,
+        });
+      }
+    });
+  } catch (err) {
+    console.log("ERROR", err);
+    // ... error checks
+  }
+};
+
+const executeGetTenantByIdContract = async (params, res) => {
+  const {
+    idContract,
+    idSystemUser,
+    idLoginHistory,
+    offset = "-06:00",
+  } = params;
+  try {
+    const request = new sql.Request();
+    request.input("p_nvcIdContract", sql.NVarChar, idContract);
+    request.input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser);
+    request.input("p_nvcIdLoginHistory", sql.NVarChar, idLoginHistory);
+    request.input("p_chrOffset", sql.Char, offset);
+    request.execute(
+      "customerSch.USPgetCustomerTenantByIdContract",
+      (err, result) => {
+        if (err) {
+          res.status(500).send({ response: "Error en los parametros" });
+        } else {
+          const resultRecordset = result.recordsets;
+          result;
+          res.status(200).send({
+            response1: resultRecordset[0],
+            response2: resultRecordset[1],
+          });
+        }
+      }
+    );
+  } catch (err) {
+    console.log("ERROR", err);
+    // ... error checks
+  }
+};
+
+const executeGetAgentByIdContract = async (params, res) => {
+  const {
+    idContract,
+    idSystemUser,
+    idLoginHistory,
+    offset = "-06:00",
+  } = params;
+  try {
+    const request = new sql.Request();
+    request.input("p_nvcIdContract", sql.NVarChar, idContract);
+    request.input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser);
+    request.input("p_nvcIdLoginHistory", sql.NVarChar, idLoginHistory);
+    request.input("p_chrOffset", sql.Char, offset);
+    request.execute(
+      "customerSch.USPgetCustomerAgentByIdContract",
+      (err, result) => {
+        if (err) {
+          res.status(500).send({ response: "Error en los parametros" });
+        } else {
+          const resultRecordset = result.recordset;
+          result;
+          res.status(200).send({
+            response: resultRecordset,
+          });
+        }
+      }
+    );
+  } catch (err) {
+    console.log("ERROR", err);
+    // ... error checks
+  }
+};
+
 const ControllerAdmin = {
   getContractStats: (req, res) => {
     const params = req.body;
@@ -332,6 +429,18 @@ const ControllerAdmin = {
     const params = req.body;
     const url = req.params;
     executeUpdateContract(params, res, url);
+  },
+  getByIdContract: (req, res) => {
+    const params = req.body;
+    executeGetByIdContract(params, res);
+  },
+  getTenantByIdContract: (req, res) => {
+    const params = req.body;
+    executeGetTenantByIdContract(params, res);
+  },
+  getAgentByIdContract: (req, res) => {
+    const params = req.body;
+    executeGetAgentByIdContract(params, res);
   },
 };
 
