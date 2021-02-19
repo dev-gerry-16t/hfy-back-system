@@ -432,6 +432,178 @@ const executeGetAgentByIdContract = async (params, res) => {
   }
 };
 
+const executeGetContract = async (params, res) => {
+  const {
+    download,
+    idCustomer,
+    idCustomerTenant,
+    idContract,
+    idSystemUser,
+    idLoginHistory,
+    offset = "-06:00",
+  } = params;
+  try {
+    const request = new sql.Request();
+    request.input("p_nvcIdCustomer", sql.NVarChar, idCustomer);
+    request.input("p_nvcIdCustomerTenant", sql.NVarChar, idCustomerTenant);
+    request.input("p_nvcIdContract", sql.NVarChar, idContract);
+    request.input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser);
+    request.input("p_nvcIdLoginHistory", sql.NVarChar, idLoginHistory);
+    request.input("p_chrOffset", sql.Char, offset);
+    request.execute("customerSch.USPgetContract", (err, result) => {
+      if (err) {
+        res.status(500).send({ response: "Error en los parametros" });
+      } else {
+        if (download === true) {
+        } else {
+          const resultRecordset = result.recordset;
+          res.status(200).send({
+            response: resultRecordset,
+          });
+        }
+      }
+    });
+  } catch (err) {
+    console.log("ERROR", err);
+    // ... error checks
+  }
+};
+
+const executeGetContractComment = async (params, res) => {
+  const {
+    idCustomer,
+    idCustomerTenant,
+    idContract,
+    idDigitalContract,
+    idSystemUser,
+    idLoginHistory,
+    topIndex,
+    offset = "-06:00",
+  } = params;
+  try {
+    const request = new sql.Request();
+    request.input("p_nvcIdCustomer", sql.NVarChar, idCustomer);
+    request.input("p_nvcIdCustomerTenant", sql.NVarChar, idCustomerTenant);
+    request.input("p_nvcIdContract", sql.NVarChar, idContract);
+    request.input("p_nvcIdDigitalContract", sql.NVarChar, idDigitalContract);
+    request.input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser);
+    request.input("p_nvcIdLoginHistory", sql.NVarChar, idLoginHistory);
+    request.input("p_intTopIndex", sql.Int, topIndex);
+    request.input("p_chrOffset", sql.Char, offset);
+    request.execute("customerSch.USPgetContractComment", (err, result) => {
+      if (err) {
+        res.status(500).send({ response: "Error en los parametros" });
+      } else {
+        const resultRecordset = result.recordset;
+        res.status(200).send({
+          response: resultRecordset,
+        });
+      }
+    });
+  } catch (err) {
+    console.log("ERROR", err);
+    // ... error checks
+  }
+};
+
+const executeSetContract = async (params, res, url) => {
+  const {
+    idCustomer,
+    idCustomerTenant,
+    idPolicy = null,
+    digitalSignature = null,
+    anex2 = null,
+    startedAt = null,
+    scheduleSignatureDate = null,
+    collectionDays = null,
+    idSystemUser,
+    idLoginHistory,
+    offset = "-06:00",
+  } = params;
+  const { idContract } = url;
+  try {
+    const request = new sql.Request();
+    request.input("p_nvcIdCustomer", sql.NVarChar, idCustomer);
+    request.input("p_nvcIdCustomerTenant", sql.NVarChar, idCustomerTenant);
+    request.input("p_nvcIdContract", sql.NVarChar, idContract);
+    request.input("p_nvcIdPolicy", sql.NVarChar, idPolicy);
+    request.input("p_vchDigitalSignature", sql.VarChar, digitalSignature);
+    request.input("p_nvcAnex2", sql.NVarChar, anex2);
+    request.input("p_datStartedAt", sql.Date, startedAt);
+    request.input(
+      "p_datScheduleSignatureDate",
+      sql.Date,
+      scheduleSignatureDate
+    );
+    request.input("p_nvcCollectionDays", sql.NVarChar, collectionDays);
+    request.input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser);
+    request.input("p_nvcIdLoginHistory", sql.NVarChar, idLoginHistory);
+    request.input("p_chrOffset", sql.Char, offset);
+    request.execute("customerSch.USPsetContract", (err, result) => {
+      if (err) {
+        res.status(500).send({ response: "Error en los parametros" });
+      } else {
+        const resultRecordset = result.recordset;
+        if (resultRecordset[0].stateCode !== 200) {
+          res.status(resultRecordset[0].stateCode).send({
+            response: resultRecordset[0].message,
+          });
+        } else {
+          res.status(200).send({
+            response: resultRecordset,
+          });
+        }
+      }
+    });
+  } catch (err) {
+    console.log("ERROR", err);
+    // ... error checks
+  }
+};
+
+const executeAddContractComment = async (params, res, url) => {
+  const {
+    idCustomer,
+    idCustomerTenant,
+    idDigitalContract,
+    comment,
+    idSystemUser,
+    idLoginHistory,
+    offset = "-06:00",
+  } = params;
+  const { idContract } = url;
+  try {
+    const request = new sql.Request();
+    request.input("p_nvcIdCustomer", sql.NVarChar, idCustomer);
+    request.input("p_nvcIdCustomerTenant", sql.NVarChar, idCustomerTenant);
+    request.input("p_nvcIdDigitalContract", sql.NVarChar, idDigitalContract);
+    request.input("p_nvcComment", sql.NVarChar, comment);
+    request.input("p_nvcIdContract", sql.NVarChar, idContract);
+    request.input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser);
+    request.input("p_nvcIdLoginHistory", sql.NVarChar, idLoginHistory);
+    request.input("p_chrOffset", sql.Char, offset);
+    request.execute("customerSch.USPaddContractComment", (err, result) => {
+      if (err) {
+        res.status(500).send({ response: "Error en los parametros" });
+      } else {
+        const resultRecordset = result.recordset;
+        if (resultRecordset[0].stateCode !== 200) {
+          res.status(resultRecordset[0].stateCode).send({
+            response: resultRecordset[0].message,
+          });
+        } else {
+          res.status(200).send({
+            response: resultRecordset,
+          });
+        }
+      }
+    });
+  } catch (err) {
+    console.log("ERROR", err);
+    // ... error checks
+  }
+};
+
 const ControllerAdmin = {
   getContractStats: (req, res) => {
     const params = req.body;
@@ -474,6 +646,24 @@ const ControllerAdmin = {
     const params = req.body;
     const url = req.params;
     executeSwitchCustomerInContract(params, res, url);
+  },
+  getContract: (req, res) => {
+    const params = req.body;
+    executeGetContract(params, res);
+  },
+  getContractComment: (req, res) => {
+    const params = req.body;
+    executeGetContractComment(params, res);
+  },
+  setContract: (req, res) => {
+    const params = req.body;
+    const url = req.params;
+    executeSetContract(params, res, url);
+  },
+  addContractComment: (req, res) => {
+    const params = req.body;
+    const url = req.params;
+    executeAddContractComment(params, res, url);
   },
 };
 

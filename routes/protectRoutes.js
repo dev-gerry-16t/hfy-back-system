@@ -160,6 +160,13 @@ router.put(
   "/admin/switchCustomerInContract/:idContract",
   ControllerAdmin.switchCustomerInContract
 );
+router.post("/admin/getContract", ControllerAdmin.getContract);
+router.post("/admin/getContractComment", ControllerAdmin.getContractComment);
+router.put("/admin/setContract/:idContract", ControllerAdmin.setContract);
+router.put(
+  "/admin/addContractComment/:idContract",
+  ControllerAdmin.addContractComment
+);
 //Admin//
 
 module.exports = router;
