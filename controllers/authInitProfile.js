@@ -12,7 +12,6 @@ const executeUserProfile = async (params, res) => {
         res.status(500).send({ response: "Error en los parametros" });
       } else {
         const resultRecordset = result.recordset;
-        result;
         res.status(200).send({
           response: resultRecordset[0],
         });
@@ -35,7 +34,6 @@ const executeMenuUserProfile = async (params, res) => {
         res.status(500).send({ response: "Error en los parametros" });
       } else {
         const resultRecordset = result.recordset;
-        result;
         res.status(200).send({
           response: resultRecordset,
         });
@@ -73,7 +71,6 @@ const executeSetUserProfile = async (params, res, url) => {
         res.status(500).send({ response: "Error en los parametros" });
       } else {
         const resultRecordset = result.recordset;
-        result;
         res.status(200).send({
           response: resultRecordset,
         });

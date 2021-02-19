@@ -580,6 +580,61 @@ const executeSendTenantInvitation = async (params, res) => {
   }
 };
 
+const executeGetAgentIndicators = async (params, res) => {
+  const { idSystemUser, idLoginHistory, offset = "-06:00" } = params;
+  try {
+    const request = new sql.Request();
+    request.input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser);
+    request.input("p_nvcIdLoginHistory", sql.NVarChar, idLoginHistory);
+    request.input("p_chrOffset", sql.Char, offset);
+    request.execute("customerSch.USPgetAgentIndicators", (err, result) => {
+      if (err) {
+        res.status(500).send({ response: "Error en los parametros" });
+      } else {
+        const resultRecordset = result.recordset;
+        res.status(200).send({
+          response: resultRecordset,
+        });
+      }
+    });
+  } catch (err) {
+    console.log("ERROR", err);
+    // ... error checks
+  }
+};
+
+const executeGetAgentContractCoincidences = async (params, res) => {
+  const {
+    idSystemUser,
+    idLoginHistory,
+    topIndex = null,
+    offset = "-06:00",
+  } = params;
+  try {
+    const request = new sql.Request();
+    request.input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser);
+    request.input("p_nvcIdLoginHistory", sql.NVarChar, idLoginHistory);
+    request.input("p_intTopIndex", sql.Int, topIndex);
+    request.input("p_chrOffset", sql.Char, offset);
+    request.execute(
+      "customerSch.USPgetAgentContractCoincidences",
+      (err, result) => {
+        if (err) {
+          res.status(500).send({ response: "Error en los parametros" });
+        } else {
+          const resultRecordset = result.recordset;
+          res.status(200).send({
+            response: resultRecordset,
+          });
+        }
+      }
+    );
+  } catch (err) {
+    console.log("ERROR", err);
+    // ... error checks
+  }
+};
+
 const ControllerCustomer = {
   getCustomerById: (req, res) => {
     const params = req.body;
@@ -639,6 +694,14 @@ const ControllerCustomer = {
   getAllPaymentInContract: (req, res) => {
     const params = req.body;
     executeGetAllPaymentInContract(params, res);
+  },
+  getAgentIndicators: (req, res) => {
+    const params = req.body;
+    executeGetAgentIndicators(params, res);
+  },
+  getAgentContractCoincidences: (req, res) => {
+    const params = req.body;
+    executeGetAgentContractCoincidences(params, res);
   },
 };
 

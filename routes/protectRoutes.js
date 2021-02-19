@@ -51,6 +51,14 @@ router.post(
   "/customer/getAllPaymentInContract",
   ControllerCustomer.getAllPaymentInContract
 );
+router.post(
+  "/customer/getAgentIndicators",
+  ControllerCustomer.getAgentIndicators
+);
+router.post(
+  "/customer/getAgentContractCoincidences",
+  ControllerCustomer.getAgentContractCoincidences
+);
 
 //Documents//
 router.post("/addDocument", ControllerDocuments.addDocument);
