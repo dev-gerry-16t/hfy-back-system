@@ -1,4 +1,5 @@
 const sql = require("mssql");
+const pdf = require("html-pdf");
 const isNil = require("lodash/isNil");
 const isEmpty = require("lodash/isEmpty");
 const nodemailer = require("nodemailer");
@@ -454,9 +455,37 @@ const executeGetContract = async (params, res) => {
       if (err) {
         res.status(500).send({ response: "Error en los parametros" });
       } else {
+        const resultRecordset = result.recordset;
         if (download === true) {
+          const config = {
+            format: "Legal",
+            border: {
+              top: "1cm", // default is 0, units: mm, cm, in, px
+              right: "2cm",
+              bottom: "1cm",
+              left: "2cm",
+            },
+          };
+          if (
+            isNil(resultRecordset[0]) === false &&
+            isNil(resultRecordset[0].digitalContract) === false
+          ) {
+            pdf
+              .create(resultRecordset[0].digitalContract, config)
+              .toBuffer((err, buff) => {
+                if (err) {
+                  console.log("err", err);
+                  res.status(500).send({ response: "FAIL" });
+                } else {
+                  res.send(buff);
+                }
+              });
+          } else {
+            res
+              .status(500)
+              .send({ response: "No se encontro un contrato descargable" });
+          }
         } else {
-          const resultRecordset = result.recordset;
           res.status(200).send({
             response: resultRecordset,
           });
