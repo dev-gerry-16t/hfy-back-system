@@ -8,6 +8,7 @@ const ControllerDocuments = require("../controllers/repositoryDocuments");
 const ControllerMessages = require("../controllers/messagesUser");
 const ControllerTypeForm = require("../controllers/typeForm");
 const ControllerCatalogs = require("../controllers/catalogs");
+const ControllerAdmin = require("../controllers/adminServices");
 
 router.post("/systemUser/userProfile", ControllerAuth.userProfile);
 router.post("/systemUser/menuProfile", ControllerAuth.userMenuProfile);
@@ -49,6 +50,18 @@ router.post("/customer/getAllPayments", ControllerCustomer.getAllPayments);
 router.post(
   "/customer/getAllPaymentInContract",
   ControllerCustomer.getAllPaymentInContract
+);
+router.post(
+  "/customer/getAgentIndicators",
+  ControllerCustomer.getAgentIndicators
+);
+router.post(
+  "/customer/getAgentContractCoincidences",
+  ControllerCustomer.getAgentContractCoincidences
+);
+router.post(
+  "/customer/getAgentCommissionChart",
+  ControllerCustomer.getAgentCommissionChart
 );
 
 //Documents//
@@ -119,6 +132,45 @@ router.post(
   "/catalogs/getAllOccupations",
   ControllerCatalogs.getAllOccupations
 );
+router.post(
+  "/catalogs/getAllPolicyStatus",
+  ControllerCatalogs.getAllPolicyStatus
+);
 //Catalogos//
+
+//Admin//
+router.post("/admin/getContractStats", ControllerAdmin.getContractStats);
+router.post(
+  "/admin/getContractCoincidences",
+  ControllerAdmin.getContractCoincidences
+);
+router.post(
+  "/admin/getContractIndicatorsChart",
+  ControllerAdmin.getContractIndicatorsChart
+);
+router.post("/admin/searchCustomer", ControllerAdmin.searchCustomer);
+router.post("/admin/addProspect", ControllerAdmin.addProspect);
+router.put("/admin/updateContract/:idContract", ControllerAdmin.updateContract);
+router.post("/admin/getByIdContract", ControllerAdmin.getByIdContract);
+router.post(
+  "/admin/getTenantByIdContract",
+  ControllerAdmin.getTenantByIdContract
+);
+router.post(
+  "/admin/getAgentByIdContract",
+  ControllerAdmin.getAgentByIdContract
+);
+router.put(
+  "/admin/switchCustomerInContract/:idContract",
+  ControllerAdmin.switchCustomerInContract
+);
+router.post("/admin/getContract", ControllerAdmin.getContract);
+router.post("/admin/getContractComment", ControllerAdmin.getContractComment);
+router.put("/admin/setContract/:idContract", ControllerAdmin.setContract);
+router.put(
+  "/admin/addContractComment/:idContract",
+  ControllerAdmin.addContractComment
+);
+//Admin//
 
 module.exports = router;

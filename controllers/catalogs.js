@@ -189,6 +189,30 @@ const executeGetAllPolicies = async (params, res) => {
   }
 };
 
+const executeGetAllPolicyStatus = async (params, res) => {
+  const { idContract, idSystemUser, idLoginHistory, type } = params;
+  try {
+    const request = new sql.Request();
+    request.input("p_nvcIdContract", sql.NVarChar, idContract);
+    request.input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser);
+    request.input("p_nvcIdLoginHistory", sql.NVarChar, idLoginHistory);
+    request.input("p_intType", sql.Int, type);
+    request.execute("catCustomerSch.USPgetAllPolicyStatus", (err, result) => {
+      if (err) {
+        res.status(500).send({ response: "Error en los parametros" });
+      } else {
+        const resultRecordset = result.recordset;
+        res.status(200).send({
+          response: resultRecordset,
+        });
+      }
+    });
+  } catch (err) {
+    console.log("ERROR", err);
+    // ... error checks
+  }
+};
+
 const ControllerCatalogs = {
   getAllMaritalStatus: (req, res) => {
     const params = req.body;
@@ -213,6 +237,10 @@ const ControllerCatalogs = {
   getAllOccupations: (req, res) => {
     const params = req.body;
     executeGetAllOccupationActivities(params, res);
+  },
+  getAllPolicyStatus: (req, res) => {
+    const params = req.body;
+    executeGetAllPolicyStatus(params, res);
   },
 };
 
