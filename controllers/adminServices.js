@@ -470,10 +470,10 @@ const executeGetContract = async (params, res) => {
           };
           if (
             isNil(resultRecordset[0]) === false &&
-            isNil(resultRecordset[0].digitalContract) === false
+            isNil(resultRecordset[0].contractContent) === false
           ) {
             pdf
-              .create(resultRecordset[0].digitalContract, config)
+              .create(resultRecordset[0].contractContent, config)
               .toBuffer((err, buff) => {
                 if (err) {
                   console.log("err", err);
