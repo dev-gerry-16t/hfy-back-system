@@ -442,6 +442,7 @@ const executeGetContract = async (params, res) => {
     idSystemUser,
     idLoginHistory,
     offset = "-06:00",
+    type,
   } = params;
   try {
     const request = new sql.Request();
@@ -451,6 +452,7 @@ const executeGetContract = async (params, res) => {
     request.input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser);
     request.input("p_nvcIdLoginHistory", sql.NVarChar, idLoginHistory);
     request.input("p_chrOffset", sql.Char, offset);
+    request.input("p_intType", sql.Int, type);
     request.execute("customerSch.USPgetContract", (err, result) => {
       if (err) {
         res.status(500).send({ response: "Error en los parametros" });
@@ -548,6 +550,7 @@ const executeSetContract = async (params, res, url) => {
     idSystemUser,
     idLoginHistory,
     offset = "-06:00",
+    type,
   } = params;
   const { idContract } = url;
   try {
@@ -559,6 +562,7 @@ const executeSetContract = async (params, res, url) => {
     request.input("p_vchDigitalSignature", sql.VarChar, digitalSignature);
     request.input("p_nvcAnex2", sql.NVarChar, anex2);
     request.input("p_datStartedAt", sql.Date, startedAt);
+    request.input("p_intType", sql.Int, type);
     request.input(
       "p_datScheduleSignatureDate",
       sql.Date,

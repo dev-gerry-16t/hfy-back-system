@@ -59,6 +59,10 @@ router.post(
   "/customer/getAgentContractCoincidences",
   ControllerCustomer.getAgentContractCoincidences
 );
+router.post(
+  "/customer/getAgentCommissionChart",
+  ControllerCustomer.getAgentCommissionChart
+);
 
 //Documents//
 router.post("/addDocument", ControllerDocuments.addDocument);

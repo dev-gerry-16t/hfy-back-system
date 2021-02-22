@@ -186,6 +186,7 @@ const executeSetTypeForm = async (params, res) => {
     idEndorsementTypeNumber = null,
     endorsementCitizenId = null,
     publicPropertyRegistry = null,
+    endorsementPlaceOfIssue = null,
   } = params;
 
   try {
@@ -302,6 +303,11 @@ const executeSetTypeForm = async (params, res) => {
       "p_nvcPublicPropertyRegistry",
       sql.NVarChar,
       publicPropertyRegistry
+    );
+    request.input(
+      "p_nvcEndorsementPlaceOfIssue",
+      sql.NVarChar,
+      endorsementPlaceOfIssue
     );
 
     request.execute("customerSch.USPsetTypeForm", (err, result) => {
