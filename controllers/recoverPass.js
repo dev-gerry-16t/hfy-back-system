@@ -68,7 +68,7 @@ const executeRequestRecoveryPass = async (params, res) => {
 };
 
 const executeVerifyCodeRecoveryPass = async (param, res) => {
-  const { idRequestRecoveryPassword, code, offset } = param;
+  const { idRequestRecoveryPassword, code, offset = "-06:00" } = param;
   try {
     const request = new sql.Request();
     request.input(

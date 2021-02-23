@@ -1,5 +1,5 @@
 const GLOBAL_CONSTANTS = {
-  VERSION: "v0.0.23",
+  VERSION: "v0.0.24",
   PORT: 3001,
   USER_DATABASE: "admin",
   PASS_DATABASE: process.env.DB_HOMIFY_PASSWORD,
@@ -9,6 +9,7 @@ const GLOBAL_CONSTANTS = {
   MASTER_KEY_PERMISSION: process.env.MASTER_KEY_TOKEN,
   ACCESS_KEY_ID: process.env.AWS_S3_ACCESS_KEY_ID,
   SECRET_ACCESS_KEY: process.env.AWS_S3_SECRET_ACCESS_KEY,
+  OFFSET: process.env.OFFSET,
 };
 
 module.exports = GLOBAL_CONSTANTS;
