@@ -487,7 +487,7 @@ const executeEmailSentAES = async (param) => {
     subject,
     content,
     jsonServiceResponse,
-    offset,
+    offset = "-06:00",
     jsonEmailServerConfig,
     idInvitation,
   } = param;
