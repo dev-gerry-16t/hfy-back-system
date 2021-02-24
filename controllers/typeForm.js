@@ -316,7 +316,9 @@ const executeSetTypeForm = async (params, res) => {
       } else {
         const resultRecordset = result.recordset;
         if (resultRecordset[0].stateCode !== 200) {
-          res.status(500).send({ response: "Error en los parametros" });
+          res
+            .status(resultRecordset[0].stateCode)
+            .send({ response: resultRecordset[0].message });
         } else {
           res.status(200).send({
             response: resultRecordset,
