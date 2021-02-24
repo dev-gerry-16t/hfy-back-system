@@ -460,12 +460,12 @@ const executeGetContract = async (params, res) => {
         const resultRecordset = result.recordset;
         if (download === true) {
           const config = {
-            format: "Legal",
+            format: "Letter",
             border: {
-              top: "1cm", // default is 0, units: mm, cm, in, px
-              right: "2cm",
-              bottom: "1cm",
-              left: "2cm",
+              top: "2.60cm", // default is 0, units: mm, cm, in, px
+              right: "2.70cm",
+              bottom: "2.60cm",
+              left: "2.70cm",
             },
           };
           if (
