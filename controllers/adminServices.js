@@ -1,8 +1,15 @@
 const sql = require("mssql");
 const pdf = require("html-pdf");
+const AWS = require("aws-sdk");
+const GLOBAL_CONSTANTS = require("../constants/constants");
 const isNil = require("lodash/isNil");
 const isEmpty = require("lodash/isEmpty");
 const nodemailer = require("nodemailer");
+
+const s3 = new AWS.S3({
+  accessKeyId: GLOBAL_CONSTANTS.ACCESS_KEY_ID,
+  secretAccessKey: GLOBAL_CONSTANTS.SECRET_ACCESS_KEY,
+});
 
 const executeEmailSentAES = async (param) => {
   const {
@@ -294,9 +301,26 @@ const executeUpdateContract = async (params, res, url) => {
         res.status(500).send({ response: "Error en los parametros" });
       } else {
         const resultRecordset = result.recordset;
-        res.status(200).send({
-          response: resultRecordset,
-        });
+        if (resultRecordset[0].stateCode !== 200) {
+          res.status(resultRecordset[0].stateCode).send({
+            response: resultRecordset[0].message,
+          });
+        } else {
+          resultRecordset.forEach((element) => {
+            if (element.canSendEmail === true) {
+              const configEmailServer = JSON.parse(
+                element.jsonEmailServerConfig
+              );
+              executeMailTo({
+                ...element,
+                ...configEmailServer,
+              });
+            }
+          });
+          res.status(200).send({
+            response: "Solicitud procesada exitosamente",
+          });
+        }
       }
     });
   } catch (err) {
@@ -326,8 +350,19 @@ const executeSwitchCustomerInContract = async (params, res, url) => {
               response: resultRecordset[0].message,
             });
           } else {
+            resultRecordset.forEach((element) => {
+              if (element.canSendEmail === true) {
+                const configEmailServer = JSON.parse(
+                  element.jsonEmailServerConfig
+                );
+                executeMailTo({
+                  ...element,
+                  ...configEmailServer,
+                });
+              }
+            });
             res.status(200).send({
-              response: resultRecordset,
+              response: "Solicitud procesada exitosamente",
             });
           }
         }
@@ -537,6 +572,190 @@ const executeGetContractComment = async (params, res) => {
   }
 };
 
+const executeGetDigitalContractDocument = async (params, res) => {
+  const {
+    idContract,
+    idSystemUser,
+    idLoginHistory,
+    type,
+    offset = "-06:00",
+  } = params;
+  try {
+    const request = new sql.Request();
+    request.input("p_nvcIdContract", sql.NVarChar, idContract);
+    request.input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser);
+    request.input("p_nvcIdLoginHistory", sql.NVarChar, idLoginHistory);
+    request.input("p_chrOffset", sql.Char, offset);
+    request.input("p_intType", sql.Int, type);
+    request.execute(
+      "customerSch.USPgetDigitalContractDocument",
+      (err, result) => {
+        if (err) {
+          res.status(500).send({ response: "Error en los parametros" });
+        } else {
+          const resultRecordset = result.recordset;
+          res.status(200).send({
+            response: resultRecordset,
+          });
+        }
+      }
+    );
+  } catch (err) {
+    console.log("ERROR", err);
+    // ... error checks
+  }
+};
+
+const executeGetDocumentByIdContract = async (params, res) => {
+  const {
+    idContract,
+    idDigitalContract = null,
+    idCustomer,
+    idCustomerTenant,
+    idSystemUser,
+    idLoginHistory,
+    type,
+    download,
+    bucket = "",
+    offset = "-06:00",
+  } = params;
+  try {
+    const request = new sql.Request();
+    request.input("p_nvcIdContract", sql.NVarChar, idContract);
+    request.input("p_nvcIdDigitalContract", sql.NVarChar, idDigitalContract);
+    request.input("p_nvcIdCustomer", sql.NVarChar, idCustomer);
+    request.input("p_nvcIdCustomerTenant", sql.NVarChar, idCustomerTenant);
+    request.input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser);
+    request.input("p_nvcIdLoginHistory", sql.NVarChar, idLoginHistory);
+    request.input("p_chrOffset", sql.Char, offset);
+    request.input("p_intType", sql.Int, type);
+    request.execute("customerSch.USPgetDocumentByIdContract", (err, result) => {
+      if (err) {
+        res.status(500).send({ response: "Error en los parametros" });
+      } else {
+        const resultRecordset = result.recordset;
+        if (download === true) {
+          if (
+            isNil(resultRecordset[0]) === false &&
+            isNil(resultRecordset[0].idDocument) === false
+          ) {
+            const bucketSorce =
+              isNil(resultRecordset[0]) === false &&
+              isNil(resultRecordset[0].bucketSource) === false
+                ? resultRecordset[0].bucketSource.toLowerCase()
+                : bucket.toLowerCase();
+            s3.getObject(
+              {
+                Bucket: bucketSorce,
+                Key: resultRecordset[0].idDocument,
+              },
+              (err, data) => {
+                if (err) {
+                  res.status(500).send({
+                    response: err,
+                  });
+                } else {
+                  const buff = new Buffer.from(data.Body, "binary");
+                  res.send(buff);
+                }
+              }
+            );
+          } else if (
+            isNil(resultRecordset[0]) === false &&
+            isNil(resultRecordset[0].content) === false
+          ) {
+            const config = {
+              format: "Letter",
+              border: {
+                top: "2.60cm", // default is 0, units: mm, cm, in, px
+                right: "2.70cm",
+                bottom: "2.60cm",
+                left: "2.70cm",
+              },
+            };
+            pdf
+              .create(resultRecordset[0].content, config)
+              .toBuffer((err, buff) => {
+                if (err) {
+                  res.status(500).send({ response: "FAIL" });
+                } else {
+                  res.send(buff);
+                }
+              });
+          } else {
+            res.status(500).send({
+              response: "No encontramos idDocument y content",
+            });
+          }
+        } else {
+          if (
+            isNil(resultRecordset[0]) === false &&
+            isNil(resultRecordset[0].idDocument) === false
+          ) {
+            res.status(200).send({ extension: resultRecordset[0].extension });
+          } else if (
+            isNil(resultRecordset[0]) === false &&
+            isNil(resultRecordset[0].content) === false
+          ) {
+            res.status(200).send({ extension: "pdf" });
+          } else {
+            res.status(500).send({
+              response: "No encontramos idDocument y content",
+            });
+          }
+        }
+      }
+    });
+  } catch (err) {
+    console.log("ERROR", err);
+    // ... error checks
+  }
+};
+
+const executeAddDigitalContractDocument = async (params, res, url) => {
+  const {
+    idDigitalContract,
+    idDocument,
+    idSystemUser,
+    idLoginHistory,
+    type,
+    offset = "-06:00",
+  } = params;
+  const { idContract } = url;
+  try {
+    const request = new sql.Request();
+    request.input("p_nvcIdContract", sql.NVarChar, idContract);
+    request.input("p_nvcIdDigitalContract", sql.NVarChar, idDigitalContract);
+    request.input("p_nvcIdDocument", sql.NVarChar, idDocument);
+    request.input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser);
+    request.input("p_nvcIdLoginHistory", sql.NVarChar, idLoginHistory);
+    request.input("p_intType", sql.Int, type);
+    request.input("p_chrOffset", sql.Char, offset);
+    request.execute(
+      "customerSch.USPaddDigitalContractDocument",
+      (err, result) => {
+        if (err) {
+          res.status(500).send({ response: "Error en los parametros" });
+        } else {
+          const resultRecordset = result.recordset;
+          if (resultRecordset[0].stateCode !== 200) {
+            res.status(resultRecordset[0].stateCode).send({
+              response: resultRecordset[0].message,
+            });
+          } else {
+            res.status(200).send({
+              response: resultRecordset,
+            });
+          }
+        }
+      }
+    );
+  } catch (err) {
+    console.log("ERROR", err);
+    // ... error checks
+  }
+};
+
 const executeSetContract = async (params, res, url) => {
   const {
     idCustomer,
@@ -697,6 +916,19 @@ const ControllerAdmin = {
     const params = req.body;
     const url = req.params;
     executeAddContractComment(params, res, url);
+  },
+  getDigitalContractDocument: (req, res) => {
+    const params = req.body;
+    executeGetDigitalContractDocument(params, res);
+  },
+  addDigitalContractDocument: (req, res) => {
+    const params = req.body;
+    const url = req.params;
+    executeAddDigitalContractDocument(params, res, url);
+  },
+  getDocumentByIdContract: (req, res) => {
+    const params = req.body;
+    executeGetDocumentByIdContract(params, res);
   },
 };
 

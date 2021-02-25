@@ -1,6 +1,7 @@
 const sql = require("mssql");
 const AWS = require("aws-sdk");
 const GLOBAL_CONSTANTS = require("../constants/constants");
+const isNil = require("lodash/isNil");
 
 const s3 = new AWS.S3({
   accessKeyId: GLOBAL_CONSTANTS.ACCESS_KEY_ID,
@@ -17,6 +18,7 @@ const executeAddDocument = async (params, res, file) => {
     extension,
     preview,
     thumbnail,
+    bucket = "",
     idDocumentType,
   } = params;
   const fileName = documentName.split(".");
@@ -34,7 +36,7 @@ const executeAddDocument = async (params, res, file) => {
     request.input("p_intIdDocumentType", sql.Int, idDocumentType);
     request.execute("documentSch.USPaddDocument", (err, result) => {
       if (err) {
-        res.status(500).send({ response: "Error en los parametros" });
+        res.status(500).send({ response: err });
       } else {
         const resultRecordset = result.recordset;
         if (resultRecordset[0].stateCode !== 200) {
@@ -42,7 +44,11 @@ const executeAddDocument = async (params, res, file) => {
             response: resultRecordset[0],
           });
         } else {
-          const bucketSorce = resultRecordset[0].bucketSource.toLowerCase();
+          const bucketSorce =
+            isNil(resultRecordset[0]) === false &&
+            isNil(resultRecordset[0].bucketSource) === false
+              ? resultRecordset[0].bucketSource.toLowerCase()
+              : bucket.toLowerCase();
           const idDocument = resultRecordset[0].idDocument;
           const params = {
             Bucket: bucketSorce,
@@ -50,10 +56,15 @@ const executeAddDocument = async (params, res, file) => {
             Body: file.buffer,
           };
           s3.upload(params, (err, data) => {
-            if (err) throw err;
-            res.status(200).send({
-              response: resultRecordset[0],
-            });
+            if (err) {
+              res.status(500).send({
+                response: err,
+              });
+            } else {
+              res.status(200).send({
+                response: resultRecordset[0],
+              });
+            }
           });
         }
       }
