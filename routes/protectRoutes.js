@@ -171,6 +171,14 @@ router.put(
   "/admin/addContractComment/:idContract",
   ControllerAdmin.addContractComment
 );
+router.put(
+  "/admin/addDigitalContractDocument/:idContract",
+  ControllerAdmin.addDigitalContractDocument
+);
+router.post(
+  "/admin/getDigitalContractDocument",
+  ControllerAdmin.getDigitalContractDocument
+);
 //Admin//
 
 module.exports = router;

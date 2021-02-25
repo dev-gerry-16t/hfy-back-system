@@ -294,9 +294,26 @@ const executeUpdateContract = async (params, res, url) => {
         res.status(500).send({ response: "Error en los parametros" });
       } else {
         const resultRecordset = result.recordset;
-        res.status(200).send({
-          response: resultRecordset,
-        });
+        if (resultRecordset[0].stateCode !== 200) {
+          res.status(resultRecordset[0].stateCode).send({
+            response: resultRecordset[0].message,
+          });
+        } else {
+          resultRecordset.forEach((element) => {
+            if (element.canSendEmail === true) {
+              const configEmailServer = JSON.parse(
+                element.jsonEmailServerConfig
+              );
+              executeMailTo({
+                ...element,
+                ...configEmailServer,
+              });
+            }
+          });
+          res.status(200).send({
+            response: "Solicitud procesada exitosamente",
+          });
+        }
       }
     });
   } catch (err) {
@@ -326,8 +343,19 @@ const executeSwitchCustomerInContract = async (params, res, url) => {
               response: resultRecordset[0].message,
             });
           } else {
+            resultRecordset.forEach((element) => {
+              if (element.canSendEmail === true) {
+                const configEmailServer = JSON.parse(
+                  element.jsonEmailServerConfig
+                );
+                executeMailTo({
+                  ...element,
+                  ...configEmailServer,
+                });
+              }
+            });
             res.status(200).send({
-              response: resultRecordset,
+              response: "Solicitud procesada exitosamente",
             });
           }
         }
@@ -537,6 +565,85 @@ const executeGetContractComment = async (params, res) => {
   }
 };
 
+const executeGetDigitalContractDocument = async (params, res) => {
+  const {
+    idContract,
+    idSystemUser,
+    idLoginHistory,
+    type,
+    offset = "-06:00",
+  } = params;
+  try {
+    const request = new sql.Request();
+    request.input("p_nvcIdContract", sql.NVarChar, idContract);
+    request.input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser);
+    request.input("p_nvcIdLoginHistory", sql.NVarChar, idLoginHistory);
+    request.input("p_chrOffset", sql.Char, offset);
+    request.input("p_intType", sql.Int, type);
+    request.execute(
+      "customerSch.USPgetDigitalContractDocument",
+      (err, result) => {
+        if (err) {
+          res.status(500).send({ response: "Error en los parametros" });
+        } else {
+          const resultRecordset = result.recordset;
+          res.status(200).send({
+            response: resultRecordset,
+          });
+        }
+      }
+    );
+  } catch (err) {
+    console.log("ERROR", err);
+    // ... error checks
+  }
+};
+
+const executeAddDigitalContractDocument = async (params, res, url) => {
+  const {
+    idDigitalContract,
+    idDocument,
+    idSystemUser,
+    idLoginHistory,
+    type,
+    offset = "-06:00",
+  } = params;
+  const { idContract } = url;
+  try {
+    const request = new sql.Request();
+    request.input("p_nvcIdContract", sql.NVarChar, idContract);
+    request.input("p_nvcIdDigitalContract", sql.NVarChar, idDigitalContract);
+    request.input("p_nvcIdDocument", sql.NVarChar, idDocument);
+    request.input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser);
+    request.input("p_nvcIdLoginHistory", sql.NVarChar, idLoginHistory);
+    request.input("p_intType", sql.Int, type);
+    request.input("p_chrOffset", sql.Char, offset);
+    request.execute(
+      "customerSch.USPaddDigitalContractDocument",
+      (err, result) => {
+        console.log("err, result", err, result, params, idContract);
+        if (err) {
+          res.status(500).send({ response: "Error en los parametros" });
+        } else {
+          const resultRecordset = result.recordset;
+          if (resultRecordset[0].stateCode !== 200) {
+            res.status(resultRecordset[0].stateCode).send({
+              response: resultRecordset[0].message,
+            });
+          } else {
+            res.status(200).send({
+              response: resultRecordset,
+            });
+          }
+        }
+      }
+    );
+  } catch (err) {
+    console.log("ERROR", err);
+    // ... error checks
+  }
+};
+
 const executeSetContract = async (params, res, url) => {
   const {
     idCustomer,
@@ -697,6 +804,15 @@ const ControllerAdmin = {
     const params = req.body;
     const url = req.params;
     executeAddContractComment(params, res, url);
+  },
+  getDigitalContractDocument: (req, res) => {
+    const params = req.body;
+    executeGetDigitalContractDocument(params, res);
+  },
+  addDigitalContractDocument: (req, res) => {
+    const params = req.body;
+    const url = req.params;
+    executeAddDigitalContractDocument(params, res, url);
   },
 };
 
