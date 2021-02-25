@@ -1,8 +1,15 @@
 const sql = require("mssql");
 const pdf = require("html-pdf");
+const AWS = require("aws-sdk");
+const GLOBAL_CONSTANTS = require("../constants/constants");
 const isNil = require("lodash/isNil");
 const isEmpty = require("lodash/isEmpty");
 const nodemailer = require("nodemailer");
+
+const s3 = new AWS.S3({
+  accessKeyId: GLOBAL_CONSTANTS.ACCESS_KEY_ID,
+  secretAccessKey: GLOBAL_CONSTANTS.SECRET_ACCESS_KEY,
+});
 
 const executeEmailSentAES = async (param) => {
   const {
@@ -599,6 +606,93 @@ const executeGetDigitalContractDocument = async (params, res) => {
   }
 };
 
+const executeGetDocumentByIdContract = async (params, res) => {
+  const {
+    idContract,
+    idDigitalContract = null,
+    idCustomer,
+    idCustomerTenant,
+    idSystemUser,
+    idLoginHistory,
+    type,
+    bucket = "",
+    offset = "-06:00",
+  } = params;
+  try {
+    const request = new sql.Request();
+    request.input("p_nvcIdContract", sql.NVarChar, idContract);
+    request.input("p_nvcIdDigitalContract", sql.NVarChar, idDigitalContract);
+    request.input("p_nvcIdCustomer", sql.NVarChar, idCustomer);
+    request.input("p_nvcIdCustomerTenant", sql.NVarChar, idCustomerTenant);
+    request.input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser);
+    request.input("p_nvcIdLoginHistory", sql.NVarChar, idLoginHistory);
+    request.input("p_chrOffset", sql.Char, offset);
+    request.input("p_intType", sql.Int, type);
+    request.execute("customerSch.USPgetDocumentByIdContract", (err, result) => {
+      if (err) {
+        res.status(500).send({ response: "Error en los parametros" });
+      } else {
+        const resultRecordset = result.recordset;
+        if (
+          isNil(resultRecordset[0]) === false &&
+          isNil(resultRecordset[0].idDocument) === false
+        ) {
+          const bucketSorce =
+            isNil(resultRecordset[0]) === false &&
+            isNil(resultRecordset[0].bucketSource) === false
+              ? resultRecordset[0].bucketSource.toLowerCase()
+              : bucket.toLowerCase();
+          s3.getObject(
+            {
+              Bucket: bucketSorce,
+              Key: resultRecordset[0].idDocument,
+            },
+            (err, data) => {
+              if (err) {
+                res.status(500).send({
+                  response: err,
+                });
+              } else {
+                const buff = new Buffer.from(data.Body, "binary");
+                res.send(buff);
+              }
+            }
+          );
+        } else if (
+          isNil(resultRecordset[0]) === false &&
+          isNil(resultRecordset[0].content) === false
+        ) {
+          const config = {
+            format: "Letter",
+            border: {
+              top: "2.60cm", // default is 0, units: mm, cm, in, px
+              right: "2.70cm",
+              bottom: "2.60cm",
+              left: "2.70cm",
+            },
+          };
+          pdf
+            .create(resultRecordset[0].content, config)
+            .toBuffer((err, buff) => {
+              if (err) {
+                res.status(500).send({ response: "FAIL" });
+              } else {
+                res.send(buff);
+              }
+            });
+        } else {
+          res.status(500).send({
+            response: "No encontramos idDocument y content",
+          });
+        }
+      }
+    });
+  } catch (err) {
+    console.log("ERROR", err);
+    // ... error checks
+  }
+};
+
 const executeAddDigitalContractDocument = async (params, res, url) => {
   const {
     idDigitalContract,
@@ -812,6 +906,10 @@ const ControllerAdmin = {
     const params = req.body;
     const url = req.params;
     executeAddDigitalContractDocument(params, res, url);
+  },
+  getDocumentByIdContract: (req, res) => {
+    const params = req.body;
+    executeGetDocumentByIdContract(params, res);
   },
 };
 

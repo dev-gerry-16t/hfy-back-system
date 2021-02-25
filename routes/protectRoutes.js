@@ -179,6 +179,10 @@ router.post(
   "/admin/getDigitalContractDocument",
   ControllerAdmin.getDigitalContractDocument
 );
+router.post(
+  "/admin/getDocumentByIdContract",
+  ControllerAdmin.getDocumentByIdContract
+);
 //Admin//
 
 module.exports = router;
