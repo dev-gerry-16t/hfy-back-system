@@ -621,7 +621,6 @@ const executeAddDigitalContractDocument = async (params, res, url) => {
     request.execute(
       "customerSch.USPaddDigitalContractDocument",
       (err, result) => {
-        console.log("err, result", err, result, params, idContract);
         if (err) {
           res.status(500).send({ response: "Error en los parametros" });
         } else {
