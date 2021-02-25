@@ -615,6 +615,7 @@ const executeGetDocumentByIdContract = async (params, res) => {
     idSystemUser,
     idLoginHistory,
     type,
+    download,
     bucket = "",
     offset = "-06:00",
   } = params;
@@ -633,57 +634,75 @@ const executeGetDocumentByIdContract = async (params, res) => {
         res.status(500).send({ response: "Error en los parametros" });
       } else {
         const resultRecordset = result.recordset;
-        if (
-          isNil(resultRecordset[0]) === false &&
-          isNil(resultRecordset[0].idDocument) === false
-        ) {
-          const bucketSorce =
+        if (download === true) {
+          if (
             isNil(resultRecordset[0]) === false &&
-            isNil(resultRecordset[0].bucketSource) === false
-              ? resultRecordset[0].bucketSource.toLowerCase()
-              : bucket.toLowerCase();
-          s3.getObject(
-            {
-              Bucket: bucketSorce,
-              Key: resultRecordset[0].idDocument,
-            },
-            (err, data) => {
-              if (err) {
-                res.status(500).send({
-                  response: err,
-                });
-              } else {
-                const buff = new Buffer.from(data.Body, "binary");
-                res.send(buff);
+            isNil(resultRecordset[0].idDocument) === false
+          ) {
+            const bucketSorce =
+              isNil(resultRecordset[0]) === false &&
+              isNil(resultRecordset[0].bucketSource) === false
+                ? resultRecordset[0].bucketSource.toLowerCase()
+                : bucket.toLowerCase();
+            s3.getObject(
+              {
+                Bucket: bucketSorce,
+                Key: resultRecordset[0].idDocument,
+              },
+              (err, data) => {
+                if (err) {
+                  res.status(500).send({
+                    response: err,
+                  });
+                } else {
+                  const buff = new Buffer.from(data.Body, "binary");
+                  res.send(buff);
+                }
               }
-            }
-          );
-        } else if (
-          isNil(resultRecordset[0]) === false &&
-          isNil(resultRecordset[0].content) === false
-        ) {
-          const config = {
-            format: "Letter",
-            border: {
-              top: "2.60cm", // default is 0, units: mm, cm, in, px
-              right: "2.70cm",
-              bottom: "2.60cm",
-              left: "2.70cm",
-            },
-          };
-          pdf
-            .create(resultRecordset[0].content, config)
-            .toBuffer((err, buff) => {
-              if (err) {
-                res.status(500).send({ response: "FAIL" });
-              } else {
-                res.send(buff);
-              }
+            );
+          } else if (
+            isNil(resultRecordset[0]) === false &&
+            isNil(resultRecordset[0].content) === false
+          ) {
+            const config = {
+              format: "Letter",
+              border: {
+                top: "2.60cm", // default is 0, units: mm, cm, in, px
+                right: "2.70cm",
+                bottom: "2.60cm",
+                left: "2.70cm",
+              },
+            };
+            pdf
+              .create(resultRecordset[0].content, config)
+              .toBuffer((err, buff) => {
+                if (err) {
+                  res.status(500).send({ response: "FAIL" });
+                } else {
+                  res.send(buff);
+                }
+              });
+          } else {
+            res.status(500).send({
+              response: "No encontramos idDocument y content",
             });
+          }
         } else {
-          res.status(500).send({
-            response: "No encontramos idDocument y content",
-          });
+          if (
+            isNil(resultRecordset[0]) === false &&
+            isNil(resultRecordset[0].idDocument) === false
+          ) {
+            res.status(200).send({ extension: resultRecordset[0].extension });
+          } else if (
+            isNil(resultRecordset[0]) === false &&
+            isNil(resultRecordset[0].content) === false
+          ) {
+            res.status(200).send({ extension: "pdf" });
+          } else {
+            res.status(500).send({
+              response: "No encontramos idDocument y content",
+            });
+          }
         }
       }
     });
