@@ -656,7 +656,7 @@ const executeGetDocumentByIdContract = async (params, res) => {
                   });
                 } else {
                   const buff = new Buffer.from(data.Body, "binary");
-                  res.send(buff);
+                  res.status(200).send(buff);
                 }
               }
             );
