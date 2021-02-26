@@ -737,14 +737,24 @@ const executeAddDigitalContractDocument = async (params, res, url) => {
         if (err) {
           res.status(500).send({ response: "Error en los parametros" });
         } else {
-          const resultRecordset = result.recordset;
-          if (resultRecordset[0].stateCode !== 200) {
-            res.status(resultRecordset[0].stateCode).send({
-              response: resultRecordset[0].message,
+          if (result.recordset[0].stateCode !== 200) {
+            res.status(result.recordset[0].stateCode).send({
+              response: result.recordset[0].message,
             });
           } else {
+            result.recordset.forEach((element) => {
+              if (element.canSendEmail === true) {
+                const configEmailServer = JSON.parse(
+                  element.jsonEmailServerConfig
+                );
+                executeMailTo({
+                  ...element,
+                  ...configEmailServer,
+                });
+              }
+            });
             res.status(200).send({
-              response: resultRecordset,
+              response: "Solicitud procesado exitosamente",
             });
           }
         }
@@ -795,14 +805,24 @@ const executeSetContract = async (params, res, url) => {
       if (err) {
         res.status(500).send({ response: "Error en los parametros" });
       } else {
-        const resultRecordset = result.recordset;
-        if (resultRecordset[0].stateCode !== 200) {
-          res.status(resultRecordset[0].stateCode).send({
-            response: resultRecordset[0].message,
+        if (result.recordset[0].stateCode !== 200) {
+          res.status(result.recordset[0].stateCode).send({
+            response: result.recordset[0].message,
           });
         } else {
+          result.recordset.forEach((element) => {
+            if (element.canSendEmail === true) {
+              const configEmailServer = JSON.parse(
+                element.jsonEmailServerConfig
+              );
+              executeMailTo({
+                ...element,
+                ...configEmailServer,
+              });
+            }
+          });
           res.status(200).send({
-            response: resultRecordset,
+            response: "Solicitud procesado exitosamente",
           });
         }
       }

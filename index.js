@@ -28,7 +28,7 @@ app.listen(port, () => {
 });
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
-app.use(cors({ origin: true, credentials: true }));
+app.use(cors());
 app.use(upload);
 
 app.get("/", (req, res) => {
