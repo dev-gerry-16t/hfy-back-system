@@ -606,7 +606,7 @@ const executeGetDigitalContractDocument = async (params, res) => {
   }
 };
 
-const executeGetDocumentByIdContract = async (params, res) => {
+const executeGetDocumentByIdContract = async (params, res, req) => {
   const {
     idContract,
     idDigitalContract = null,
@@ -656,6 +656,8 @@ const executeGetDocumentByIdContract = async (params, res) => {
                   });
                 } else {
                   const buff = new Buffer.from(data.Body, "binary");
+                  res.setHeader("Content-Type", "application/octet-stream");
+                  res.setHeader("Access-Control-Allow-Origin", req.headers.origin);
                   res.status(200).send(buff);
                 }
               }
@@ -948,7 +950,7 @@ const ControllerAdmin = {
   },
   getDocumentByIdContract: (req, res) => {
     const params = req.body;
-    executeGetDocumentByIdContract(params, res);
+    executeGetDocumentByIdContract(params, res, req);
   },
 };
 
