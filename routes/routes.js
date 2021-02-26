@@ -13,6 +13,7 @@ router.get("/test", ControllerTest.testPath);
 router.get("/viewFile/:idDocument/:bucketSource", ControllerTest.viewFiles);
 router.get("/viewThumbnail", ControllerTest.viewThumbnail);
 router.get("/downloadFile", ControllerTest.downloadFiles);
+router.get("/testPDF", ControllerTest.testPDF);
 router.post("/uploadBucket", ControllerTest.upload);
 router.get("/mailto", ControllerRegister.mailto);
 router.post("/systemUser/validateLogin", ControllerLogin.login);
