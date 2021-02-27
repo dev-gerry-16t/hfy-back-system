@@ -515,11 +515,12 @@ const executeGetContract = async (params, res) => {
                   res.status(500).send({ response: "FAIL" });
                 } else {
                   const buffer = new Buffer.from(buff, "binary");
-                  res.writeHead(200, {
+                  res.set({
                     "Content-Type": "application/pdf",
                     "Content-Length": buffer.length,
+                    "Alive-Kep-Bounce": "A-l238kl89-BFJ87YTT",
                   });
-                  res.end(buffer);
+                  res.send(buffer);
                   //res.send(buffer);
                 }
               });
