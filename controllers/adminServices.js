@@ -516,10 +516,14 @@ const executeGetContract = async (params, res) => {
                 } else {
                   const buffer = new Buffer.from(buff, "binary");
                   res.set({
-                    "Content-Type": "application/pdf",
+                    "Content-Type": "application/octet-stream",
                     "Content-Length": buffer.length,
                     "Alive-Kep-Bounce": "A-l238kl89-BFJ87YTT",
                     "Access-Control-Allow-Credentials": true,
+                    "Access-Control-Allow-Origin": "*",
+                    "Access-Control-Allow-Methods": "GET,HEAD,OPTIONS,POST,PUT",
+                    "Access-Control-Allow-Headers":
+                      "Origin, X-Requested-With, Content-Type, Accept, Authorization",
                   });
                   res.send(buffer);
                   //res.send(buffer);
