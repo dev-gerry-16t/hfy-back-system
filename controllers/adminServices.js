@@ -514,7 +514,13 @@ const executeGetContract = async (params, res) => {
                   console.log("err", err);
                   res.status(500).send({ response: "FAIL" });
                 } else {
-                  res.send(buff);
+                  const buffer = new Buffer.from(buff, "binary");
+                  res.writeHead(200, {
+                    "Content-Type": "application/pdf",
+                    "Content-Length": buffer.length,
+                  });
+                  res.end(buffer);
+                  //res.send(buffer);
                 }
               });
           } else {
@@ -657,7 +663,10 @@ const executeGetDocumentByIdContract = async (params, res, req) => {
                 } else {
                   const buff = new Buffer.from(data.Body, "binary");
                   res.setHeader("Content-Type", "application/octet-stream");
-                  res.setHeader("Access-Control-Allow-Origin", req.headers.origin);
+                  res.setHeader(
+                    "Access-Control-Allow-Origin",
+                    req.headers.origin
+                  );
                   res.status(200).send(buff);
                 }
               }

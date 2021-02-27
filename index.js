@@ -1,5 +1,5 @@
 "use-strict";
-require('dotenv').config();
+require("dotenv").config();
 const express = require("express");
 const bodyParser = require("body-parser");
 const sql = require("mssql");
@@ -10,7 +10,10 @@ const verifyToken = require("./middleware/authenticate");
 const multer = require("multer");
 
 const app = express();
-sql.connect(CONFIG);
+sql.connect(CONFIG, (err, res) => {
+  if (err) console.log("error connect", err);
+  if (res) console.log("success connect");
+});
 const projectRoutes = require("./routes/routes");
 const protectRoutes = require("./routes/protectRoutes");
 
