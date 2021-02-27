@@ -1,5 +1,5 @@
 const sql = require("mssql");
-const pdf = require("html-pdf-node");
+const pdf = require("html-pdf");
 const AWS = require("aws-sdk");
 const GLOBAL_CONSTANTS = require("../constants/constants");
 const isNil = require("lodash/isNil");
@@ -507,32 +507,28 @@ const executeGetContract = async (params, res) => {
             isNil(resultRecordset[0]) === false &&
             isNil(resultRecordset[0].contractContent) === false
           ) {
-            const file = { content: resultRecordset[0].contractContent };
-            pdf.generatePdf(file, config).then((pdfBuffer) => {
-              res.send(pdfBuffer);
-            });
-            // pdf
-            //   .create(resultRecordset[0].contractContent, config)
-            //   .toBuffer((err, buff) => {
-            //     if (err) {
-            //       console.log("error generando pdf ->", err);
-            //       res.status(500).send({ response: "FAIL" });
-            //     } else {
-            //       const buffer = new Buffer.from(buff, "binary");
-            //       res.set({
-            //         "Content-Type": "application/octet-stream",
-            //         "Content-Length": buffer.length,
-            //         "Alive-Kep-Bounce": "A-l238kl89-BFJ87YTT",
-            //         "Access-Control-Allow-Credentials": true,
-            //         "Access-Control-Allow-Origin": "*",
-            //         "Access-Control-Allow-Methods": "GET,HEAD,OPTIONS,POST,PUT",
-            //         "Access-Control-Allow-Headers":
-            //           "Origin, X-Requested-With, Content-Type, Accept, Authorization",
-            //       });
-            //       res.send(buffer);
-            //       //res.send(buffer);
-            //     }
-            //   });
+            pdf
+              .create(resultRecordset[0].contractContent, config)
+              .toBuffer((err, buff) => {
+                if (err) {
+                  console.log("error generando pdf ->", err);
+                  res.status(500).send({ response: "FAIL" });
+                } else {
+                  const buffer = new Buffer.from(buff, "binary");
+                  res.set({
+                    "Content-Type": "application/octet-stream",
+                    "Content-Length": buffer.length,
+                    "Alive-Kep-Bounce": "A-l238kl89-BFJ87YTT",
+                    "Access-Control-Allow-Credentials": true,
+                    "Access-Control-Allow-Origin": "*",
+                    "Access-Control-Allow-Methods": "GET,HEAD,OPTIONS,POST,PUT",
+                    "Access-Control-Allow-Headers":
+                      "Origin, X-Requested-With, Content-Type, Accept, Authorization",
+                  });
+                  res.send(buffer);
+                  //res.send(buffer);
+                }
+              });
           } else {
             res
               .status(500)
