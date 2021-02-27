@@ -519,6 +519,7 @@ const executeGetContract = async (params, res) => {
                     "Content-Type": "application/pdf",
                     "Content-Length": buffer.length,
                     "Alive-Kep-Bounce": "A-l238kl89-BFJ87YTT",
+                    "Access-Control-Allow-Credentials": true,
                   });
                   res.send(buffer);
                   //res.send(buffer);
