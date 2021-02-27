@@ -1,6 +1,6 @@
 const sql = require("mssql");
 //const imageThumbnail = require("image-thumbnail");
-const pdf = require("html-pdf");
+const pdf = require("html-pdf-node");
 const AWS = require("aws-sdk");
 const GLOBAL_CONSTANTS = require("../constants/constants");
 
