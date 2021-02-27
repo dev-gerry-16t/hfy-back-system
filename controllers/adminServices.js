@@ -511,7 +511,7 @@ const executeGetContract = async (params, res) => {
               .create(resultRecordset[0].contractContent, config)
               .toBuffer((err, buff) => {
                 if (err) {
-                  console.log("error generando pdf ->", err);
+                  console.log("error generando pdf", err);
                   res.status(500).send({ response: "FAIL" });
                 } else {
                   const buffer = new Buffer.from(buff, "binary");
