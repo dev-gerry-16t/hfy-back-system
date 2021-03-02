@@ -498,11 +498,36 @@ const executeGetContract = async (params, res) => {
           isNil(resultRecordset[0]) === false
         ) {
           const resultObject = resultRecordset[0];
-          console.log("resultObject", resultObject);
+
+          if (download === true) {
+          } else if (process === true) {
+            const bucketSource = resultObject.bucketSource.toLowerCase();
+            s3.getObject(
+              {
+                Bucket: bucketSource,
+                Key: params.idDocument,
+              },
+              (err, data) => {
+                if (err) throw err;
+                const buff = new Buffer.from(data.Body);
+                // res.writeHead(200, {
+                //   "Content-Type": "image/png",
+                //   "Content-Length": buff.length,
+                // });
+                // res.end(buff);
+              }
+            );
+          } else {
+            console.log("resultObject", resultObject);
+            res.status(200).send({
+              response: [resultObject],
+            });
+          }
+        } else {
+          res.status(200).send({
+            response: [],
+          });
         }
-        res.status(200).send({
-          response: resultRecordset,
-        });
       }
     });
   } catch (err) {
