@@ -11,6 +11,7 @@ var router = express.Router();
 router.get("/", ControllerTest.test);
 router.get("/test", ControllerTest.testPath);
 router.get("/viewFile/:idDocument/:bucketSource", ControllerTest.viewFiles);
+router.get("/viewFilesDocx/:idDocument/:bucketSource", ControllerTest.viewFilesDocx);
 router.get("/viewThumbnail", ControllerTest.viewThumbnail);
 router.get("/downloadFile", ControllerTest.downloadFiles);
 router.get("/testPDF", ControllerTest.testPDF);

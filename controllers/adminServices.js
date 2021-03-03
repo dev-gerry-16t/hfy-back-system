@@ -1,5 +1,7 @@
 const sql = require("mssql");
 const AWS = require("aws-sdk");
+const Docxtemplater = require("docxtemplater");
+const PizZip = require("pizzip");
 const GLOBAL_CONSTANTS = require("../constants/constants");
 const isNil = require("lodash/isNil");
 const isEmpty = require("lodash/isEmpty");
@@ -467,6 +469,203 @@ const executeGetAgentByIdContract = async (params, res) => {
   }
 };
 
+const executeGetContractProperties = async (params, callback) => {
+  const {
+    idCustomer,
+    idCustomerTenant,
+    idContract,
+    idSystemUser,
+    idLoginHistory,
+    offset = "-06:00",
+    type,
+  } = params;
+  try {
+    const request = new sql.Request();
+    request.input("p_nvcIdCustomer", sql.NVarChar, idCustomer);
+    request.input("p_nvcIdCustomerTenant", sql.NVarChar, idCustomerTenant);
+    request.input("p_nvcIdContract", sql.NVarChar, idContract);
+    request.input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser);
+    request.input("p_nvcIdLoginHistory", sql.NVarChar, idLoginHistory);
+    request.input("p_chrOffset", sql.Char, offset);
+    request.input("p_intType", sql.Int, type);
+    request.execute(
+      "customerSch.USPgetDigitalContractProperties",
+      (err, result) => {
+        if (err) {
+          callback(err, null);
+        } else {
+          let resultRecordset = [];
+          if (type !== 4) {
+            resultRecordset = result.recordset;
+          } else {
+            resultRecordset = result.recordsets[1];
+          }
+          callback(null, resultRecordset);
+        }
+      }
+    );
+  } catch (err) {
+    console.log("ERROR", err);
+    throw err;
+  }
+};
+
+const executeAddDocument = async (resultGet, params, dataParams, file, res) => {
+  const {
+    idCustomer,
+    idSystemUser,
+    idLoginHistory,
+    offset = "-06:00",
+    documentName = null,
+    extension = "docx",
+    preview = null,
+    thumbnail = null,
+    bucket = "",
+  } = params;
+
+  const { idPreviousDocument, idDocumentType } = resultGet;
+
+  try {
+    const request = new sql.Request();
+    request.input("p_nvcIdCustomer", sql.NVarChar, idCustomer);
+    request.input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser);
+    request.input("p_nvcIdLoginHistory", sql.NVarChar, idLoginHistory);
+    request.input("p_nvcDocumentName", sql.NVarChar, documentName);
+    request.input("p_nvcExtension", sql.NVarChar, extension);
+    request.input("p_nvcPreview", sql.NVarChar, preview);
+    request.input("p_nvcThumbnail", sql.NVarChar, thumbnail);
+    request.input("p_chrOffset", sql.Char, offset);
+    request.input("p_intIdDocumentType", sql.Int, idDocumentType);
+    request.execute("documentSch.USPaddDocument", async (err, result) => {
+      if (err) {
+        res.status(500).send({ response: err });
+      } else {
+        const resultRecordset = result.recordset;
+        if (resultRecordset[0].stateCode !== 200) {
+          res.status(resultRecordset[0].stateCode).send({
+            response: resultRecordset[0],
+          });
+        } else {
+          const zip = new PizZip(file);
+          let doc;
+          try {
+            doc = new Docxtemplater(zip);
+          } catch (error) {
+            res.status(500).send({ response: "Fail replace vars" });
+          }
+          doc.setData(dataParams);
+          try {
+            await doc.render();
+          } catch (error) {
+            res.status(500).send({ response: "Fail render vars" });
+          }
+
+          const fileDocument = await doc
+            .getZip()
+            .generate({ type: "nodebuffer" });
+          const bucketSorce =
+            isNil(resultRecordset[0]) === false &&
+            isNil(resultRecordset[0].bucketSource) === false
+              ? resultRecordset[0].bucketSource.toLowerCase()
+              : bucket.toLowerCase();
+          const idDocument = resultRecordset[0].idDocument;
+          const params = {
+            Bucket: bucketSorce,
+            Key: idDocument,
+            Body: fileDocument,
+          };
+          const params1 = {
+            Bucket: bucketSorce,
+            Key: idDocument,
+          };
+          if (isNil(idPreviousDocument) === false) {
+            s3.upload(params1, (err, data) => {
+              if (err) {
+                console.log("fail delete object in bucket aws");
+              } else {
+                console.log("Success delete object in bucket aws");
+              }
+            });
+          }
+          s3.upload(params, (err, data) => {
+            if (err) {
+              res.status(500).send({
+                response: err,
+              });
+            } else {
+              res.status(200).send({
+                response: [
+                  {
+                    url: `/api/viewFilesDocx/${idDocument}/${bucketSorce}`,
+                    ...resultGet,
+                  },
+                ],
+              });
+            }
+          });
+        }
+      }
+    });
+  } catch (err) {
+    console.log("ERROR", err);
+    // ... error checks
+  }
+};
+
+const processFileToUpload = async (resultObject, params, res) => {
+  try {
+    const bucketSource = resultObject.bucketSource.toLowerCase();
+    s3.getObject(
+      {
+        Bucket: bucketSource,
+        Key: resultObject.idDocument,
+      },
+      async (err, data) => {
+        try {
+          if (err) {
+            throw err;
+          } else {
+            const buff = new Buffer.from(data.Body, "binary");
+            await executeGetContractProperties(
+              params,
+              async (error, result) => {
+                try {
+                  let objectParams = {};
+                  if (error) {
+                    throw error;
+                  } else {
+                    if (params.type !== 4) {
+                      objectParams =
+                        isNil(result[0]) === false ? result[0] : {};
+                    } else {
+                      objectParams = {
+                        payments: isNil(result) === false ? result : [],
+                      };
+                    }
+                    await executeAddDocument(
+                      resultObject,
+                      params,
+                      objectParams,
+                      buff,
+                      res
+                    );
+                  }
+                } catch (error) {
+                  res.status(500).send({ response: "Error en los parametros" });
+                }
+              }
+            );
+          }
+        } catch (error) {
+          throw error;
+        }
+      }
+    );
+  } catch (error) {
+    throw error;
+  }
+};
+
 const executeGetContract = async (params, res) => {
   const {
     download,
@@ -488,7 +687,7 @@ const executeGetContract = async (params, res) => {
     request.input("p_nvcIdLoginHistory", sql.NVarChar, idLoginHistory);
     request.input("p_chrOffset", sql.Char, offset);
     request.input("p_intType", sql.Int, type);
-    request.execute("customerSch.USPgetContract", (err, result) => {
+    request.execute("customerSch.USPgetContract", async (err, result) => {
       if (err) {
         res.status(500).send({ response: "Error en los parametros" });
       } else {
@@ -501,22 +700,11 @@ const executeGetContract = async (params, res) => {
 
           if (download === true) {
           } else if (process === true) {
-            const bucketSource = resultObject.bucketSource.toLowerCase();
-            s3.getObject(
-              {
-                Bucket: bucketSource,
-                Key: params.idDocument,
-              },
-              (err, data) => {
-                if (err) throw err;
-                const buff = new Buffer.from(data.Body);
-                // res.writeHead(200, {
-                //   "Content-Type": "image/png",
-                //   "Content-Length": buff.length,
-                // });
-                // res.end(buff);
-              }
-            );
+            try {
+              await processFileToUpload(resultObject, params, res);
+            } catch (error) {
+              throw error;
+            }
           } else {
             console.log("resultObject", resultObject);
             res.status(200).send({
@@ -532,7 +720,7 @@ const executeGetContract = async (params, res) => {
     });
   } catch (err) {
     console.log("ERROR", err);
-    // ... error checks
+    res.status(500).send({ response: "Error en los parametros" });
   }
 };
 
@@ -900,47 +1088,6 @@ const executeAddContractDocument = async (params, res, url) => {
   }
 };
 
-const executeGetContractProperties = async (params, res, url) => {
-  const {
-    idCustomer,
-    idCustomerTenant,
-    idContract,
-    idSystemUser,
-    idLoginHistory,
-    offset = "-06:00",
-    type,
-  } = params;
-  try {
-    const request = new sql.Request();
-    request.input("p_nvcIdCustomer", sql.NVarChar, idCustomer);
-    request.input("p_nvcIdCustomerTenant", sql.NVarChar, idCustomerTenant);
-    request.input("p_nvcIdContract", sql.NVarChar, idContract);
-    request.input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser);
-    request.input("p_nvcIdLoginHistory", sql.NVarChar, idLoginHistory);
-    request.input("p_chrOffset", sql.Char, offset);
-    request.input("p_intType", sql.Int, type);
-    request.execute("customerSch.USPgetContractProperties", (err, result) => {
-      if (err) {
-        res.status(500).send({ response: "Error en los parametros" });
-      } else {
-        const resultRecordset = result.recordset;
-        if (resultRecordset[0].stateCode !== 200) {
-          res.status(resultRecordset[0].stateCode).send({
-            response: resultRecordset[0].message,
-          });
-        } else {
-          res.status(200).send({
-            response: resultRecordset,
-          });
-        }
-      }
-    });
-  } catch (err) {
-    console.log("ERROR", err);
-    // ... error checks
-  }
-};
-
 const ControllerAdmin = {
   getContractStats: (req, res) => {
     const params = req.body;
@@ -1014,10 +1161,6 @@ const ControllerAdmin = {
   getDocumentByIdContract: (req, res) => {
     const params = req.body;
     executeGetDocumentByIdContract(params, res, req);
-  },
-  getContractProperties: (req, res) => {
-    const params = req.body;
-    executeGetContractProperties(params, res, req);
   },
 };
 
