@@ -285,7 +285,6 @@ const executeUpdateContract = async (params, res, url) => {
     idLoginHistory,
     offset = "-06:00",
   } = params;
-  console.log("rating", rating, typeof rating);
   const { idContract } = url;
   try {
     const request = new sql.Request();
