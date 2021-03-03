@@ -574,12 +574,13 @@ const executeAddDocument = async (resultGet, params, dataParams, file, res) => {
             Key: idDocument,
             Body: fileDocument,
           };
-          const params1 = {
-            Bucket: bucketSorce,
-            Key: idDocument,
-          };
+
           if (isNil(idPreviousDocument) === false) {
-            s3.upload(params1, (err, data) => {
+            const params1 = {
+              Bucket: bucketSorce,
+              Key: idPreviousDocument,
+            };
+            s3.deleteObject(params1, (err, data) => {
               if (err) {
                 console.log("fail delete object in bucket aws");
               } else {
