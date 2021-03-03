@@ -221,7 +221,7 @@ const executeSetTypeForm = async (params, res) => {
     request.input("p_intCurrentTime", sql.Int, currentTime);
     request.input("p_intEconomicDependents", sql.Int, economicDependents);
     request.input("p_nvcCompanyName", sql.NVarChar, companyName);
-    request.input("p_decCurrentSalary", sql.Decimal, currentSalary);
+    request.input("p_decCurrentSalary", sql.Decimal(19,2), currentSalary);
     request.input("p_chrAntiquityTimeRange", sql.Char, antiquityTimeRange);
     request.input("p_intAntiquity", sql.Int, antiquity);
     request.input("p_nvcBossName", sql.NVarChar, bossName);
@@ -420,8 +420,8 @@ const executeSetTypeFormOwner = async (params, res) => {
     );
     request.input("p_intIdPropertyType", sql.Int, idPropertyType);
     request.input("p_bitIsFurnished", sql.Bit, isFurnished);
-    request.input("p_decCurrentRent", sql.Decimal, currentRent);
-    request.input("p_decMaintenanceAmount", sql.Decimal, maintenanceAmount);
+    request.input("p_decCurrentRent", sql.Decimal(19,2), currentRent);
+    request.input("p_decMaintenanceAmount", sql.Decimal(19,2), maintenanceAmount);
     request.input("p_intTotalParkingSpots", sql.Int, totalParkingSpots);
     request.input("p_nvcIdBank", sql.NVarChar, idBank);
     request.input("p_nvcBankBranch", sql.NVarChar, bankBranch);

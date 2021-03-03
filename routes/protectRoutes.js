@@ -175,6 +175,10 @@ router.put(
   "/admin/addDigitalContractDocument/:idContract",
   ControllerAdmin.addDigitalContractDocument
 );
+router.put(
+  "/admin/addContractDocument/:idDocument",
+  ControllerAdmin.addContractDocument
+);
 router.post(
   "/admin/getDigitalContractDocument",
   ControllerAdmin.getDigitalContractDocument

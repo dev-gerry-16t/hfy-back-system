@@ -378,7 +378,7 @@ const executeGetAllPaymentInContract = async (params, res) => {
     request.input("p_nvcIdIncidence", sql.NVarChar, idIncidence);
     request.input("p_intIdPaymentType", sql.Int, idPaymentType);
     request.input("p_datPaymentDate", sql.Date, paymentDate);
-    request.input("p_decAmount", sql.Decimal, amount);
+    request.input("p_decAmount", sql.Decimal(19,2), amount);
     request.input("p_intAdvancingRents", sql.Int, advancingRents);
     request.input("p_nvcDocuments", sql.NVarChar, documents);
     request.input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser);
