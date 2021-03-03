@@ -549,7 +549,11 @@ const executeAddDocument = async (resultGet, params, dataParams, file, res) => {
           const zip = new PizZip(file);
           let doc;
           try {
-            doc = new Docxtemplater(zip);
+            doc = new Docxtemplater(zip, {
+              nullGetter: () => {
+                return "";
+              },
+            });
           } catch (error) {
             res.status(500).send({ response: "Fail replace vars" });
           }
