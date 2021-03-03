@@ -597,8 +597,9 @@ const executeAddDocument = async (resultGet, params, dataParams, file, res) => {
               res.status(200).send({
                 response: [
                   {
-                    url: `/api/viewFilesDocx/${idDocument}/${bucketSorce}`,
                     ...resultGet,
+                    url: `/api/viewFilesDocx/${idDocument}/${bucketSorce}`,
+                    idDocument,
                   },
                 ],
               });
@@ -677,6 +678,7 @@ const executeGetContract = async (params, res) => {
     idLoginHistory,
     offset = "-06:00",
     type,
+    url,
     process,
   } = params;
   try {
@@ -698,8 +700,35 @@ const executeGetContract = async (params, res) => {
           isNil(resultRecordset[0]) === false
         ) {
           const resultObject = resultRecordset[0];
-
           if (download === true) {
+            if (isNil(resultObject.idPreviousDocument) === false) {
+              s3.getObject(
+                {
+                  Bucket: resultObject.bucketSource.toLowerCase(),
+                  Key: resultObject.idPreviousDocument,
+                },
+                (err, data) => {
+                  if (err) {
+                    res.status(500).send({
+                      response: {
+                        statusText:
+                          "No encontramos tu documento, intenta mas tarde",
+                      },
+                    });
+                  } else {
+                    const buff = new Buffer.from(data.Body, "binary");
+                    res.send(buff);
+                  }
+                }
+              );
+            } else {
+              res.status(500).send({
+                response: {
+                  statusText:
+                    "Antes de poder descargar tu documento haz clic en Ver",
+                },
+              });
+            }
           } else if (process === true) {
             try {
               await processFileToUpload(resultObject, params, res);
@@ -707,9 +736,8 @@ const executeGetContract = async (params, res) => {
               throw error;
             }
           } else {
-            console.log("resultObject", resultObject);
             res.status(200).send({
-              response: [resultObject],
+              response: [{ ...resultObject, url }],
             });
           }
         } else {
@@ -1053,12 +1081,12 @@ const executeAddContractComment = async (params, res, url) => {
 const executeAddContractDocument = async (params, res, url) => {
   const {
     idContract,
-    idDocument,
     idSystemUser,
     idLoginHistory,
     offset = "-06:00",
     type,
   } = params;
+  const { idDocument } = url;
   try {
     const request = new sql.Request();
     request.input("p_nvcIdContract", sql.NVarChar, idContract);
@@ -1149,6 +1177,11 @@ const ControllerAdmin = {
     const params = req.body;
     const url = req.params;
     executeAddContractComment(params, res, url);
+  },
+  addContractDocument: (req, res) => {
+    const params = req.body;
+    const url = req.params;
+    executeAddContractDocument(params, res, url);
   },
   getDigitalContractDocument: (req, res) => {
     const params = req.body;
