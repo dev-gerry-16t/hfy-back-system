@@ -1,6 +1,7 @@
 const sql = require("mssql");
-const pdf = require("html-pdf");
 const AWS = require("aws-sdk");
+const Docxtemplater = require("docxtemplater");
+const PizZip = require("pizzip");
 const GLOBAL_CONSTANTS = require("../constants/constants");
 const isNil = require("lodash/isNil");
 const isEmpty = require("lodash/isEmpty");
@@ -468,9 +469,8 @@ const executeGetAgentByIdContract = async (params, res) => {
   }
 };
 
-const executeGetContract = async (params, res) => {
+const executeGetContractProperties = async (params, callback) => {
   const {
-    download,
     idCustomer,
     idCustomerTenant,
     idContract,
@@ -488,55 +488,121 @@ const executeGetContract = async (params, res) => {
     request.input("p_nvcIdLoginHistory", sql.NVarChar, idLoginHistory);
     request.input("p_chrOffset", sql.Char, offset);
     request.input("p_intType", sql.Int, type);
-    request.execute("customerSch.USPgetContract", (err, result) => {
+    request.execute(
+      "customerSch.USPgetDigitalContractProperties",
+      (err, result) => {
+        if (err) {
+          callback(err, null);
+        } else {
+          let resultRecordset = [];
+          if (type !== 4) {
+            resultRecordset = result.recordset;
+          } else {
+            resultRecordset = result.recordsets[1];
+          }
+          callback(null, resultRecordset);
+        }
+      }
+    );
+  } catch (err) {
+    console.log("ERROR", err);
+    throw err;
+  }
+};
+
+const executeAddDocument = async (resultGet, params, dataParams, file, res) => {
+  const {
+    idCustomer,
+    idSystemUser,
+    idLoginHistory,
+    offset = "-06:00",
+    documentName = null,
+    extension = "docx",
+    preview = null,
+    thumbnail = null,
+    bucket = "",
+  } = params;
+
+  const { idPreviousDocument, idDocumentType } = resultGet;
+
+  try {
+    const request = new sql.Request();
+    request.input("p_nvcIdCustomer", sql.NVarChar, idCustomer);
+    request.input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser);
+    request.input("p_nvcIdLoginHistory", sql.NVarChar, idLoginHistory);
+    request.input("p_nvcDocumentName", sql.NVarChar, documentName);
+    request.input("p_nvcExtension", sql.NVarChar, extension);
+    request.input("p_nvcPreview", sql.NVarChar, preview);
+    request.input("p_nvcThumbnail", sql.NVarChar, thumbnail);
+    request.input("p_chrOffset", sql.Char, offset);
+    request.input("p_intIdDocumentType", sql.Int, idDocumentType);
+    request.execute("documentSch.USPaddDocument", async (err, result) => {
       if (err) {
-        res.status(500).send({ response: "Error en los parametros" });
+        res.status(500).send({ response: err });
       } else {
         const resultRecordset = result.recordset;
-        if (download === true) {
-          const config = {
-            format: "Letter",
-            border: {
-              top: "2.60cm", // default is 0, units: mm, cm, in, px
-              right: "2.70cm",
-              bottom: "2.60cm",
-              left: "2.70cm",
-            },
-          };
-          if (
-            isNil(resultRecordset[0]) === false &&
-            isNil(resultRecordset[0].contractContent) === false
-          ) {
-            pdf
-              .create(resultRecordset[0].contractContent, config)
-              .toBuffer((err, buff) => {
-                if (err) {
-                  console.log("error generando pdf ->", err);
-                  res.status(500).send({ response: "FAIL" });
-                } else {
-                  const buffer = new Buffer.from(buff, "binary");
-                  res.set({
-                    "Content-Type": "application/octet-stream",
-                    "Content-Length": buffer.length,
-                    "Alive-Kep-Bounce": "A-l238kl89-BFJ87YTT",
-                    "Access-Control-Allow-Credentials": true,
-                    "Access-Control-Allow-Origin": "*",
-                    "Access-Control-Allow-Methods": "GET,HEAD,OPTIONS,POST,PUT",
-                    "Access-Control-Allow-Headers":
-                      "Origin, X-Requested-With, Content-Type, Accept, Authorization",
-                  });
-                  res.send(buffer);
-                  //res.send(buffer);
-                }
-              });
-          } else {
-            res
-              .status(500)
-              .send({ response: "No se encontro un contrato descargable" });
-          }
+        if (resultRecordset[0].stateCode !== 200) {
+          res.status(resultRecordset[0].stateCode).send({
+            response: resultRecordset[0],
+          });
         } else {
-          res.status(200).send({
-            response: resultRecordset,
+          const zip = new PizZip(file);
+          let doc;
+          try {
+            doc = new Docxtemplater(zip);
+          } catch (error) {
+            res.status(500).send({ response: "Fail replace vars" });
+          }
+          doc.setData(dataParams);
+          try {
+            await doc.render();
+          } catch (error) {
+            res.status(500).send({ response: "Fail render vars" });
+          }
+
+          const fileDocument = await doc
+            .getZip()
+            .generate({ type: "nodebuffer" });
+          const bucketSorce =
+            isNil(resultRecordset[0]) === false &&
+            isNil(resultRecordset[0].bucketSource) === false
+              ? resultRecordset[0].bucketSource.toLowerCase()
+              : bucket.toLowerCase();
+          const idDocument = resultRecordset[0].idDocument;
+          const params = {
+            Bucket: bucketSorce,
+            Key: idDocument,
+            Body: fileDocument,
+          };
+
+          if (isNil(idPreviousDocument) === false) {
+            const params1 = {
+              Bucket: bucketSorce,
+              Key: idPreviousDocument,
+            };
+            s3.deleteObject(params1, (err, data) => {
+              if (err) {
+                console.log("fail delete object in bucket aws");
+              } else {
+                console.log("Success delete object in bucket aws");
+              }
+            });
+          }
+          s3.upload(params, (err, data) => {
+            if (err) {
+              res.status(500).send({
+                response: err,
+              });
+            } else {
+              res.status(200).send({
+                response: [
+                  {
+                    url: `/api/viewFilesDocx/${idDocument}/${bucketSorce}`,
+                    ...resultGet,
+                  },
+                ],
+              });
+            }
           });
         }
       }
@@ -544,6 +610,118 @@ const executeGetContract = async (params, res) => {
   } catch (err) {
     console.log("ERROR", err);
     // ... error checks
+  }
+};
+
+const processFileToUpload = async (resultObject, params, res) => {
+  try {
+    const bucketSource = resultObject.bucketSource.toLowerCase();
+    s3.getObject(
+      {
+        Bucket: bucketSource,
+        Key: resultObject.idDocument,
+      },
+      async (err, data) => {
+        try {
+          if (err) {
+            throw err;
+          } else {
+            const buff = new Buffer.from(data.Body, "binary");
+            await executeGetContractProperties(
+              params,
+              async (error, result) => {
+                try {
+                  let objectParams = {};
+                  if (error) {
+                    throw error;
+                  } else {
+                    if (params.type !== 4) {
+                      objectParams =
+                        isNil(result[0]) === false ? result[0] : {};
+                    } else {
+                      objectParams = {
+                        payments: isNil(result) === false ? result : [],
+                      };
+                    }
+                    await executeAddDocument(
+                      resultObject,
+                      params,
+                      objectParams,
+                      buff,
+                      res
+                    );
+                  }
+                } catch (error) {
+                  res.status(500).send({ response: "Error en los parametros" });
+                }
+              }
+            );
+          }
+        } catch (error) {
+          throw error;
+        }
+      }
+    );
+  } catch (error) {
+    throw error;
+  }
+};
+
+const executeGetContract = async (params, res) => {
+  const {
+    download,
+    idCustomer,
+    idCustomerTenant,
+    idContract,
+    idSystemUser,
+    idLoginHistory,
+    offset = "-06:00",
+    type,
+    process,
+  } = params;
+  try {
+    const request = new sql.Request();
+    request.input("p_nvcIdCustomer", sql.NVarChar, idCustomer);
+    request.input("p_nvcIdCustomerTenant", sql.NVarChar, idCustomerTenant);
+    request.input("p_nvcIdContract", sql.NVarChar, idContract);
+    request.input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser);
+    request.input("p_nvcIdLoginHistory", sql.NVarChar, idLoginHistory);
+    request.input("p_chrOffset", sql.Char, offset);
+    request.input("p_intType", sql.Int, type);
+    request.execute("customerSch.USPgetContract", async (err, result) => {
+      if (err) {
+        res.status(500).send({ response: "Error en los parametros" });
+      } else {
+        const resultRecordset = result.recordset;
+        if (
+          isEmpty(resultRecordset) === false &&
+          isNil(resultRecordset[0]) === false
+        ) {
+          const resultObject = resultRecordset[0];
+
+          if (download === true) {
+          } else if (process === true) {
+            try {
+              await processFileToUpload(resultObject, params, res);
+            } catch (error) {
+              throw error;
+            }
+          } else {
+            console.log("resultObject", resultObject);
+            res.status(200).send({
+              response: [resultObject],
+            });
+          }
+        } else {
+          res.status(200).send({
+            response: [],
+          });
+        }
+      }
+    });
+  } catch (err) {
+    console.log("ERROR", err);
+    res.status(500).send({ response: "Error en los parametros" });
   }
 };
 
@@ -677,28 +855,6 @@ const executeGetDocumentByIdContract = async (params, res, req) => {
                 }
               }
             );
-          } else if (
-            isNil(resultRecordset[0]) === false &&
-            isNil(resultRecordset[0].content) === false
-          ) {
-            const config = {
-              format: "Letter",
-              border: {
-                top: "2.60cm", // default is 0, units: mm, cm, in, px
-                right: "2.70cm",
-                bottom: "2.60cm",
-                left: "2.70cm",
-              },
-            };
-            pdf
-              .create(resultRecordset[0].content, config)
-              .toBuffer((err, buff) => {
-                if (err) {
-                  res.status(500).send({ response: "FAIL" });
-                } else {
-                  res.send(buff);
-                }
-              });
           } else {
             res.status(500).send({
               response: "No encontramos idDocument y content",
@@ -710,11 +866,6 @@ const executeGetDocumentByIdContract = async (params, res, req) => {
             isNil(resultRecordset[0].idDocument) === false
           ) {
             res.status(200).send({ extension: resultRecordset[0].extension });
-          } else if (
-            isNil(resultRecordset[0]) === false &&
-            isNil(resultRecordset[0].content) === false
-          ) {
-            res.status(200).send({ extension: "pdf" });
           } else {
             res.status(500).send({
               response: "No encontramos idDocument y content",
@@ -736,6 +887,7 @@ const executeAddDigitalContractDocument = async (params, res, url) => {
     idSystemUser,
     idLoginHistory,
     type,
+    requiresDigitalSignature,
     offset = "-06:00",
   } = params;
   const { idContract } = url;
@@ -747,6 +899,11 @@ const executeAddDigitalContractDocument = async (params, res, url) => {
     request.input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser);
     request.input("p_nvcIdLoginHistory", sql.NVarChar, idLoginHistory);
     request.input("p_intType", sql.Int, type);
+    request.input(
+      "p_bitRequiresDigitalSignature",
+      sql.Bit,
+      requiresDigitalSignature
+    );
     request.input("p_chrOffset", sql.Char, offset);
     request.execute(
       "customerSch.USPaddDigitalContractDocument",
@@ -872,6 +1029,45 @@ const executeAddContractComment = async (params, res, url) => {
     request.input("p_nvcIdLoginHistory", sql.NVarChar, idLoginHistory);
     request.input("p_chrOffset", sql.Char, offset);
     request.execute("customerSch.USPaddContractComment", (err, result) => {
+      if (err) {
+        res.status(500).send({ response: "Error en los parametros" });
+      } else {
+        const resultRecordset = result.recordset;
+        if (resultRecordset[0].stateCode !== 200) {
+          res.status(resultRecordset[0].stateCode).send({
+            response: resultRecordset[0].message,
+          });
+        } else {
+          res.status(200).send({
+            response: resultRecordset,
+          });
+        }
+      }
+    });
+  } catch (err) {
+    console.log("ERROR", err);
+    // ... error checks
+  }
+};
+
+const executeAddContractDocument = async (params, res, url) => {
+  const {
+    idContract,
+    idDocument,
+    idSystemUser,
+    idLoginHistory,
+    offset = "-06:00",
+    type,
+  } = params;
+  try {
+    const request = new sql.Request();
+    request.input("p_nvcIdContract", sql.NVarChar, idContract);
+    request.input("p_nvcIdDocument", sql.NVarChar, idDocument);
+    request.input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser);
+    request.input("p_nvcIdLoginHistory", sql.NVarChar, idLoginHistory);
+    request.input("p_chrOffset", sql.Char, offset);
+    request.input("p_intType", sql.Int, type);
+    request.execute("customerSch.USPaddContractDocument", (err, result) => {
       if (err) {
         res.status(500).send({ response: "Error en los parametros" });
       } else {
