@@ -1,5 +1,5 @@
 const GLOBAL_CONSTANTS = {
-  VERSION: "v0.0.31",
+  VERSION: "v0.0.32",
   PORT: 3001,
   USER_DATABASE: "admin",
   PASS_DATABASE: process.env.DB_HOMIFY_PASSWORD,

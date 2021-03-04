@@ -119,6 +119,10 @@ router.post(
   ControllerCatalogs.getAllMaritalStatus
 );
 router.post(
+  "/catalogs/getAllMaritalRegime",
+  ControllerCatalogs.getAllMaritalRegime
+);
+router.post(
   "/catalogs/getAllPropertyTypes",
   ControllerCatalogs.getAllPropertyTypes
 );

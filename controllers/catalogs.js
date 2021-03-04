@@ -31,6 +31,37 @@ const executeGetAllMaritalStatus = async (params, res) => {
   }
 };
 
+const executeGetAllMaritalRegime = async (params, res) => {
+  const {
+    idCustomer,
+    idCustomerTenant = null,
+    idSystemUser,
+    idLoginHistory,
+    type,
+  } = params;
+  try {
+    const request = new sql.Request();
+    request.input("p_nvcIdCustomer", sql.NVarChar, idCustomer);
+    request.input("p_nvcIdCustomerTenant", sql.NVarChar, idCustomerTenant);
+    request.input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser);
+    request.input("p_nvcIdLoginHistory", sql.NVarChar, idLoginHistory);
+    request.input("p_intType", sql.Int, type);
+    request.execute("catCustomerSch.USPgetAllMaritalRegime", (err, result) => {
+      if (err) {
+        res.status(500).send({ response: "Error en los parametros" });
+      } else {
+        const resultRecordset = result.recordset;
+        res.status(200).send({
+          response: resultRecordset,
+        });
+      }
+    });
+  } catch (err) {
+    console.log("ERROR", err);
+    // ... error checks
+  }
+};
+
 const executeGetAllPropertyTypes = async (params, res) => {
   const {
     idCustomer,
@@ -241,6 +272,10 @@ const ControllerCatalogs = {
   getAllPolicyStatus: (req, res) => {
     const params = req.body;
     executeGetAllPolicyStatus(params, res);
+  },
+  getAllMaritalRegime: (req, res) => {
+    const params = req.body;
+    executeGetAllMaritalRegime(params, res);
   },
 };
 
