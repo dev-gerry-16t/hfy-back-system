@@ -190,6 +190,7 @@ const executeSetTypeForm = async (params, res) => {
     idEndorsementMaritalStatus = null,
     idEndorsementMaritalRegime = null,
     endorsementAssessment = null,
+    stepIn = null,
   } = params;
 
   try {
@@ -327,7 +328,7 @@ const executeSetTypeForm = async (params, res) => {
       sql.Decimal(19, 2),
       endorsementAssessment
     );
-
+    request.input("p_tynStepIn", sql.TinyInt, stepIn);
     request.execute("customerSch.USPsetTypeForm", (err, result) => {
       if (err) {
         res.status(500).send({ response: "Error en los parametros" });
@@ -394,6 +395,7 @@ const executeSetTypeFormOwner = async (params, res) => {
     placeOfIssue = null,
     accountNumber = null,
     hasInsurance = null,
+    stepIn = null,
   } = params;
 
   try {
@@ -456,7 +458,7 @@ const executeSetTypeFormOwner = async (params, res) => {
     );
     request.input("p_nvcIdPolicy", sql.NVarChar, idPolicy);
     request.input("p_bitHasInsurance", sql.Bit, hasInsurance);
-
+    request.input("p_tynStepIn", sql.TinyInt, stepIn);
     request.execute("customerSch.USPsetCustomerTypeForm", (err, result) => {
       if (err) {
         res.status(500).send({ response: "Error en los parametros" });
