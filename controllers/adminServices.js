@@ -248,7 +248,7 @@ const executeAddProspect = async (params, res) => {
       } else {
         if (result.recordset[0].stateCode !== 200) {
           res.status(result.recordset[0].stateCode).send({
-            response: result.recordset[0].message,
+            response: { message: result.recordset[0].message },
           });
         } else {
           result.recordset.forEach((element) => {
@@ -304,7 +304,7 @@ const executeUpdateContract = async (params, res, url) => {
         const resultRecordset = result.recordset;
         if (resultRecordset[0].stateCode !== 200) {
           res.status(resultRecordset[0].stateCode).send({
-            response: resultRecordset[0].message,
+            response: { message: resultRecordset[0].message },
           });
         } else {
           resultRecordset.forEach((element) => {
