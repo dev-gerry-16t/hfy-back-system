@@ -191,6 +191,16 @@ const executeSetTypeForm = async (params, res) => {
     idEndorsementMaritalRegime = null,
     endorsementAssessment = null,
     stepIn = null,
+    endorsementStreet = null,
+    endorsementSuite = null,
+    endorsementStreetNumber = null,
+    endorsementIdZipCode = null,
+    endorsementNeighborhood = null,
+    assessmentInvoice = null,
+    assessmentTicket = null,
+    assessmentDate = null,
+    assessmentIssuedBy = null,
+    hasAssessment = null,
   } = params;
 
   try {
@@ -329,6 +339,17 @@ const executeSetTypeForm = async (params, res) => {
       endorsementAssessment
     );
     request.input("p_tynStepIn", sql.TinyInt, stepIn);
+    request.input("p_nvcEndorsementStreet", sql.NVarChar, endorsementStreet);
+    request.input("p_nvcEndorsementSuite", sql.NVarChar, endorsementSuite);
+    request.input("p_nvcEndorsementStreetNumber", sql.NVarChar, endorsementStreetNumber);
+    request.input("p_intEndorsementIdZipCode", sql.Int, endorsementIdZipCode);
+    request.input("p_nvcEndorsementNeighborhood", sql.NVarChar, endorsementNeighborhood);
+    request.input("p_nvcAssessmentInvoice", sql.NVarChar, assessmentInvoice);
+    request.input("p_nvcAssessmentTicket", sql.NVarChar, assessmentTicket);
+    request.input("p_datAssessmentDate", sql.Date, assessmentDate);
+    request.input("p_nvcAssessmentIssuedBy", sql.NVarChar, assessmentIssuedBy);
+    request.input("p_bitHasAssessment", sql.Bit, hasAssessment);
+
     request.execute("customerSch.USPsetTypeForm", (err, result) => {
       if (err) {
         res.status(500).send({ response: "Error en los parametros" });

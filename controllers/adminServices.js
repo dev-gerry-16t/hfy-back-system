@@ -6,6 +6,7 @@ const GLOBAL_CONSTANTS = require("../constants/constants");
 const isNil = require("lodash/isNil");
 const isEmpty = require("lodash/isEmpty");
 const nodemailer = require("nodemailer");
+const replaceConditionsDocx = require("../actions/conditions");
 
 const s3 = new AWS.S3({
   accessKeyId: GLOBAL_CONSTANTS.ACCESS_KEY_ID,
@@ -550,6 +551,7 @@ const executeAddDocument = async (resultGet, params, dataParams, file, res) => {
           let doc;
           try {
             doc = new Docxtemplater(zip, {
+              parser: replaceConditionsDocx,
               nullGetter: () => {
                 return "";
               },
