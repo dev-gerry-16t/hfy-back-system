@@ -244,6 +244,71 @@ const executeGetAllPolicyStatus = async (params, res) => {
   }
 };
 
+const executeGetAllCommercialSocietyTypes = async (params, res) => {
+  const {
+    idCustomer,
+    idCustomerTenant,
+    idSystemUser,
+    idLoginHistory,
+    type,
+  } = params;
+  try {
+    const request = new sql.Request();
+    request.input("p_nvcIdCustomer", sql.NVarChar, idCustomer);
+    request.input("p_nvcIdCustomerTenant", sql.NVarChar, idCustomerTenant);
+    request.input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser);
+    request.input("p_nvcIdLoginHistory", sql.NVarChar, idLoginHistory);
+    request.input("p_intType", sql.Int, type);
+    request.execute(
+      "catCustomerSch.USPgetAllCommercialSocietyTypes",
+      (err, result) => {
+        if (err) {
+          res.status(500).send({ response: "Error en los parametros" });
+        } else {
+          const resultRecordset = result.recordset;
+          res.status(200).send({
+            response: resultRecordset,
+          });
+        }
+      }
+    );
+  } catch (err) {
+    console.log("ERROR", err);
+    // ... error checks
+  }
+};
+
+const executeGetAllStates = async (params, res) => {
+  const {
+    idCustomer,
+    idCustomerTenant,
+    idSystemUser,
+    idLoginHistory,
+    type,
+  } = params;
+  try {
+    const request = new sql.Request();
+    request.input("p_nvcIdCustomer", sql.NVarChar, idCustomer);
+    request.input("p_nvcIdCustomerTenant", sql.NVarChar, idCustomerTenant);
+    request.input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser);
+    request.input("p_nvcIdLoginHistory", sql.NVarChar, idLoginHistory);
+    request.input("p_intType", sql.Int, type);
+    request.execute("addressSch.USPgetAllStates", (err, result) => {
+      if (err) {
+        res.status(500).send({ response: "Error en los parametros" });
+      } else {
+        const resultRecordset = result.recordset;
+        res.status(200).send({
+          response: resultRecordset,
+        });
+      }
+    });
+  } catch (err) {
+    console.log("ERROR", err);
+    // ... error checks
+  }
+};
+
 const ControllerCatalogs = {
   getAllMaritalStatus: (req, res) => {
     const params = req.body;
@@ -276,6 +341,14 @@ const ControllerCatalogs = {
   getAllMaritalRegime: (req, res) => {
     const params = req.body;
     executeGetAllMaritalRegime(params, res);
+  },
+  getAllCommercialSocietyTypes: (req, res) => {
+    const params = req.body;
+    executeGetAllCommercialSocietyTypes(params, res);
+  },
+  getAllStates: (req, res) => {
+    const params = req.body;
+    executeGetAllStates(params, res);
   },
 };
 

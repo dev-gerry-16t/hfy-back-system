@@ -140,6 +140,11 @@ router.post(
   "/catalogs/getAllPolicyStatus",
   ControllerCatalogs.getAllPolicyStatus
 );
+router.post(
+  "/catalogs/getAllCommercialSocietyTypes",
+  ControllerCatalogs.getAllCommercialSocietyTypes
+);
+router.post("/catalogs/getAllStates", ControllerCatalogs.getAllStates);
 //Catalogos//
 
 //Admin//
