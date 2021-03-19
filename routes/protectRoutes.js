@@ -9,6 +9,7 @@ const ControllerMessages = require("../controllers/messagesUser");
 const ControllerTypeForm = require("../controllers/typeForm");
 const ControllerCatalogs = require("../controllers/catalogs");
 const ControllerAdmin = require("../controllers/adminServices");
+const ControllerLeads = require("../controllers/leads");
 
 router.post("/systemUser/userProfile", ControllerAuth.userProfile);
 router.post("/systemUser/menuProfile", ControllerAuth.userMenuProfile);
@@ -145,6 +146,18 @@ router.post(
   ControllerCatalogs.getAllCommercialSocietyTypes
 );
 router.post("/catalogs/getAllStates", ControllerCatalogs.getAllStates);
+router.post(
+  "/catalogs/getAllProspectStatus",
+  ControllerCatalogs.getAllProspectStatus
+);
+router.post(
+  "/catalogs/getAllRelationshipTypes",
+  ControllerCatalogs.getAllRelationshipTypes
+);
+router.post(
+  "/catalogs/getAllPersonalReferenceStatus",
+  ControllerCatalogs.getAllPersonalReferenceStatus
+);
 //Catalogos//
 
 //Admin//
@@ -196,6 +209,33 @@ router.post(
   "/admin/getDocumentByIdContract",
   ControllerAdmin.getDocumentByIdContract
 );
+router.post(
+  "/admin/getCustomerAgentCoincidences",
+  ControllerAdmin.getCustomerAgentCoincidences
+);
+router.post(
+  "/admin/getLegalContractCoincidences",
+  ControllerAdmin.getLegalContractCoincidences
+);
+router.put(
+  "/admin/setPersonalReferenceForm/:idPersonalReference",
+  ControllerAdmin.setPersonalReferenceForm
+);
 //Admin//
+
+// Lead//
+router.post(
+  "/leads/getLandingProspectCoincidences",
+  ControllerLeads.getLandingProspectCoincidences
+);
+router.put(
+  "/leads/updateLandingProspect/:idLandingProspect",
+  ControllerLeads.updateLandingProspect
+);
+router.post(
+  "/leads/getLandingProspectStats",
+  ControllerLeads.getLandingProspectStats
+);
+// Lead//
 
 module.exports = router;

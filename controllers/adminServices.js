@@ -1123,6 +1123,120 @@ const executeAddContractDocument = async (params, res, url) => {
   }
 };
 
+const executeGetCustomerAgentCoincidences = async (params, res) => {
+  const { idSystemUser, idLoginHistory, topIndex, offset = "-06:00" } = params;
+  try {
+    const request = new sql.Request();
+    request.input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser);
+    request.input("p_nvcIdLoginHistory", sql.NVarChar, idLoginHistory);
+    request.input("p_intTopIndex", sql.NVarChar, topIndex);
+    request.input("p_chrOffset", sql.Char, offset);
+    request.execute(
+      "customerSch.USPgetCustomerAgentCoincidences",
+      (err, result) => {
+        if (err) {
+          res.status(500).send({ response: "Error en los parametros" });
+        } else {
+          const resultRecordset = result.recordset;
+          res.status(200).send({
+            response: resultRecordset,
+          });
+        }
+      }
+    );
+  } catch (err) {
+    console.log("ERROR", err);
+    // ... error checks
+  }
+};
+
+const executeGetLegalContractCoincidences = async (params, res) => {
+  const { idSystemUser, idLoginHistory, topIndex, offset = "-06:00" } = params;
+  try {
+    const request = new sql.Request();
+    request.input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser);
+    request.input("p_nvcIdLoginHistory", sql.NVarChar, idLoginHistory);
+    request.input("p_intTopIndex", sql.NVarChar, topIndex);
+    request.input("p_chrOffset", sql.Char, offset);
+    request.execute(
+      "customerSch.USPgetLegalContractCoincidences",
+      (err, result) => {
+        if (err) {
+          res.status(500).send({ response: "Error en los parametros" });
+        } else {
+          const resultRecordset = result.recordset;
+          res.status(200).send({
+            response: resultRecordset,
+          });
+        }
+      }
+    );
+  } catch (err) {
+    console.log("ERROR", err);
+    // ... error checks
+  }
+};
+
+const executeSetPersonalReferenceForm = async (params, res, url) => {
+  const {
+    idRelationshipType,
+    currentTimeRange,
+    currentTime,
+    isRecommended,
+    observations,
+    idPersonalReferenceStatus,
+    rating,
+    idSystemUser,
+    idLoginHistory,
+    offset = "-06:00",
+  } = params;
+  const { idPersonalReference } = url;
+  try {
+    const request = new sql.Request();
+    request.input(
+      "p_nvcIdPersonalReference",
+      sql.NVarChar,
+      idPersonalReference
+    );
+    request.input("p_intIdRelationshipType", sql.Int, idRelationshipType);
+    request.input("p_chrCurrentTimeRange", sql.Char, currentTimeRange);
+    request.input("p_intCurrentTime", sql.Int, currentTime);
+    request.input("p_bitIsRecommended", sql.Bit, isRecommended);
+    request.input("p_nvcObservations", sql.NVarChar, observations);
+    request.input(
+      "p_intIdPersonalReferenceStatus",
+      sql.Int,
+      idPersonalReferenceStatus
+    );
+    request.input("p_decRating", sql.Decimal(5, 2), rating);
+    request.input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser);
+    request.input("p_nvcIdLoginHistory", sql.NVarChar, idLoginHistory);
+    request.input("p_chrOffset", sql.Char, offset);
+    request.execute(
+      "customerSch.USPsetPersonalReferenceForm",
+      (err, result) => {
+        if (err) {
+          res.status(500).send({ response: "Error en los parametros" });
+        } else {
+          const resultRecordset = result.recordset;
+          if (resultRecordset[0].stateCode !== 200) {
+            res.status(resultRecordset[0].stateCode).send({
+              response: resultRecordset[0].message,
+            });
+          } else {
+            res.status(200).send({
+              response: resultRecordset,
+            });
+          }
+        }
+      }
+    );
+  } catch (err) {
+    console.log("ERROR", err);
+    // ... error checks
+  }
+};
+
 const ControllerAdmin = {
   getContractStats: (req, res) => {
     const params = req.body;
@@ -1201,6 +1315,19 @@ const ControllerAdmin = {
   getDocumentByIdContract: (req, res) => {
     const params = req.body;
     executeGetDocumentByIdContract(params, res, req);
+  },
+  getCustomerAgentCoincidences: (req, res) => {
+    const params = req.body;
+    executeGetCustomerAgentCoincidences(params, res);
+  },
+  getLegalContractCoincidences: (req, res) => {
+    const params = req.body;
+    executeGetLegalContractCoincidences(params, res);
+  },
+  setPersonalReferenceForm: (req, res) => {
+    const params = req.body;
+    const url = req.params; //idPersonalReference
+    executeSetPersonalReferenceForm(params, res, url);
   },
 };
 
