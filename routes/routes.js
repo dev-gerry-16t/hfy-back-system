@@ -18,7 +18,10 @@ router.get(
   ControllerTest.viewFilesDocx
 );
 router.get("/viewThumbnail", ControllerTest.viewThumbnail);
-router.get("/downloadFile", ControllerTest.downloadFiles);
+router.get(
+  "/downloadFile/:idDocument/:bucketSource/:name/:extension",
+  ControllerTest.downloadFiles
+);
 router.get("/testPDF", ControllerTest.testPDF);
 router.post("/uploadBucket", ControllerTest.upload);
 router.get("/mailto", ControllerRegister.mailto);

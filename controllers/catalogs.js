@@ -328,7 +328,7 @@ const executeGetAllProspectTypes = async (params, url, res) => {
 };
 
 const executeGetAllProspectStatus = async (params, res) => {
-  const { idSystemUser, idLoginHistory, idLandingProspect, type } = param;
+  const { idSystemUser, idLoginHistory, idLandingProspect, type } = params;
   try {
     const request = new sql.Request();
     request.input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser);
@@ -349,7 +349,7 @@ const executeGetAllProspectStatus = async (params, res) => {
 };
 
 const executeGetAllRelationshipTypes = async (params, res) => {
-  const { idSystemUser, idLoginHistory, type } = param;
+  const { idSystemUser, idLoginHistory, type } = params;
   try {
     const request = new sql.Request();
     request.input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser);
@@ -372,7 +372,7 @@ const executeGetAllRelationshipTypes = async (params, res) => {
 };
 
 const executeGetAllPersonalReferenceStatus = async (params, res) => {
-  const { idSystemUser, idLoginHistory, type } = param;
+  const { idSystemUser, idLoginHistory, type } = params;
   try {
     const request = new sql.Request();
     request.input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser);
