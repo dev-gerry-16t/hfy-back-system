@@ -200,6 +200,10 @@ const executeAddProspect = async (params, res) => {
     emailAddress,
     customerTenant,
     idCustomerAgent,
+    CAGivenName,
+    CALastName,
+    CAMothersMaidenName,
+    CAEmailAddress,
   } = params;
   try {
     const request = new sql.Request();
@@ -242,6 +246,14 @@ const executeAddProspect = async (params, res) => {
     request.input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser);
     request.input("p_nvcIdLoginHistory", sql.NVarChar, idLoginHistory);
     request.input("p_chrOffset", sql.Char, offset);
+    request.input("p_nvcCAGivenName", sql.NVarChar, CAGivenName);
+    request.input("p_nvcCALastName", sql.NVarChar, CALastName);
+    request.input(
+      "p_nvcCAMothersMaidenName",
+      sql.NVarChar,
+      CAMothersMaidenName
+    );
+    request.input("p_nvcCAEmailAddress", sql.NVarChar, CAEmailAddress);
 
     request.execute("customerSch.USPaddProspect", (err, result) => {
       if (err) {
@@ -1072,6 +1084,17 @@ const executeAddContractComment = async (params, res, url) => {
             response: resultRecordset[0].message,
           });
         } else {
+          resultRecordset.forEach((element) => {
+            if (element.canSendEmail === true) {
+              const configEmailServer = JSON.parse(
+                element.jsonEmailServerConfig
+              );
+              executeMailTo({
+                ...element,
+                ...configEmailServer,
+              });
+            }
+          });
           res.status(200).send({
             response: resultRecordset,
           });
