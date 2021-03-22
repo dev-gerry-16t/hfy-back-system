@@ -219,6 +219,10 @@ const executeSetTypeForm = async (params, res) => {
     legalRepSignedAtPlace = null,
     legalRepIdType = null,
     legalRepIdTypeNumber = null,
+    lessorFullName = null,
+    lessorPhoneNumber = null,
+    NIV = null,
+    bossPhoneNumber = null,
   } = params;
 
   try {
@@ -449,6 +453,10 @@ const executeSetTypeForm = async (params, res) => {
       sql.NVarChar,
       legalRepIdTypeNumber
     );
+    request.input("p_nvcLessorFullName", sql.NVarChar, lessorFullName);
+    request.input("p_nvcLessorPhoneNumber", sql.NVarChar, lessorPhoneNumber);
+    request.input("p_nvcNIV", sql.NVarChar, NIV);
+    request.input("p_nvcBossPhoneNumber", sql.NVarChar, bossPhoneNumber);
 
     request.execute("customerSch.USPsetTypeForm", (err, result) => {
       if (err) {
