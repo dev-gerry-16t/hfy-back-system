@@ -1,19 +1,27 @@
 "use strict";
 
-var express = require("express");
-var ControllerLogin = require("../controllers/login");
-var ControllerRegister = require("../controllers/register");
-var ControllerRecover = require("../controllers/recoverPass");
-var ControllerTest = require("../controllers/test");
+const express = require("express");
+const ControllerLogin = require("../controllers/login");
+const ControllerRegister = require("../controllers/register");
+const ControllerRecover = require("../controllers/recoverPass");
+const ControllerTest = require("../controllers/test");
+const ControllerLeads = require("../controllers/leads");
+const ControllerCatalogs = require("../controllers/catalogs");
 
-var router = express.Router();
+const router = express.Router();
 
 router.get("/", ControllerTest.test);
 router.get("/test", ControllerTest.testPath);
 router.get("/viewFile/:idDocument/:bucketSource", ControllerTest.viewFiles);
-router.get("/viewFilesDocx/:idDocument/:bucketSource", ControllerTest.viewFilesDocx);
+router.get(
+  "/viewFilesDocx/:idDocument/:bucketSource",
+  ControllerTest.viewFilesDocx
+);
 router.get("/viewThumbnail", ControllerTest.viewThumbnail);
-router.get("/downloadFile", ControllerTest.downloadFiles);
+router.get(
+  "/downloadFile/:idDocument/:bucketSource/:name/:extension",
+  ControllerTest.downloadFiles
+);
 router.get("/testPDF", ControllerTest.testPDF);
 router.post("/uploadBucket", ControllerTest.upload);
 router.get("/mailto", ControllerRegister.mailto);
@@ -37,5 +45,10 @@ router.post(
   "/verifyCodeRecoveryPass",
   ControllerRecover.verifyCodeRecoveryPass
 );
+router.get(
+  "/catalogs/getAllProspectTypes/:type",
+  ControllerCatalogs.getAllProspectTypes
+);
+router.post("/leads/addLandingProspect", ControllerLeads.addLandingProspect);
 
 module.exports = router;

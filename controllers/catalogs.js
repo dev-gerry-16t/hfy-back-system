@@ -309,6 +309,91 @@ const executeGetAllStates = async (params, res) => {
   }
 };
 
+const executeGetAllProspectTypes = async (params, url, res) => {
+  const { type } = url;
+  try {
+    const request = new sql.Request();
+    request.input("p_intType", sql.Int, type);
+    request.execute("catLandingSch.USPgetAllProspectTypes", (err, result) => {
+      if (err) {
+        res.status(500).send({ response: "Error en los parametros" });
+      } else {
+        const resultRecordset = result.recordset;
+        res.status(200).send({
+          response: resultRecordset,
+        });
+      }
+    });
+  } catch (error) {}
+};
+
+const executeGetAllProspectStatus = async (params, res) => {
+  const { idSystemUser, idLoginHistory, idLandingProspect, type } = params;
+  try {
+    const request = new sql.Request();
+    request.input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser);
+    request.input("p_nvcIdLoginHistory", sql.NVarChar, idLoginHistory);
+    request.input("p_nvcIdLandingProspect", sql.NVarChar, idLandingProspect);
+    request.input("p_intType", sql.Int, type);
+    request.execute("catLandingSch.USPgetAllProspectStatus", (err, result) => {
+      if (err) {
+        res.status(500).send({ response: "Error en los parametros" });
+      } else {
+        const resultRecordset = result.recordset;
+        res.status(200).send({
+          response: resultRecordset,
+        });
+      }
+    });
+  } catch (error) {}
+};
+
+const executeGetAllRelationshipTypes = async (params, res) => {
+  const { idSystemUser, idLoginHistory, type } = params;
+  try {
+    const request = new sql.Request();
+    request.input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser);
+    request.input("p_nvcIdLoginHistory", sql.NVarChar, idLoginHistory);
+    request.input("p_intType", sql.Int, type);
+    request.execute(
+      "catCustomerSch.USPgetAllRelationshipTypes",
+      (err, result) => {
+        if (err) {
+          res.status(500).send({ response: "Error en los parametros" });
+        } else {
+          const resultRecordset = result.recordset;
+          res.status(200).send({
+            response: resultRecordset,
+          });
+        }
+      }
+    );
+  } catch (error) {}
+};
+
+const executeGetAllPersonalReferenceStatus = async (params, res) => {
+  const { idSystemUser, idLoginHistory, type } = params;
+  try {
+    const request = new sql.Request();
+    request.input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser);
+    request.input("p_nvcIdLoginHistory", sql.NVarChar, idLoginHistory);
+    request.input("p_intType", sql.Int, type);
+    request.execute(
+      "catCustomerSch.USPgetAllPersonalReferenceStatus",
+      (err, result) => {
+        if (err) {
+          res.status(500).send({ response: "Error en los parametros" });
+        } else {
+          const resultRecordset = result.recordset;
+          res.status(200).send({
+            response: resultRecordset,
+          });
+        }
+      }
+    );
+  } catch (error) {}
+};
+
 const ControllerCatalogs = {
   getAllMaritalStatus: (req, res) => {
     const params = req.body;
@@ -349,6 +434,23 @@ const ControllerCatalogs = {
   getAllStates: (req, res) => {
     const params = req.body;
     executeGetAllStates(params, res);
+  },
+  getAllProspectTypes: (req, res) => {
+    const params = req.body;
+    const url = req.params;
+    executeGetAllProspectTypes(params, url, res);
+  },
+  getAllProspectStatus: (req, res) => {
+    const params = req.body;
+    executeGetAllProspectStatus(params, res);
+  },
+  getAllRelationshipTypes: (req, res) => {
+    const params = req.body;
+    executeGetAllRelationshipTypes(params, res);
+  },
+  getAllPersonalReferenceStatus: (req, res) => {
+    const params = req.body;
+    executeGetAllPersonalReferenceStatus(params, res);
   },
 };
 

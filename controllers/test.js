@@ -5,8 +5,8 @@ const AWS = require("aws-sdk");
 const GLOBAL_CONSTANTS = require("../constants/constants");
 
 const s3 = new AWS.S3({
-  accessKeyId: "AKIAJZ2VBYROHPNFRTKA",
-  secretAccessKey: "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",
+  accessKeyId: GLOBAL_CONSTANTS.ACCESS_KEY_ID,
+  secretAccessKey: GLOBAL_CONSTANTS.SECRET_ACCESS_KEY,
 });
 
 const ControllerTest = {
@@ -104,15 +104,18 @@ const ControllerTest = {
     // );
   },
   downloadFiles: async (req, res) => {
-    const fileType = "jpg";
+    const params = req.params;
+    const name = params.name;
+    const extension = params.extension;
+    const bucketSource = params.bucketSource.toLowerCase();
     s3.getObject(
       {
-        Bucket: "homify-docs-users",
-        Key: `8A7198C9-AE07-4ADD-AF34-60E84758296D.${fileType}`,
+        Bucket: bucketSource,
+        Key: params.idDocument,
       },
       (err, data) => {
         const buff = new Buffer.from(data.Body, "binary");
-        res.attachment("Hola.jpg");
+        res.attachment(`${name}.${extension}`);
         res.send(buff);
       }
     );

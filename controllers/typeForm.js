@@ -219,6 +219,10 @@ const executeSetTypeForm = async (params, res) => {
     legalRepSignedAtPlace = null,
     legalRepIdType = null,
     legalRepIdTypeNumber = null,
+    lessorFullName = null,
+    lessorPhoneNumber = null,
+    NIV = null,
+    bossPhoneNumber = null,
   } = params;
 
   try {
@@ -449,6 +453,10 @@ const executeSetTypeForm = async (params, res) => {
       sql.NVarChar,
       legalRepIdTypeNumber
     );
+    request.input("p_nvcLessorFullName", sql.NVarChar, lessorFullName);
+    request.input("p_nvcLessorPhoneNumber", sql.NVarChar, lessorPhoneNumber);
+    request.input("p_nvcNIV", sql.NVarChar, NIV);
+    request.input("p_nvcBossPhoneNumber", sql.NVarChar, bossPhoneNumber);
 
     request.execute("customerSch.USPsetTypeForm", (err, result) => {
       if (err) {
@@ -458,7 +466,7 @@ const executeSetTypeForm = async (params, res) => {
         if (resultRecordset[0].stateCode !== 200) {
           res
             .status(resultRecordset[0].stateCode)
-            .send({ response: resultRecordset[0].message });
+            .send({ response: { message: resultRecordset[0].message } });
         } else {
           res.status(200).send({
             response: resultRecordset,
@@ -590,7 +598,7 @@ const executeSetTypeFormOwner = async (params, res) => {
         if (resultRecordset[0].stateCode !== 200) {
           res
             .status(resultRecordset[0].stateCode)
-            .send({ response: resultRecordset[0].message });
+            .send({ response: { message: resultRecordset[0].message } });
         } else {
           res.status(200).send({
             response: resultRecordset,
