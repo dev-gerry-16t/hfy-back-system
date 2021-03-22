@@ -458,7 +458,7 @@ const executeSetTypeForm = async (params, res) => {
         if (resultRecordset[0].stateCode !== 200) {
           res
             .status(resultRecordset[0].stateCode)
-            .send({ response: resultRecordset[0].message });
+            .send({ response: { message: resultRecordset[0].message } });
         } else {
           res.status(200).send({
             response: resultRecordset,
@@ -590,7 +590,7 @@ const executeSetTypeFormOwner = async (params, res) => {
         if (resultRecordset[0].stateCode !== 200) {
           res
             .status(resultRecordset[0].stateCode)
-            .send({ response: resultRecordset[0].message });
+            .send({ response: { message: resultRecordset[0].message } });
         } else {
           res.status(200).send({
             response: resultRecordset,

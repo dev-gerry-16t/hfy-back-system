@@ -94,7 +94,7 @@ const executeUpdateLandingProspect = async (params, res, url) => {
     request.input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser);
     request.input("p_nvcIdLoginHistory", sql.NVarChar, idLoginHistory);
     request.input("p_chrOffset", sql.Char, offset);
-    request.execute("customerSch.USPupdateContract", (err, result) => {
+    request.execute("landingSch.USPupdateLandingProspect", (err, result) => {
       if (err) {
         res.status(500).send({ response: "Error en los parametros" });
       } else {
