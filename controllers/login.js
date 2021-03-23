@@ -54,8 +54,12 @@ const ControllerLogin = {
   login: (req, res) => {
     const params = req.body;
     const ip = req.header("x-forwarded-for") || req.connection.remoteAddress;
+    let ipPublic = "";
+    if (ip) {
+      ipPublic = ip.split(",")[0];
+    }
     const userAgent = req.header("User-Agent");
-    executeLoginUser(params, res, ip, userAgent);
+    executeLoginUser(params, res, ipPublic, userAgent);
   },
 };
 
