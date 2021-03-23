@@ -20,9 +20,10 @@ const executeMailTo = async (params, res) => {
 
   transporter.sendMail(mailOptions, (error, info) => {
     if (error) {
+      console.log("error", error);
       res
         .status(500)
-        .send({ result: "El sistema de envio de correos ha fallado" });
+        .send({ result: "El sistema de envío de correos ha fallado" });
     } else {
       res.status(200).send({
         result: {
