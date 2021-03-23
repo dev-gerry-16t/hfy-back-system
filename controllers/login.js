@@ -2,14 +2,8 @@ const sql = require("mssql");
 const jwt = require("jsonwebtoken");
 const GLOBAL_CONSTANTS = require("../constants/constants");
 
-const executeLoginUser = async (params, res) => {
-  const {
-    email,
-    password,
-    ip = "192.168.100.1",
-    userAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
-    offset = "-06:00",
-  } = params;
+const executeLoginUser = async (params, res, ip, userAgent) => {
+  const { email, password, offset = "-06:00" } = params;
   try {
     const request = new sql.Request();
     request.input("p_nvcUsername", sql.VarChar, email);
@@ -59,7 +53,13 @@ const executeLoginUser = async (params, res) => {
 const ControllerLogin = {
   login: (req, res) => {
     const params = req.body;
-    executeLoginUser(params, res);
+    const ip = req.header("x-forwarded-for") || req.connection.remoteAddress;
+    let ipPublic = "";
+    if (ip) {
+      ipPublic = ip.split(",")[0];
+    }
+    const userAgent = req.header("User-Agent");
+    executeLoginUser(params, res, ipPublic, userAgent);
   },
 };
 
