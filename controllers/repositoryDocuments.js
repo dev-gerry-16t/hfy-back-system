@@ -157,6 +157,7 @@ const executeGetTypeFormDocument = async (params, res) => {
     idSystemUser,
     idLoginHistory,
     offset = "-06:00",
+    isFirstTime,
   } = params;
   try {
     const request = new sql.Request();
@@ -167,6 +168,7 @@ const executeGetTypeFormDocument = async (params, res) => {
     request.input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser);
     request.input("p_nvcIdLoginHistory", sql.NVarChar, idLoginHistory);
     request.input("p_chrOffset", sql.Char, offset);
+    request.input("p_bitIsFirstTime", sql.Bit, isFirstTime);
     request.execute("customerSch.USPgetTypeFormDocument", (err, result) => {
       if (err) {
         res.status(500).send({ response: "Error en los parametros" });

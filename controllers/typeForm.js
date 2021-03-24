@@ -294,6 +294,8 @@ const executeSetTypeForm = async (params, res) => {
     lessorPhoneNumber = null,
     NIV = null,
     bossPhoneNumber = null,
+    otherIncomes = null,
+    otherIncomesDescription = null,
   } = params;
 
   try {
@@ -528,7 +530,12 @@ const executeSetTypeForm = async (params, res) => {
     request.input("p_nvcLessorPhoneNumber", sql.NVarChar, lessorPhoneNumber);
     request.input("p_nvcNIV", sql.NVarChar, NIV);
     request.input("p_nvcBossPhoneNumber", sql.NVarChar, bossPhoneNumber);
-
+    request.input("p_decOtherIncomes", sql.Decimal(19, 2), otherIncomes);
+    request.input(
+      "p_nvcOtherIncomesDescription",
+      sql.NVarChar(sql.MAX),
+      otherIncomesDescription
+    );
     request.execute("customerSch.USPsetTypeForm", (err, result) => {
       if (err) {
         res.status(500).send({ response: "Error en los parametros" });

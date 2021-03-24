@@ -10,6 +10,7 @@ const ControllerTypeForm = require("../controllers/typeForm");
 const ControllerCatalogs = require("../controllers/catalogs");
 const ControllerAdmin = require("../controllers/adminServices");
 const ControllerLeads = require("../controllers/leads");
+const ControllerAudit = require("../controllers/audit");
 
 router.post("/systemUser/userProfile", ControllerAuth.userProfile);
 router.post("/systemUser/menuProfile", ControllerAuth.userMenuProfile);
@@ -237,5 +238,9 @@ router.post(
   ControllerLeads.getLandingProspectStats
 );
 // Lead//
+
+//Historico //
+router.post("/historic/getAudit", ControllerAudit.getAudit);
+//Historico //
 
 module.exports = router;
