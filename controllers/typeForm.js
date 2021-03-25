@@ -593,7 +593,7 @@ const executeSetTypeForm = async (params, res) => {
             }
           });
           res.status(200).send({
-            response: resultRecordset,
+            response: "Solicitud procesada exitosamente",
           });
         }
       }
@@ -736,7 +736,7 @@ const executeSetTypeFormOwner = async (params, res) => {
             }
           });
           res.status(200).send({
-            response: resultRecordset,
+            response: "Solicitud procesada exitosamente",
           });
         }
       }
