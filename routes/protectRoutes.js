@@ -113,6 +113,10 @@ router.post(
   "/typeForm/setTypeFormReference",
   ControllerTypeForm.setTypeFormReference
 );
+router.post(
+  "/typeForm/getTypeFormProperties",
+  ControllerTypeForm.getTypeFormProperties
+);
 //TypeForm//
 
 //Catalogos//

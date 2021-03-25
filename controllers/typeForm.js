@@ -106,6 +106,41 @@ const executeGetTypeForm = async (params, res) => {
   }
 };
 
+const executeGetTypeFormProperties = async (params, res) => {
+  const {
+    idCustomer,
+    idCustomerTenant,
+    idTypeForm,
+    idContract,
+    idSystemUser,
+    idLoginHistory,
+    stepIn,
+  } = params;
+  try {
+    const request = new sql.Request();
+    request.input("p_nvcIdCustomer", sql.NVarChar, idCustomer);
+    request.input("p_nvcIdCustomerTenant", sql.NVarChar, idCustomerTenant);
+    request.input("p_nvcIdTypeForm", sql.NVarChar, idTypeForm);
+    request.input("p_nvcIdContract", sql.NVarChar, idContract);
+    request.input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser);
+    request.input("p_nvcIdLoginHistory", sql.NVarChar, idLoginHistory);
+    request.input("p_intStepIn", sql.Int, stepIn);
+    request.execute("customerSch.USPgetTypeFormProperties", (err, result) => {
+      if (err) {
+        res.status(500).send({ response: "Error en los parametros" });
+      } else {
+        const resultRecordset = result.recordset;
+        res.status(200).send({
+          response: resultRecordset,
+        });
+      }
+    });
+  } catch (err) {
+    console.log("ERROR", err);
+    // ... error checks
+  }
+};
+
 const executeGetCustomerTypeForm = async (params, res) => {
   const {
     idCustomer,
@@ -774,6 +809,10 @@ const ControllerTypeForm = {
   setTypeFormReference: (req, res) => {
     const params = req.body;
     executeSetTypeFormReference(params, res);
+  },
+  getTypeFormProperties: (req, res) => {
+    const params = req.body;
+    executeGetTypeFormProperties(params, res);
   },
 };
 
