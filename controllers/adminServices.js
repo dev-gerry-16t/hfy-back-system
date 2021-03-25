@@ -1096,7 +1096,7 @@ const executeAddContractComment = async (params, res, url) => {
             }
           });
           res.status(200).send({
-            response: resultRecordset,
+            response: resultRecordset[0].message,
           });
         }
       }
