@@ -1027,7 +1027,7 @@ const executeSetContract = async (params, res, url) => {
       } else {
         if (result.recordset[0].stateCode !== 200) {
           res.status(result.recordset[0].stateCode).send({
-            response: result.recordset[0].message,
+            response: { message: result.recordset[0].message },
           });
         } else {
           result.recordset.forEach((element) => {
@@ -1042,7 +1042,7 @@ const executeSetContract = async (params, res, url) => {
             }
           });
           res.status(200).send({
-            response: "Solicitud procesado exitosamente",
+            response: "Solicitud procesada exitosamente",
           });
         }
       }
@@ -1096,7 +1096,7 @@ const executeAddContractComment = async (params, res, url) => {
             }
           });
           res.status(200).send({
-            response: resultRecordset,
+            response: resultRecordset[0].message,
           });
         }
       }
