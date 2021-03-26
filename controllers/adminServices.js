@@ -1015,7 +1015,7 @@ const executeSetContract = async (params, res, url) => {
     request.input("p_intType", sql.Int, type);
     request.input(
       "p_datScheduleSignatureDate",
-      sql.Date,
+      sql.DateTime,
       scheduleSignatureDate
     );
     request.input("p_nvcCollectionDays", sql.NVarChar, collectionDays);
