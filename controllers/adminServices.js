@@ -1000,6 +1000,7 @@ const executeSetContract = async (params, res, url) => {
     idLoginHistory,
     offset = "-06:00",
     type,
+    isFaceToFace,
   } = params;
   const { idContract } = url;
   try {
@@ -1014,13 +1015,14 @@ const executeSetContract = async (params, res, url) => {
     request.input("p_intType", sql.Int, type);
     request.input(
       "p_datScheduleSignatureDate",
-      sql.Date,
+      sql.DateTime,
       scheduleSignatureDate
     );
     request.input("p_nvcCollectionDays", sql.NVarChar, collectionDays);
     request.input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser);
     request.input("p_nvcIdLoginHistory", sql.NVarChar, idLoginHistory);
     request.input("p_chrOffset", sql.Char, offset);
+    request.input("p_bitIsFaceToFace", sql.Bit, isFaceToFace);
     request.execute("customerSch.USPsetContract", (err, result) => {
       if (err) {
         res.status(500).send({ response: "Error en los parametros" });

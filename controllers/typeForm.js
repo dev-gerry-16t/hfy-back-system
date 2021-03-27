@@ -193,6 +193,7 @@ const executeSetTypeFormReference = async (params, res) => {
     idSystemUser,
     idLoginHistory,
     offset = "-06:00",
+    idContract,
   } = params;
   try {
     const request = new sql.Request();
@@ -218,14 +219,32 @@ const executeSetTypeFormReference = async (params, res) => {
     request.input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser);
     request.input("p_nvcIdLoginHistory", sql.NVarChar, idLoginHistory);
     request.input("p_chrOffset", sql.Char, offset);
+    request.input("p_nvcIdContract", sql.NVarChar, idContract);
     request.execute("customerSch.USPsetPersonalReference", (err, result) => {
       if (err) {
         res.status(500).send({ response: "Error en los parametros" });
       } else {
         const resultRecordset = result.recordset;
-        res.status(200).send({
-          response: resultRecordset,
-        });
+        if (resultRecordset[0].stateCode !== 200) {
+          res
+            .status(resultRecordset[0].stateCode)
+            .send({ response: { message: resultRecordset[0].message } });
+        } else {
+          resultRecordset.forEach((element) => {
+            if (element.canSendEmail === true) {
+              const configEmailServer = JSON.parse(
+                element.jsonEmailServerConfig
+              );
+              executeMailTo({
+                ...element,
+                ...configEmailServer,
+              });
+            }
+          });
+          res.status(200).send({
+            response: "Solicitud procesada exitosamente",
+          });
+        }
       }
     });
   } catch (err) {
@@ -756,6 +775,7 @@ const executeAddTypeFormDocument = async (params, res, url) => {
     idSystemUser,
     idLoginHistory,
     offset = "-06:00",
+    idContract,
   } = params;
   const { idDocument } = url;
   try {
@@ -768,14 +788,32 @@ const executeAddTypeFormDocument = async (params, res, url) => {
     request.input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser);
     request.input("p_nvcIdLoginHistory", sql.NVarChar, idLoginHistory);
     request.input("p_chrOffset", sql.Char, offset);
+    request.input("p_nvcIdContract", sql.NVarChar, idContract);
     request.execute("customerSch.USPaddTypeFormDocument", (err, result) => {
       if (err) {
         res.status(500).send({ response: "Error en los parametros" });
       } else {
         const resultRecordset = result.recordset;
-        res.status(200).send({
-          response: resultRecordset,
-        });
+        if (resultRecordset[0].stateCode !== 200) {
+          res
+            .status(resultRecordset[0].stateCode)
+            .send({ response: { message: resultRecordset[0].message } });
+        } else {
+          resultRecordset.forEach((element) => {
+            if (element.canSendEmail === true) {
+              const configEmailServer = JSON.parse(
+                element.jsonEmailServerConfig
+              );
+              executeMailTo({
+                ...element,
+                ...configEmailServer,
+              });
+            }
+          });
+          res.status(200).send({
+            response: "Solicitud procesada exitosamente",
+          });
+        }
       }
     });
   } catch (err) {
