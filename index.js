@@ -11,6 +11,35 @@ const multer = require("multer");
 const http = require("http");
 const socketIo = require("socket.io");
 
+const executeGetContractStats = async (params, socket) => {
+  const {
+    idSystemUser,
+    idLoginHistory,
+    offset = "-06:00",
+    type = 0,
+    topIndex = null,
+  } = params;
+  try {
+    const request = new sql.Request();
+    request.input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser);
+    request.input("p_nvcIdLoginHistory", sql.NVarChar, idLoginHistory);
+    request.input("p_intTopIndex", sql.Int, topIndex);
+    request.input("p_intType", sql.Int, type);
+    request.input("p_chrOffset", sql.Char, offset);
+    request.execute("comSch.USPgetNotifications", (err, result) => {
+      if (err) {
+        socket.emit("get_notification", []);
+      } else {
+        const resultRecordset = result.recordset;
+        socket.emit("get_notification", resultRecordset);
+      }
+    });
+  } catch (err) {
+    console.log("ERROR", err);
+    // ... error checks
+  }
+};
+
 const app = express();
 sql.connect(CONFIG, (err, res) => {
   if (err) console.log("error connect", err);
@@ -47,27 +76,18 @@ app.use("/apiAccess", verifyToken, protectRoutes);
 const server = http.createServer(app);
 const io = socketIo(server, {
   cors: {
-    origin: "*",
+    origin: [
+      "http://localhost:3000",
+      "https://apptest.homify.ai",
+      "https://app.homify.ai",
+    ],
     credentials: true,
   },
 });
-let interval;
 io.on("connection", (socket) => {
-  console.log("New client connected");
-  if (interval) {
-    clearInterval(interval);
-  }
-  interval = setInterval(() => getApiAndEmit(socket), 10000);
-  socket.on("disconnect", () => {
-    console.log("Client disconnected");
-    clearInterval(interval);
+  socket.on("user_subscribed", (data) => {
+    executeGetContractStats(data, socket);
   });
 });
-
-const getApiAndEmit = (socket) => {
-  const response = new Date();
-  // Emitting a new message. Will be consumed by the client
-  socket.emit("FromAPI", response);
-};
 
 server.listen(port, () => console.log(`Listening on port ${port}`));
