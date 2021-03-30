@@ -119,6 +119,25 @@ const executeGetContractCoincidences = async (params, res) => {
         res.status(500).send({ response: "Error en los parametros" });
       } else {
         const resultRecordset = result.recordset;
+        const server = http.createServer(app);
+const io = socketIo(server, {
+  cors: {
+    origin: "*",
+    credentials: true,
+  },
+});
+let interval;
+io.on("connection", (socket) => {
+  console.log("New client connected");
+  if (interval) {
+    clearInterval(interval);
+  }
+  interval = setInterval(() => getApiAndEmit(socket), 10000);
+  socket.on("disconnect", () => {
+    console.log("Client disconnected");
+    clearInterval(interval);
+  });
+});
         res.status(200).send({
           response: resultRecordset,
         });
