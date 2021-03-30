@@ -8,6 +8,8 @@ const CONFIG = require("./database/configDb");
 const GLOBAL_CONSTANTS = require("./constants/constants");
 const verifyToken = require("./middleware/authenticate");
 const multer = require("multer");
+const http = require("http");
+const socketIo = require("socket.io");
 
 const app = express();
 sql.connect(CONFIG, (err, res) => {
@@ -24,11 +26,11 @@ const storage = multer.memoryStorage({
   },
 });
 const upload = multer(storage).single("file");
-app.listen(port, () => {
-  console.log(
-    `Welcome to homify backend, you are connected to port ${GLOBAL_CONSTANTS.PORT} in version ${GLOBAL_CONSTANTS.VERSION}`
-  );
-});
+// app.listen(port, () => {
+//   console.log(
+//     `Welcome to homify backend, you are connected to port ${GLOBAL_CONSTANTS.PORT} in version ${GLOBAL_CONSTANTS.VERSION}`
+//   );
+// });
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 app.use(cors());
@@ -41,3 +43,31 @@ app.get("/", (req, res) => {
 });
 app.use("/api", projectRoutes);
 app.use("/apiAccess", verifyToken, protectRoutes);
+
+const server = http.createServer(app);
+const io = socketIo(server, {
+  cors: {
+    origin: "*",
+    credentials: true,
+  },
+});
+let interval;
+io.on("connection", (socket) => {
+  console.log("New client connected");
+  if (interval) {
+    clearInterval(interval);
+  }
+  interval = setInterval(() => getApiAndEmit(socket), 10000);
+  socket.on("disconnect", () => {
+    console.log("Client disconnected");
+    clearInterval(interval);
+  });
+});
+
+const getApiAndEmit = (socket) => {
+  const response = new Date();
+  // Emitting a new message. Will be consumed by the client
+  socket.emit("FromAPI", response);
+};
+
+server.listen(port, () => console.log(`Listening on port ${port}`));
