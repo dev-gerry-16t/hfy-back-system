@@ -95,6 +95,11 @@ router.post(
   "/customer/getCustomerMessage",
   ControllerMessages.getCustomerMessage
 );
+router.post("/customer/getNotifications", ControllerMessages.getNotifications);
+router.put(
+  "/customer/updateNotifications/:idNotification",
+  ControllerMessages.updateNotifications
+);
 //Messages//
 
 //TypeForm//
