@@ -24,11 +24,7 @@ const storage = multer.memoryStorage({
   },
 });
 const upload = multer(storage).single("file");
-app.listen(port, () => {
-  console.log(
-    `Welcome to homify backend, you are connected to port ${GLOBAL_CONSTANTS.PORT} in version ${GLOBAL_CONSTANTS.VERSION}`
-  );
-});
+
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 app.use(cors());
@@ -41,3 +37,9 @@ app.get("/", (req, res) => {
 });
 app.use("/api", projectRoutes);
 app.use("/apiAccess", verifyToken, protectRoutes);
+
+app.listen(port, () => {
+  console.log(
+    `Welcome to homify backend, you are connected to port ${GLOBAL_CONSTANTS.PORT} in version ${GLOBAL_CONSTANTS.VERSION}`
+  );
+});

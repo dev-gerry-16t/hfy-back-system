@@ -39,6 +39,62 @@ const executeAddCustomerMessage = async (params, res) => {
   }
 };
 
+const executeGetNotifications = async (params, res) => {
+  const {
+    idSystemUser,
+    idLoginHistory,
+    offset = "-06:00",
+    type = 1,
+    topIndex = null,
+  } = params;
+  try {
+    const request = new sql.Request();
+    request.input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser);
+    request.input("p_nvcIdLoginHistory", sql.NVarChar, idLoginHistory);
+    request.input("p_intTopIndex", sql.Int, topIndex);
+    request.input("p_intType", sql.Int, type);
+    request.input("p_chrOffset", sql.Char, offset);
+    request.execute("comSch.USPgetNotifications", (err, result) => {
+      if (err) {
+        res.status(500).send({ response: "Error en los parametros" });
+      } else {
+        const resultRecordset = result.recordset;
+        res.status(200).send({
+          response: resultRecordset,
+        });
+      }
+    });
+  } catch (err) {
+    console.log("ERROR", err);
+    // ... error checks
+  }
+};
+
+const executeUpdateNotifications = async (params, res, url) => {
+  const { idSystemUser, idLoginHistory, offset = "-06:00" } = params;
+  const { idNotification } = url;
+  try {
+    const request = new sql.Request();
+    request.input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser);
+    request.input("p_nvcIdLoginHistory", sql.NVarChar, idLoginHistory);
+    request.input("p_nvcIdNotification", sql.NVarChar, idNotification);
+    request.input("p_chrOffset", sql.Char, offset);
+    request.execute("comSch.USPupdateNotification", (err, result) => {
+      if (err) {
+        res.status(500).send({ response: "Error en los parametros" });
+      } else {
+        const resultRecordset = result.recordset;
+        res.status(200).send({
+          response: resultRecordset,
+        });
+      }
+    });
+  } catch (err) {
+    console.log("ERROR", err);
+    // ... error checks
+  }
+};
+
 const executeGetCustomerMessage = async (params, res) => {
   const {
     idCustomer,
@@ -82,6 +138,15 @@ const ControllerMessages = {
   getCustomerMessage: (req, res) => {
     const params = req.body;
     executeGetCustomerMessage(params, res);
+  },
+  getNotifications: (req, res) => {
+    const params = req.body;
+    executeGetNotifications(params, res);
+  },
+  updateNotifications: (req, res) => {
+    const params = req.body;
+    const url = req.params;
+    executeUpdateNotifications(params, res, url);
   },
 };
 
