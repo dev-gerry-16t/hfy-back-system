@@ -22,7 +22,6 @@ router.get(
   "/downloadFile/:idDocument/:bucketSource/:name/:extension",
   ControllerTest.downloadFiles
 );
-router.get("/testPDF", ControllerTest.testPDF);
 router.post("/uploadBucket", ControllerTest.upload);
 router.get("/mailto", ControllerRegister.mailto);
 router.post("/systemUser/validateLogin", ControllerLogin.login);

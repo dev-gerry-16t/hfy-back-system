@@ -1,6 +1,5 @@
 const sql = require("mssql");
 //const imageThumbnail = require("image-thumbnail");
-const pdf = require("html-pdf");
 const AWS = require("aws-sdk");
 const GLOBAL_CONSTANTS = require("../constants/constants");
 
@@ -119,62 +118,6 @@ const ControllerTest = {
         res.send(buff);
       }
     );
-  },
-  testPDF: async (req, res) => {
-    const content = `
- 
-    <div class=WordSection1 style='font-size: 24px'>
-    
-    <p class=MsoNormal align=right style='mso-margin-top-alt:auto;mso-margin-bottom-alt:
-    auto;text-align:right'><span lang=ES-MX style='font-family:"Arial",sans-serif;
-    mso-fareast-font-family:"Times New Roman";mso-fareast-language:ES-TRAD'>FOLIO: <span
-    style='color:red'>@nvcHFInvoice</span><o:p></o:p></span></p>
-    <p class=MsoNormal align=center style='mso-margin-top-alt:auto;mso-margin-bottom-alt:
-    auto;text-align:center;tab-stops:center 212.6pt left 387.35pt;border:none;
-    mso-border-bottom-alt:solid windowtext 1.5pt;padding:0in;mso-padding-alt:0in 0in 31.0pt 0in'><b><span
-    lang=ES-MX style='font-family:"Arial",sans-serif;mso-fareast-font-family:"Times New Roman";
-    mso-fareast-language:ES-TRAD'>________________________________<o:p></o:p></span></b></p>
-    
-    <p class=MsoNormal align=center style='mso-margin-top-alt:auto;mso-margin-bottom-alt:
-    auto;text-align:center;tab-stops:center 212.6pt left 387.35pt;border:none;
-    mso-border-bottom-alt:solid windowtext 1.5pt;padding:0in;mso-padding-alt:0in 0in 31.0pt 0in'><b><span
-    lang=ES-MX style='font-family:"Arial",sans-serif;mso-fareast-font-family:"Times New Roman";
-    mso-fareast-language:ES-TRAD'>@nvcCustomerTenantFullName.<o:p></o:p></span></b></p>
-    
-    <p class=MsoNormal align=center style='mso-margin-top-alt:auto;mso-margin-bottom-alt:
-    auto;text-align:center;tab-stops:center 212.6pt left 387.35pt;border:none;
-    mso-border-bottom-alt:solid windowtext 1.5pt;padding:0in;mso-padding-alt:0in 0in 31.0pt 0in'><b><span
-    lang=ES-MX style='font-family:"Arial",sans-serif;mso-fareast-font-family:"Times New Roman";
-    mso-fareast-language:ES-TRAD'><o:p>&nbsp;</o:p></span></b></p>
-    
-    </div>
-    
-    <p class=MsoNormal><span lang=ES-MX><o:p>&nbsp;</o:p></span></p>
-    
-    </div>
-    `;
-    const config = {
-      height: "10.5in", // allowed units: mm, cm, in, px
-      width: "8in",
-      format: "Legal",
-      border: {
-        top: "1cm", // default is 0, units: mm, cm, in, px
-        right: "2cm",
-        bottom: "1cm",
-        left: "2cm",
-      },
-      zoomFactor: "2",
-    };
-    pdf.create(content, config).toBuffer((err, buff) => {
-      console.log("err", err);
-      if (err) {
-        console.log(err);
-        res.status(500).send({ response: "FAIL" });
-      } else {
-        res.attachment("test.pdf");
-        res.send(buff);
-      }
-    });
   },
 };
 
