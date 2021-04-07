@@ -1,6 +1,77 @@
 const sql = require("mssql");
 const isEmpty = require("lodash/isEmpty");
 const isNil = require("lodash/isNil");
+const nodemailer = require("nodemailer");
+
+const executeEmailSentAES = async (param) => {
+  const {
+    idEmailStatus = 1,
+    idEmailTemplate = 1,
+    idRequestSignUp = null,
+    idUserSender = null,
+    idUserReceiver = null,
+    sender = null,
+    receiver = null,
+    subject = null,
+    content = null,
+    jsonServiceResponse = null,
+    offset = "-06:00",
+    jsonEmailServerConfig = null,
+    idInvitation = null,
+  } = param;
+  try {
+    const request = new sql.Request();
+    request.input("p_intIdEmailStatus", sql.Int, idEmailStatus);
+    request.input("p_intIdEmailTemplate", sql.Int, idEmailTemplate);
+    request.input("p_nvcIdRequesSignUp", sql.NVarChar, idRequestSignUp);
+    request.input("p_nvcIdUserSender", sql.NVarChar, idUserSender);
+    request.input("p_nvcIdUserReceiver", sql.NVarChar, idUserReceiver);
+    request.input("p_nvcSender", sql.NVarChar, sender);
+    request.input("p_nvcReceiver", sql.NVarChar, receiver);
+    request.input("p_nvcSubject", sql.NVarChar, subject);
+    request.input("p_nvcContent", sql.NVarChar, content);
+    request.input(
+      "p_nvcJsonServiceResponse",
+      sql.NVarChar,
+      jsonServiceResponse
+    );
+    request.input("p_chrOffset", sql.Char, offset);
+    request.input("p_nvcIdInvitation", sql.NVarChar, idInvitation);
+    await request.execute("comSch.USPaddEmailSent", async (err, result) => {
+      if (err) {
+        console.log("err", err);
+      } else {
+        console.log("success");
+      }
+    });
+  } catch (error) {}
+};
+
+const executeMailTo = async (params) => {
+  const { receiver, content, user, pass, host, port, subject } = params;
+  const transporter = nodemailer.createTransport({
+    auth: {
+      user,
+      pass,
+    },
+    host,
+    port,
+  });
+  const mailOptions = {
+    from: user,
+    to: receiver,
+    subject,
+    html: content,
+  };
+
+  transporter.sendMail(mailOptions, (error, info) => {
+    if (error) {
+      console.log("error", error);
+    } else {
+      executeEmailSentAES(params);
+    }
+  });
+};
 
 const executeValidatePaymentSchedule = async (params, res) => {
   const {
@@ -376,8 +447,8 @@ const executeAddRequestForProvider = async (params, res) => {
     idSystemUser,
     idLoginHistory,
     offset = "-06:00",
+    idProvider,
   } = params;
-  const { idProvider } = url;
   try {
     const request = new sql.Request();
     request.input("p_nvcIdProvider", sql.NVarChar, idProvider);
@@ -394,10 +465,21 @@ const executeAddRequestForProvider = async (params, res) => {
         if (resultRecordset[0].stateCode !== 200) {
           res
             .status(resultRecordset[0].stateCode)
-            .send({ response: resultRecordset });
+            .send({ response: { message: resultRecordset[0].message } });
         } else {
+          resultRecordset.forEach((element) => {
+            if (element.canSendEmail === true) {
+              const configEmailServer = JSON.parse(
+                element.jsonEmailServerConfig
+              );
+              executeMailTo({
+                ...element,
+                ...configEmailServer,
+              });
+            }
+          });
           res.status(200).send({
-            response: resultRecordset,
+            response: resultRecordset[0].idRequestForProvider,
           });
         }
       }
@@ -441,8 +523,7 @@ const ControllerPaymentProvider = {
   },
   addRequestForProvider: (req, res) => {
     const params = req.body;
-    const url = req.params;
-    executeAddRequestForProvider(params, res, url);
+    executeAddRequestForProvider(params, res);
   },
 };
 

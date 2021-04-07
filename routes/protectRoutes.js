@@ -303,8 +303,8 @@ router.put(
   "/providerPayment/updateRequestForProvider/:idRequestForProvider",
   ControllerPaymentProvider.updateRequestForProvider
 );
-router.put(
-  "/providerPayment/addRequestForProvider/:idProvider",
+router.post(
+  "/providerPayment/addRequestForProvider",
   ControllerPaymentProvider.addRequestForProvider
 );
 //Providers//
