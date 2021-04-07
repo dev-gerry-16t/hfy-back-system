@@ -129,7 +129,7 @@ const executeSetProvider = async (params, res, url) => {
         if (resultRecordset[0].stateCode !== 200) {
           res
             .status(resultRecordset[0].stateCode)
-            .send({ response: { message: resultRecordset } });
+            .send({ response: { message: resultRecordset[0].message } });
         } else {
           res.status(200).send({
             response: resultRecordset,
@@ -223,15 +223,10 @@ const executeGetRequestForProviderCoincidences = async (params, res) => {
           res.status(500).send({ response: "Error en los parametros" });
         } else {
           const resultRecordset = result.recordset;
-          if (resultRecordset[0].stateCode !== 200) {
-            res
-              .status(resultRecordset[0].stateCode)
-              .send({ response: resultRecordset });
-          } else {
-            res.status(200).send({
-              response: resultRecordset,
-            });
-          }
+
+          res.status(200).send({
+            response: resultRecordset,
+          });
         }
       }
     );
@@ -264,16 +259,19 @@ const executeGetRequestForProviderById = async (params, res) => {
         if (err) {
           res.status(500).send({ response: "Error en los parametros" });
         } else {
-          const resultRecordset = result.recordset;
-          if (resultRecordset[0].stateCode !== 200) {
-            res
-              .status(resultRecordset[0].stateCode)
-              .send({ response: resultRecordset });
-          } else {
-            res.status(200).send({
-              response: resultRecordset,
-            });
-          }
+          const resultRecordsets = result.recordsets;
+          res.status(200).send({
+            response: {
+              result1:
+                isNil(resultRecordsets[0]) === false &&
+                isEmpty(resultRecordsets[0]) === false &&
+                isNil(resultRecordsets[0][0]) === false
+                  ? resultRecordsets[0][0]
+                  : {},
+              result2:
+                isNil(resultRecordsets[1]) === false ? resultRecordsets[1] : [],
+            },
+          });
         }
       }
     );
@@ -283,7 +281,7 @@ const executeGetRequestForProviderById = async (params, res) => {
   }
 };
 
-const executeUpdateRequestForProvider = async (params, res) => {
+const executeUpdateRequestForProvider = async (params, res, url) => {
   const {
     idProvider,
     idRequestForProviderStatus,
@@ -356,7 +354,7 @@ const executeUpdateRequestForProvider = async (params, res) => {
           if (resultRecordset[0].stateCode !== 200) {
             res
               .status(resultRecordset[0].stateCode)
-              .send({ response: resultRecordset });
+              .send({ response: { message: resultRecordset[0].message } });
           } else {
             res.status(200).send({
               response: resultRecordset,
