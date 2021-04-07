@@ -464,8 +464,19 @@ const executeUpdateRequestForProvider = async (params, res, url) => {
               .status(resultRecordset[0].stateCode)
               .send({ response: { message: resultRecordset[0].message } });
           } else {
+            resultRecordset.forEach((element) => {
+              if (element.canSendEmail === true) {
+                const configEmailServer = JSON.parse(
+                  element.jsonEmailServerConfig
+                );
+                executeMailTo({
+                  ...element,
+                  ...configEmailServer,
+                });
+              }
+            });
             res.status(200).send({
-              response: resultRecordset,
+              response: resultRecordset[0].idRequestForProvider,
             });
           }
         }
