@@ -44,16 +44,15 @@ const executeMailTo = async (params) => {
 const executeCustomerTypeGAC = async (param, res) => {
   const { idType } = param;
   try {
-    const request = new sql.Request();
-    request.input("p_intType", sql.Int, idType);
-    request.execute("catCustomerSch.USPgetAllCustomerTypes", (err, result) => {
-      if (err) {
-        res.status(500).send({ result: ERROR_SQL[err.number] });
-      } else {
-        res.status(200).send({ result: result.recordset });
-      }
-    });
-  } catch (error) {}
+    const pool = await sql.connect();
+    const result = await pool
+      .request()
+      .input("p_intType", sql.Int, idType)
+      .execute("catCustomerSch.USPgetAllCustomerTypes");
+    res.status(200).send({ result: result.recordset });
+  } catch (error) {
+    res.status(500).send({ result: [] });
+  }
 };
 
 const executePersonTypeGAP = async (param, res) => {
