@@ -307,6 +307,10 @@ router.post(
   "/providerPayment/addRequestForProvider",
   ControllerPaymentProvider.addRequestForProvider
 );
+router.post(
+  "/providerPayment/updateMovingDialog",
+  ControllerPaymentProvider.updateMovingDialog
+);
 //Providers//
 
 module.exports = router;

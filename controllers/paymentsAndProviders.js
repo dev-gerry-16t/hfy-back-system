@@ -98,7 +98,44 @@ const executeValidatePaymentSchedule = async (params, res) => {
         if (resultRecordset[0].stateCode !== 200) {
           res
             .status(resultRecordset[0].stateCode)
-            .send({ response: resultRecordset });
+            .send({ response: { message: resultRecordset[0].message } });
+        } else {
+          res.status(200).send({
+            response: resultRecordset,
+          });
+        }
+      }
+    });
+  } catch (err) {
+    console.log("ERROR", err);
+    // ... error checks
+  }
+};
+
+const executeUpdateMovingDialog = async (params, res) => {
+  const {
+    idContract,
+    idCustomerTenant,
+    idSystemUser,
+    idLoginHistory,
+    offset = "-06:00",
+  } = params;
+  try {
+    const request = new sql.Request();
+    request.input("p_nvcIdContract", sql.NVarChar, idContract);
+    request.input("p_nvcIdCustomerTenant", sql.NVarChar, idCustomerTenant);
+    request.input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser);
+    request.input("p_nvcIdLoginHistory", sql.NVarChar, idLoginHistory);
+    request.input("p_chrOffset", sql.Char, offset);
+    request.execute("customerSch.USPupdateMovingDialog", (err, result) => {
+      if (err) {
+        res.status(500).send({ response: "Error en los parametros" });
+      } else {
+        const resultRecordset = result.recordset;
+        if (resultRecordset[0].stateCode !== 200) {
+          res
+            .status(resultRecordset[0].stateCode)
+            .send({ response: { message: resultRecordset[0].message } });
         } else {
           res.status(200).send({
             response: resultRecordset,
@@ -524,6 +561,10 @@ const ControllerPaymentProvider = {
   addRequestForProvider: (req, res) => {
     const params = req.body;
     executeAddRequestForProvider(params, res);
+  },
+  updateMovingDialog: (req, res) => {
+    const params = req.body;
+    executeUpdateMovingDialog(params, res);
   },
 };
 
