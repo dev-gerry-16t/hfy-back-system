@@ -76,8 +76,9 @@ const executeMailTo = async (params) => {
 
   transporter.sendMail(mailOptions, (error, info) => {
     if (error) {
-      console.log("error", error);
+      console.log("send error mail", error);
     } else {
+      console.log("send success mail");
       executeEmailSentAES(params);
     }
   });
