@@ -350,6 +350,7 @@ const executeSetTypeForm = async (params, res) => {
     bossPhoneNumber = null,
     otherIncomes = null,
     otherIncomesDescription = null,
+    currentRent = null,
   } = params;
 
   try {
@@ -380,6 +381,7 @@ const executeSetTypeForm = async (params, res) => {
     request.input("p_intIdZipCode", sql.Int, idZipCode);
     request.input("p_nvcNeighborhood", sql.NVarChar, neighborhood);
     request.input("p_bitIsOwn", sql.Bit, isOwn);
+    request.input("p_decCurrentRent", sql.Decimal(19, 2), currentRent);
     request.input("p_chrCurrentTimeRange", sql.Char, currentTimeRange);
     request.input("p_intCurrentTime", sql.Int, currentTime);
     request.input("p_intEconomicDependents", sql.Int, economicDependents);
@@ -591,6 +593,7 @@ const executeSetTypeForm = async (params, res) => {
       otherIncomesDescription
     );
     request.execute("customerSch.USPsetTypeForm", (err, result) => {
+      console.log('err, result',err, result);
       if (err) {
         res.status(500).send({ response: "Error en los parametros" });
       } else {

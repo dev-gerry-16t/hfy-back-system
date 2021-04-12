@@ -394,6 +394,210 @@ const executeGetAllPersonalReferenceStatus = async (params, res) => {
   } catch (error) {}
 };
 
+const executeGetAllProviderTypes = async (params, res) => {
+  const { idSystemUser, idLoginHistory, type } = params;
+  try {
+    const request = new sql.Request();
+    request.input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser);
+    request.input("p_nvcIdLoginHistory", sql.NVarChar, idLoginHistory);
+    request.input("p_intType", sql.Int, type);
+    request.execute("catCustomerSch.USPgetAllProviderTypes", (err, result) => {
+      if (err) {
+        res.status(500).send({ response: "Error en los parametros" });
+      } else {
+        const resultRecordset = result.recordset;
+        res.status(200).send({
+          response: resultRecordset,
+        });
+      }
+    });
+  } catch (error) {}
+};
+
+const executeGetAllCollaboratorTypes = async (params, res) => {
+  const { idProvider, idSystemUser, idLoginHistory, type } = params;
+  try {
+    const request = new sql.Request();
+    request.input("p_nvcIdProvider", sql.NVarChar, idProvider);
+    request.input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser);
+    request.input("p_nvcIdLoginHistory", sql.NVarChar, idLoginHistory);
+    request.input("p_intType", sql.Int, type);
+    request.execute(
+      "catCustomerSch.USPgetAllCollaboratorTypes",
+      (err, result) => {
+        if (err) {
+          res.status(500).send({ response: "Error en los parametros" });
+        } else {
+          const resultRecordset = result.recordset;
+          res.status(200).send({
+            response: resultRecordset,
+          });
+        }
+      }
+    );
+  } catch (error) {}
+};
+
+const executeGetAllProviders = async (params, res) => {
+  const { idContract, idSystemUser, idLoginHistory, type } = params;
+  try {
+    const request = new sql.Request();
+    request.input("p_nvcIdContract", sql.NVarChar, idContract);
+    request.input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser);
+    request.input("p_nvcIdLoginHistory", sql.NVarChar, idLoginHistory);
+    request.input("p_intType", sql.Int, type);
+    request.execute("catCustomerSch.USPgetAllProviders", (err, result) => {
+      if (err) {
+        res.status(500).send({ response: "Error en los parametros" });
+      } else {
+        const resultRecordset = result.recordset;
+        res.status(200).send({
+          response: resultRecordset,
+        });
+      }
+    });
+  } catch (error) {}
+};
+
+const executeGetAllProviderPaymentForms = async (params, res) => {
+  const { idSystemUser, idLoginHistory, type } = params;
+  try {
+    const request = new sql.Request();
+    request.input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser);
+    request.input("p_nvcIdLoginHistory", sql.NVarChar, idLoginHistory);
+    request.input("p_intType", sql.Int, type);
+    request.execute(
+      "catCustomerSch.USPgetAllProviderPaymentForms",
+      (err, result) => {
+        if (err) {
+          res.status(500).send({ response: "Error en los parametros" });
+        } else {
+          const resultRecordset = result.recordset;
+          res.status(200).send({
+            response: resultRecordset,
+          });
+        }
+      }
+    );
+  } catch (error) {}
+};
+
+const executeGetAllCollaborators = async (params, res) => {
+  const {
+    idProvider,
+    idCollaboratorType,
+    idSystemUser,
+    idLoginHistory,
+    type,
+  } = params;
+  try {
+    const request = new sql.Request();
+    request.input("p_nvcIdProvider", sql.NVarChar, idProvider);
+    request.input("p_intIdCollaboratorType", sql.Int, idCollaboratorType);
+    request.input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser);
+    request.input("p_nvcIdLoginHistory", sql.NVarChar, idLoginHistory);
+    request.input("p_intType", sql.Int, type);
+    request.execute("catCustomerSch.USPgetAllCollaborators", (err, result) => {
+      if (err) {
+        res.status(500).send({ response: "Error en los parametros" });
+      } else {
+        const resultRecordset = result.recordset;
+        res.status(200).send({
+          response: resultRecordset,
+        });
+      }
+    });
+  } catch (error) {}
+};
+
+const executeGetAllRequestForProviderStatus = async (params, res) => {
+  const { idSystemUser, idLoginHistory, type } = params;
+  try {
+    const request = new sql.Request();
+    request.input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser);
+    request.input("p_nvcIdLoginHistory", sql.NVarChar, idLoginHistory);
+    request.input("p_intType", sql.Int, type);
+    request.execute(
+      "catCustomerSch.USPgetAllRequestForProviderStatus",
+      (err, result) => {
+        if (err) {
+          res.status(500).send({ response: "Error en los parametros" });
+        } else {
+          const resultRecordset = result.recordset;
+          res.status(200).send({
+            response: resultRecordset,
+          });
+        }
+      }
+    );
+  } catch (error) {}
+};
+
+const executeGetAllIncidenceTypes = async (params, res) => {
+  const { idContract, idSystemUser, idLoginHistory, type } = params;
+  try {
+    const request = new sql.Request();
+    request.input("p_nvcIdContract", sql.NVarChar, idContract);
+    request.input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser);
+    request.input("p_nvcIdLoginHistory", sql.NVarChar, idLoginHistory);
+    request.input("p_intType", sql.Int, type);
+    request.execute("catCustomerSch.USPgetAllIncidenceTypes", (err, result) => {
+      if (err) {
+        res.status(500).send({ response: "Error en los parametros" });
+      } else {
+        const resultRecordset = result.recordset;
+        res.status(200).send({
+          response: resultRecordset,
+        });
+      }
+    });
+  } catch (error) {}
+};
+
+const executeGetAllIncidenceStatus = async (params, res) => {
+  const { idContract, idSystemUser, idLoginHistory, type } = params;
+  try {
+    const request = new sql.Request();
+    request.input("p_nvcIdContract", sql.NVarChar, idContract);
+    request.input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser);
+    request.input("p_nvcIdLoginHistory", sql.NVarChar, idLoginHistory);
+    request.input("p_intType", sql.Int, type);
+    request.execute(
+      "catCustomerSch.USPgetAllIncidenceStatus",
+      (err, result) => {
+        if (err) {
+          res.status(500).send({ response: "Error en los parametros" });
+        } else {
+          const resultRecordset = result.recordset;
+          res.status(200).send({
+            response: resultRecordset,
+          });
+        }
+      }
+    );
+  } catch (error) {}
+};
+
+const executeGetCustomerForIncidence = async (params, res) => {
+  const { idIncidence, idSystemUser, idLoginHistory } = params;
+  try {
+    const request = new sql.Request();
+    request.input("p_nvcIdIncidence", sql.NVarChar, idIncidence);
+    request.input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser);
+    request.input("p_nvcIdLoginHistory", sql.NVarChar, idLoginHistory);
+    request.execute("customerSch.USPgetCustomerForIncidence", (err, result) => {
+      if (err) {
+        res.status(500).send({ response: "Error en los parametros" });
+      } else {
+        const resultRecordset = result.recordset;
+        res.status(200).send({
+          response: resultRecordset,
+        });
+      }
+    });
+  } catch (error) {}
+};
+
 const ControllerCatalogs = {
   getAllMaritalStatus: (req, res) => {
     const params = req.body;
@@ -451,6 +655,46 @@ const ControllerCatalogs = {
   getAllPersonalReferenceStatus: (req, res) => {
     const params = req.body;
     executeGetAllPersonalReferenceStatus(params, res);
+  },
+  getAllProviderTypes: (req, res) => {
+    const params = req.body;
+    executeGetAllProviderTypes(params, res);
+  },
+  getAllCollaboratorTypes: (req, res) => {
+    const params = req.body;
+    executeGetAllCollaboratorTypes(params, res);
+  },
+  getAllProviders: (req, res) => {
+    const params = req.body;
+    executeGetAllProviders(params, res);
+  },
+  getAllProviderPaymentForms: (req, res) => {
+    const params = req.body;
+    executeGetAllProviderPaymentForms(params, res);
+  },
+  getAllCollaborators: (req, res) => {
+    const params = req.body;
+    executeGetAllCollaborators(params, res);
+  },
+  getAllRequestForProviderStatus: (req, res) => {
+    const params = req.body;
+    executeGetAllRequestForProviderStatus(params, res);
+  },
+  getAllIncidenceTypes: (req, res) => {
+    const params = req.body;
+    executeGetAllIncidenceTypes(params, res);
+  },
+  getAllIncidenceTypes: (req, res) => {
+    const params = req.body;
+    executeGetAllIncidenceTypes(params, res);
+  },
+  getAllIncidenceStatus: (req, res) => {
+    const params = req.body;
+    executeGetAllIncidenceStatus(params, res);
+  },
+  getCustomerForIncidence: (req, res) => {
+    const params = req.body;
+    executeGetCustomerForIncidence(params, res);
   },
 };
 

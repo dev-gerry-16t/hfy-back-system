@@ -11,6 +11,7 @@ const ControllerCatalogs = require("../controllers/catalogs");
 const ControllerAdmin = require("../controllers/adminServices");
 const ControllerLeads = require("../controllers/leads");
 const ControllerAudit = require("../controllers/audit");
+const ControllerPaymentProvider = require("../controllers/paymentsAndProviders");
 
 router.post("/systemUser/userProfile", ControllerAuth.userProfile);
 router.post("/systemUser/menuProfile", ControllerAuth.userMenuProfile);
@@ -168,6 +169,39 @@ router.post(
   "/catalogs/getAllPersonalReferenceStatus",
   ControllerCatalogs.getAllPersonalReferenceStatus
 );
+router.post(
+  "/catalogs/getAllProviderTypes",
+  ControllerCatalogs.getAllProviderTypes
+);
+router.post(
+  "/catalogs/getAllCollaboratorTypes",
+  ControllerCatalogs.getAllCollaboratorTypes
+);
+router.post("/catalogs/getAllProviders", ControllerCatalogs.getAllProviders);
+router.post(
+  "/catalogs/getAllProviderPaymentForms",
+  ControllerCatalogs.getAllProviderPaymentForms
+);
+router.post(
+  "/catalogs/getAllCollaborators",
+  ControllerCatalogs.getAllCollaborators
+);
+router.post(
+  "/catalogs/getAllRequestForProviderStatus",
+  ControllerCatalogs.getAllRequestForProviderStatus
+);
+router.post(
+  "/catalogs/getAllIncidenceTypes",
+  ControllerCatalogs.getAllIncidenceTypes
+);
+router.post(
+  "/catalogs/getAllIncidenceStatus",
+  ControllerCatalogs.getAllIncidenceStatus
+);
+router.post(
+  "/catalogs/getCustomerForIncidence",
+  ControllerCatalogs.getCustomerForIncidence
+);
 //Catalogos//
 
 //Admin//
@@ -251,5 +285,60 @@ router.post(
 //Historico //
 router.post("/historic/getAudit", ControllerAudit.getAudit);
 //Historico //
+
+//Providers//
+router.post(
+  "/providerPayment/validatePaymentSchedule",
+  ControllerPaymentProvider.validatePaymentSchedule
+);
+router.post(
+  "/providerPayment/getProviderCoincidences",
+  ControllerPaymentProvider.getProviderCoincidences
+);
+router.post(
+  "/providerPayment/getProviderById",
+  ControllerPaymentProvider.getProviderById
+);
+router.post(
+  "/providerPayment/getRequestForProviderCoincidences",
+  ControllerPaymentProvider.getRequestForProviderCoincidences
+);
+router.post(
+  "/providerPayment/getRequestForProviderById",
+  ControllerPaymentProvider.getRequestForProviderById
+);
+router.put(
+  "/providerPayment/setProvider/:idProvider",
+  ControllerPaymentProvider.setProvider
+);
+router.put(
+  "/providerPayment/updateRequestForProvider/:idRequestForProvider",
+  ControllerPaymentProvider.updateRequestForProvider
+);
+router.post(
+  "/providerPayment/addRequestForProvider",
+  ControllerPaymentProvider.addRequestForProvider
+);
+router.post(
+  "/providerPayment/updateMovingDialog",
+  ControllerPaymentProvider.updateMovingDialog
+);
+router.post(
+  "/providerPayment/addIncidence",
+  ControllerPaymentProvider.addIncidence
+);
+router.post(
+  "/providerPayment/getIncidenceCoincidences",
+  ControllerPaymentProvider.getIncidenceCoincidences
+);
+router.post(
+  "/providerPayment/getIncidenceById",
+  ControllerPaymentProvider.getIncidenceById
+);
+router.put(
+  "/providerPayment/updateIncidence/:idIncidence",
+  ControllerPaymentProvider.updateIncidence
+);
+//Providers//
 
 module.exports = router;
