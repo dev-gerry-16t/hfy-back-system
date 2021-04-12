@@ -190,6 +190,18 @@ router.post(
   "/catalogs/getAllRequestForProviderStatus",
   ControllerCatalogs.getAllRequestForProviderStatus
 );
+router.post(
+  "/catalogs/getAllIncidenceTypes",
+  ControllerCatalogs.getAllIncidenceTypes
+);
+router.post(
+  "/catalogs/getAllIncidenceStatus",
+  ControllerCatalogs.getAllIncidenceStatus
+);
+router.post(
+  "/catalogs/getCustomerForIncidence",
+  ControllerCatalogs.getCustomerForIncidence
+);
 //Catalogos//
 
 //Admin//
@@ -310,6 +322,22 @@ router.post(
 router.post(
   "/providerPayment/updateMovingDialog",
   ControllerPaymentProvider.updateMovingDialog
+);
+router.post(
+  "/providerPayment/addIncidence",
+  ControllerPaymentProvider.addIncidence
+);
+router.post(
+  "/providerPayment/getIncidenceCoincidences",
+  ControllerPaymentProvider.getIncidenceCoincidences
+);
+router.post(
+  "/providerPayment/getIncidenceById",
+  ControllerPaymentProvider.getIncidenceById
+);
+router.put(
+  "/providerPayment/updateIncidence/:idIncidence",
+  ControllerPaymentProvider.updateIncidence
 );
 //Providers//
 
