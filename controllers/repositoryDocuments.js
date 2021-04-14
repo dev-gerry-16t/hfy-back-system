@@ -13,7 +13,7 @@ const executeAddDocument = async (params, res, file) => {
     idCustomer,
     idSystemUser,
     idLoginHistory,
-    offset = "-06:00",
+    offset = process.env.OFFSET,
     documentName,
     extension,
     preview,
@@ -114,7 +114,7 @@ const executeGetPaymentInContractDocument = async (params, res) => {
     filterDate,
     idSystemUser,
     idLoginHistory,
-    offset = "-06:00",
+    offset = process.env.OFFSET,
     idDocumentType,
     topIndex,
   } = params;
@@ -156,7 +156,7 @@ const executeGetTypeFormDocument = async (params, res) => {
     type,
     idSystemUser,
     idLoginHistory,
-    offset = "-06:00",
+    offset = process.env.OFFSET,
     isFirstTime,
   } = params;
   try {
@@ -190,7 +190,7 @@ const executeGetCustTenantDashboardById = async (params, res) => {
     idCustomer,
     idSystemUser,
     idLoginHistory,
-    offset = "-06:00",
+    offset = process.env.OFFSET,
   } = params;
   try {
     const request = new sql.Request();

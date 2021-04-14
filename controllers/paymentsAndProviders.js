@@ -15,7 +15,7 @@ const executeEmailSentAES = async (param) => {
     subject = null,
     content = null,
     jsonServiceResponse = null,
-    offset = "-06:00",
+    offset = process.env.OFFSET,
     jsonEmailServerConfig = null,
     idInvitation = null,
   } = param;
@@ -80,7 +80,7 @@ const executeValidatePaymentSchedule = async (params, res) => {
     idContract,
     idSystemUser,
     idLoginHistory,
-    offset = "-06:00",
+    offset = process.env.OFFSET,
   } = params;
   try {
     const request = new sql.Request();
@@ -118,7 +118,7 @@ const executeUpdateMovingDialog = async (params, res) => {
     idCustomerTenant,
     idSystemUser,
     idLoginHistory,
-    offset = "-06:00",
+    offset = process.env.OFFSET,
   } = params;
   try {
     const request = new sql.Request();
@@ -163,7 +163,7 @@ const executeSetProvider = async (params, res, url) => {
     isActive,
     idSystemUser,
     idLoginHistory,
-    offset = "-06:00",
+    offset = process.env.OFFSET,
   } = params;
   const { idProvider = null } = url;
   try {
@@ -252,7 +252,7 @@ const executeSetProvider = async (params, res, url) => {
 };
 
 const executeGetProviderCoincidences = async (params, res) => {
-  const { idSystemUser, idLoginHistory, topIndex, offset = "-06:00" } = params;
+  const { idSystemUser, idLoginHistory, topIndex, offset = process.env.OFFSET } = params;
   try {
     const request = new sql.Request();
     request.input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser);
@@ -281,7 +281,7 @@ const executeGetProviderById = async (params, res) => {
     idProvider,
     idSystemUser,
     idLoginHistory,
-    offset = "-06:00",
+    offset = process.env.OFFSET,
   } = params;
   try {
     const request = new sql.Request();
@@ -317,7 +317,7 @@ const executeGetProviderById = async (params, res) => {
 };
 
 const executeGetRequestForProviderCoincidences = async (params, res) => {
-  const { idSystemUser, idLoginHistory, topIndex, offset = "-06:00" } = params;
+  const { idSystemUser, idLoginHistory, topIndex, offset = process.env.OFFSET } = params;
   try {
     const request = new sql.Request();
     request.input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser);
@@ -349,7 +349,7 @@ const executeGetRequestForProviderById = async (params, res) => {
     idSystemUser,
     idLoginHistory,
     idRequestForProvider,
-    offset = "-06:00",
+    offset = process.env.OFFSET,
   } = params;
   try {
     const request = new sql.Request();
@@ -399,7 +399,7 @@ const executeUpdateRequestForProvider = async (params, res, url) => {
     collaborator,
     idSystemUser,
     idLoginHistory,
-    offset = "-06:00",
+    offset = process.env.OFFSET,
   } = params;
   const { idRequestForProvider } = url;
   try {
@@ -494,7 +494,7 @@ const executeAddRequestForProvider = async (params, res) => {
     scheduleDate,
     idSystemUser,
     idLoginHistory,
-    offset = "-06:00",
+    offset = process.env.OFFSET,
     idProvider,
   } = params;
   try {
@@ -547,7 +547,7 @@ const executeAddIncidence = async (params, res) => {
     documents,
     idSystemUser,
     idLoginHistory,
-    offset = "-06:00",
+    offset = process.env.OFFSET,
   } = params;
   try {
     const request = new sql.Request();
@@ -598,7 +598,7 @@ const executeGetIncidenceCoincidences = async (params, res) => {
     idSystemUser,
     idLoginHistory,
     topIndex,
-    offset = "-06:00",
+    offset = process.env.OFFSET,
   } = params;
   try {
     const request = new sql.Request();
@@ -632,7 +632,7 @@ const executeGetIncidenceById = async (params, res) => {
     idIncidence,
     idSystemUser,
     idLoginHistory,
-    offset = "-06:00",
+    offset = process.env.OFFSET,
   } = params;
   try {
     const request = new sql.Request();
@@ -691,7 +691,7 @@ const executeUpdateIncidence = async (params, res, url) => {
     idLoginHistory,
     idProvider = null,
     scheduleDate = null,
-    offset = "-06:00",
+    offset = process.env.OFFSET,
   } = params;
   const { idIncidence } = url;
   try {

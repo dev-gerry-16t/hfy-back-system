@@ -3,7 +3,7 @@ const jwt = require("jsonwebtoken");
 const GLOBAL_CONSTANTS = require("../constants/constants");
 
 const executeLoginUser = async (params, res, ip, userAgent) => {
-  const { email, password, offset = "-06:00" } = params;
+  const { email, password, offset = process.env.OFFSET } = params;
   try {
     const request = new sql.Request();
     request.input("p_nvcUsername", sql.VarChar, email);

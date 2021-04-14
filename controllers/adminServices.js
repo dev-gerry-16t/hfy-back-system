@@ -25,7 +25,7 @@ const executeEmailSentAES = async (param) => {
     subject = null,
     content = null,
     jsonServiceResponse = null,
-    offset = "-06:00",
+    offset = process.env.OFFSET,
     jsonEmailServerConfig = null,
     idInvitation = null,
   } = param;
@@ -85,7 +85,7 @@ const executeMailTo = async (params) => {
 };
 
 const executeGetContractStats = async (params, res) => {
-  const { idSystemUser, idLoginHistory, offset = "-06:00" } = params;
+  const { idSystemUser, idLoginHistory, offset = process.env.OFFSET } = params;
   try {
     const request = new sql.Request();
     request.input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser);
@@ -108,7 +108,7 @@ const executeGetContractStats = async (params, res) => {
 };
 
 const executeGetContractCoincidences = async (params, res) => {
-  const { idSystemUser, idLoginHistory, topIndex, offset = "-06:00" } = params;
+  const { idSystemUser, idLoginHistory, topIndex, offset = process.env.OFFSET } = params;
   try {
     const request = new sql.Request();
     request.input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser);
@@ -132,7 +132,7 @@ const executeGetContractCoincidences = async (params, res) => {
 };
 
 const executeGetContractIndicatorsChart = async (params, res) => {
-  const { idSystemUser, idLoginHistory, offset = "-06:00" } = params;
+  const { idSystemUser, idLoginHistory, offset = process.env.OFFSET } = params;
   try {
     const request = new sql.Request();
     request.input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser);
@@ -160,7 +160,7 @@ const executeSearchCustomer = async (params, res) => {
   const {
     idSystemUser,
     idLoginHistory,
-    offset = "-06:00",
+    offset = process.env.OFFSET,
     dataFiltered,
     idCustomer,
     type,
@@ -194,7 +194,7 @@ const executeAddProspect = async (params, res) => {
     idPersonType,
     idSystemUser,
     idLoginHistory,
-    offset = "-06:00",
+    offset = process.env.OFFSET,
     givenName,
     lastName,
     mothersMaidenName,
@@ -297,7 +297,7 @@ const executeUpdateContract = async (params, res, url) => {
     isApproved,
     idSystemUser,
     idLoginHistory,
-    offset = "-06:00",
+    offset = process.env.OFFSET,
   } = params;
   const { idContract } = url;
   try {
@@ -345,7 +345,7 @@ const executeUpdateContract = async (params, res, url) => {
 };
 
 const executeSwitchCustomerInContract = async (params, res, url) => {
-  const { idSystemUser, idLoginHistory, offset = "-06:00" } = params;
+  const { idSystemUser, idLoginHistory, offset = process.env.OFFSET } = params;
   const { idContract } = url;
   try {
     const request = new sql.Request();
@@ -394,7 +394,7 @@ const executeGetByIdContract = async (params, res) => {
     idContract,
     idSystemUser,
     idLoginHistory,
-    offset = "-06:00",
+    offset = process.env.OFFSET,
   } = params;
   try {
     const request = new sql.Request();
@@ -423,7 +423,7 @@ const executeGetTenantByIdContract = async (params, res) => {
     idContract,
     idSystemUser,
     idLoginHistory,
-    offset = "-06:00",
+    offset = process.env.OFFSET,
   } = params;
   try {
     const request = new sql.Request();
@@ -456,7 +456,7 @@ const executeGetAgentByIdContract = async (params, res) => {
     idContract,
     idSystemUser,
     idLoginHistory,
-    offset = "-06:00",
+    offset = process.env.OFFSET,
   } = params;
   try {
     const request = new sql.Request();
@@ -490,7 +490,7 @@ const executeGetContractProperties = async (params, callback) => {
     idContract,
     idSystemUser,
     idLoginHistory,
-    offset = "-06:00",
+    offset = process.env.OFFSET,
     type,
   } = params;
   try {
@@ -529,7 +529,7 @@ const executeAddDocument = async (resultGet, params, dataParams, file, res) => {
     idCustomer,
     idSystemUser,
     idLoginHistory,
-    offset = "-06:00",
+    offset = process.env.OFFSET,
     documentName = null,
     extension = "docx",
     preview = null,
@@ -695,7 +695,7 @@ const executeGetContract = async (params, res) => {
     idContract,
     idSystemUser,
     idLoginHistory,
-    offset = "-06:00",
+    offset = process.env.OFFSET,
     type,
     url,
     process,
@@ -781,7 +781,7 @@ const executeGetContractComment = async (params, res) => {
     idSystemUser,
     idLoginHistory,
     topIndex,
-    offset = "-06:00",
+    offset = process.env.OFFSET,
   } = params;
   try {
     const request = new sql.Request();
@@ -815,7 +815,7 @@ const executeGetDigitalContractDocument = async (params, res) => {
     idSystemUser,
     idLoginHistory,
     type,
-    offset = "-06:00",
+    offset = process.env.OFFSET,
   } = params;
   try {
     const request = new sql.Request();
@@ -854,7 +854,7 @@ const executeGetDocumentByIdContract = async (params, res, req) => {
     type,
     download,
     bucket = "",
-    offset = "-06:00",
+    offset = process.env.OFFSET,
   } = params;
   try {
     const request = new sql.Request();
@@ -935,7 +935,7 @@ const executeAddDigitalContractDocument = async (params, res, url) => {
     idLoginHistory,
     type,
     requiresDigitalSignature,
-    offset = "-06:00",
+    offset = process.env.OFFSET,
   } = params;
   const { idContract } = url;
   try {
@@ -999,7 +999,7 @@ const executeSetContract = async (params, res, url) => {
     collectionDays = null,
     idSystemUser,
     idLoginHistory,
-    offset = "-06:00",
+    offset = process.env.OFFSET,
     type,
     isFaceToFace,
   } = params;
@@ -1064,7 +1064,7 @@ const executeAddContractComment = async (params, res, url) => {
     comment,
     idSystemUser,
     idLoginHistory,
-    offset = "-06:00",
+    offset = process.env.OFFSET,
   } = params;
   const { idContract } = url;
   try {
@@ -1115,7 +1115,7 @@ const executeAddContractDocument = async (params, res, url) => {
     idContract,
     idSystemUser,
     idLoginHistory,
-    offset = "-06:00",
+    offset = process.env.OFFSET,
     type,
   } = params;
   const { idDocument } = url;
@@ -1150,7 +1150,7 @@ const executeAddContractDocument = async (params, res, url) => {
 };
 
 const executeGetCustomerAgentCoincidences = async (params, res) => {
-  const { idSystemUser, idLoginHistory, topIndex, offset = "-06:00" } = params;
+  const { idSystemUser, idLoginHistory, topIndex, offset = process.env.OFFSET } = params;
   try {
     const request = new sql.Request();
     request.input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser);
@@ -1177,7 +1177,7 @@ const executeGetCustomerAgentCoincidences = async (params, res) => {
 };
 
 const executeGetLegalContractCoincidences = async (params, res) => {
-  const { idSystemUser, idLoginHistory, topIndex, offset = "-06:00" } = params;
+  const { idSystemUser, idLoginHistory, topIndex, offset = process.env.OFFSET } = params;
   try {
     const request = new sql.Request();
     request.input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser);
@@ -1214,7 +1214,7 @@ const executeSetPersonalReferenceForm = async (params, res, url) => {
     rating,
     idSystemUser,
     idLoginHistory,
-    offset = "-06:00",
+    offset = process.env.OFFSET,
   } = params;
   const { idPersonalReference } = url;
   try {

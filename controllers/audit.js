@@ -9,7 +9,7 @@ const executeGetAudit = async (params, res) => {
     idSystemUser,
     idLoginHistory,
     topIndex,
-    offset = "-06:00",
+    offset = process.env.OFFSET,
     type,
   } = params;
   try {

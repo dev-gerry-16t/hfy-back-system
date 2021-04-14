@@ -13,7 +13,7 @@ const executeEmailSentAES = async (param) => {
     subject = null,
     content = null,
     jsonServiceResponse = null,
-    offset = "-06:00",
+    offset = process.env.OFFSET,
     jsonEmailServerConfig = null,
     idInvitation = null,
   } = param;
@@ -79,7 +79,7 @@ const executeAddLandingProspect = async (params, res) => {
     mothersMaidenName = null,
     phoneNumber = null,
     emailAddress = null,
-    offset = "-06:00",
+    offset = process.env.OFFSET,
     budgeAmount = null,
     idPolicy = null,
     realState = null,
@@ -133,7 +133,7 @@ const executeGetLandingProspectCoincidences = async (params, res) => {
     idSystemUser,
     idLoginHistory,
     topIndex = null,
-    offset = "-06:00",
+    offset = process.env.OFFSET,
   } = params;
   try {
     const request = new sql.Request();
@@ -165,7 +165,7 @@ const executeUpdateLandingProspect = async (params, res, url) => {
     idProspectStatus,
     idSystemUser,
     idLoginHistory,
-    offset = "-06:00",
+    offset = process.env.OFFSET,
   } = params;
   const { idLandingProspect } = url;
   try {
@@ -198,7 +198,7 @@ const executeUpdateLandingProspect = async (params, res, url) => {
 };
 
 const executeGetLandingProspectStats = async (params, res) => {
-  const { idSystemUser, idLoginHistory, offset = "-06:00" } = params;
+  const { idSystemUser, idLoginHistory, offset = process.env.OFFSET } = params;
   try {
     const request = new sql.Request();
     request.input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser);

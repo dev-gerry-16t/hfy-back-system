@@ -10,7 +10,7 @@ const executeAddCustomerMessage = async (params, res) => {
     customerMessages,
     idSystemUser,
     idLoginHistory,
-    offset = "-06:00",
+    offset = process.env.OFFSET,
   } = params;
   try {
     const request = new sql.Request();
@@ -43,7 +43,7 @@ const executeGetNotifications = async (params, res) => {
   const {
     idSystemUser,
     idLoginHistory,
-    offset = "-06:00",
+    offset = process.env.OFFSET,
     type = 1,
     topIndex = null,
   } = params;
@@ -71,7 +71,7 @@ const executeGetNotifications = async (params, res) => {
 };
 
 const executeUpdateNotifications = async (params, res, url) => {
-  const { idSystemUser, idLoginHistory, offset = "-06:00" } = params;
+  const { idSystemUser, idLoginHistory, offset = process.env.OFFSET } = params;
   const { idNotification } = url;
   try {
     const request = new sql.Request();
@@ -102,7 +102,7 @@ const executeGetCustomerMessage = async (params, res) => {
     idContract,
     idSystemUser,
     idLoginHistory,
-    offset = "-06:00",
+    offset = process.env.OFFSET,
     topIndex,
   } = params;
   try {

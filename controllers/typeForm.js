@@ -13,7 +13,7 @@ const executeEmailSentAES = async (param) => {
     subject = null,
     content = null,
     jsonServiceResponse = null,
-    offset = "-06:00",
+    offset = process.env.OFFSET,
     jsonEmailServerConfig = null,
     idInvitation = null,
   } = param;
@@ -78,7 +78,7 @@ const executeGetTypeForm = async (params, res) => {
     idCustomerTenant,
     idSystemUser,
     idLoginHistory,
-    offset = "-06:00",
+    offset = process.env.OFFSET,
   } = params;
   try {
     const request = new sql.Request();
@@ -147,7 +147,7 @@ const executeGetCustomerTypeForm = async (params, res) => {
     idSystemUser,
     idLoginHistory,
     idContract = null,
-    offset = "-06:00",
+    offset = process.env.OFFSET,
   } = params;
 
   try {
@@ -192,7 +192,7 @@ const executeSetTypeFormReference = async (params, res) => {
     isActive = null,
     idSystemUser,
     idLoginHistory,
-    offset = "-06:00",
+    offset = process.env.OFFSET,
     idContract,
   } = params;
   try {
@@ -259,7 +259,7 @@ const executeSetTypeForm = async (params, res) => {
     idCustomerTenant = null,
     idSystemUser = null,
     idLoginHistory = null,
-    offset = "-06:00",
+    offset = process.env.OFFSET,
     idCountryNationality = null,
     idType = null,
     idTypeNumber = null,
@@ -630,7 +630,7 @@ const executeSetTypeFormOwner = async (params, res) => {
     idCustomer = null,
     idSystemUser = null,
     idLoginHistory = null,
-    offset = "-06:00",
+    offset = process.env.OFFSET,
     idTypeForm = null,
     isOwner = null,
     givenName = null,
@@ -776,7 +776,7 @@ const executeAddTypeFormDocument = async (params, res, url) => {
     type,
     idSystemUser,
     idLoginHistory,
-    offset = "-06:00",
+    offset = process.env.OFFSET,
     idContract,
   } = params;
   const { idDocument } = url;
