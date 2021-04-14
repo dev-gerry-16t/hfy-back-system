@@ -202,6 +202,10 @@ router.post(
   "/catalogs/getCustomerForIncidence",
   ControllerCatalogs.getCustomerForIncidence
 );
+router.post(
+  "/catalogs/getAllIncidenePaymentMethods",
+  ControllerCatalogs.getAllIncidenePaymentMethods
+);
 //Catalogos//
 
 //Admin//

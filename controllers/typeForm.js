@@ -593,7 +593,6 @@ const executeSetTypeForm = async (params, res) => {
       otherIncomesDescription
     );
     request.execute("customerSch.USPsetTypeForm", (err, result) => {
-      console.log('err, result',err, result);
       if (err) {
         res.status(500).send({ response: "Error en los parametros" });
       } else {

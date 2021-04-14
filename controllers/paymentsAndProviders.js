@@ -688,13 +688,13 @@ const executeUpdateIncidence = async (params, res, url) => {
     incidenceType = null,
     description = null,
     annotations = null,
-    requiresPayment = null,
     amount = null,
     customerRequestedForPayment = null,
     isPaymentAccepted = null,
     documents = null,
     idRequestForProviderStatus = null,
     confirmProvider = null,
+    idIncidencePaymentMethod = null,
     idSystemUser,
     idLoginHistory,
     offset = "-06:00",
@@ -709,7 +709,6 @@ const executeUpdateIncidence = async (params, res, url) => {
     request.input("p_nvcIncidenceType", sql.NVarChar, incidenceType);
     request.input("p_nvcDescription", sql.NVarChar, description);
     request.input("p_nvcAnnotations", sql.NVarChar, annotations);
-    request.input("p_bitRequiresPayment", sql.Bit, requiresPayment);
     request.input("p_decAmount", sql.Decimal(19, 2), amount);
     request.input(
       "p_nvcCustomerRequestedForPayment",
@@ -727,6 +726,11 @@ const executeUpdateIncidence = async (params, res, url) => {
     request.input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser);
     request.input("p_nvcIdLoginHistory", sql.NVarChar, idLoginHistory);
     request.input("p_chrOffset", sql.Char, offset);
+    request.input(
+      "p_intIdIncidencePaymentMethod",
+      sql.Int,
+      idIncidencePaymentMethod
+    );
     request.execute("customerSch.USPupdateIncidence", (err, result) => {
       if (err) {
         res.status(500).send({ response: "Error en los parametros" });
