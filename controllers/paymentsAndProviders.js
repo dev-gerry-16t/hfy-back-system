@@ -496,8 +496,6 @@ const executeAddRequestForProvider = async (params, res) => {
     idLoginHistory,
     offset = "-06:00",
     idProvider,
-    idIncidence = null,
-    customerRequestedForPayment = null,
   } = params;
   try {
     const request = new sql.Request();
@@ -507,12 +505,6 @@ const executeAddRequestForProvider = async (params, res) => {
     request.input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser);
     request.input("p_nvcIdLoginHistory", sql.NVarChar, idLoginHistory);
     request.input("p_chrOffset", sql.Char, offset);
-    request.input("p_nvcIdIncidence", sql.NVarChar, idIncidence);
-    request.input(
-      "p_nvcCustomerRequestedForPayment",
-      sql.NVarChar,
-      customerRequestedForPayment
-    );
     request.execute("customerSch.USPaddRequestForProvider", (err, result) => {
       if (err) {
         res.status(500).send({ response: "Error en los parametros" });
@@ -697,6 +689,8 @@ const executeUpdateIncidence = async (params, res, url) => {
     idIncidencePaymentMethod = null,
     idSystemUser,
     idLoginHistory,
+    idProvider = null,
+    scheduleDate = null,
     offset = "-06:00",
   } = params;
   const { idIncidence } = url;
@@ -726,6 +720,8 @@ const executeUpdateIncidence = async (params, res, url) => {
     request.input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser);
     request.input("p_nvcIdLoginHistory", sql.NVarChar, idLoginHistory);
     request.input("p_chrOffset", sql.Char, offset);
+    request.input("p_nvcIdProvider", sql.NVarChar, idProvider);
+    request.input("p_dtmScheduleDate", sql.DateTime, scheduleDate);
     request.input(
       "p_intIdIncidencePaymentMethod",
       sql.Int,
