@@ -445,6 +445,7 @@ const executeGetAllProviders = async (params, res) => {
     idLoginHistory,
     type,
     idProviderType = null,
+    idRequestForProvider = null,
   } = params;
   try {
     const request = new sql.Request();
@@ -453,6 +454,7 @@ const executeGetAllProviders = async (params, res) => {
     request.input("p_nvcIdLoginHistory", sql.NVarChar, idLoginHistory);
     request.input("p_intType", sql.Int, type);
     request.input("p_intIdProviderType", sql.Int, idProviderType);
+    request.input("p_nvcIdRequestForProvider", sql.NVarChar, idRequestForProvider);
     request.execute("catCustomerSch.USPgetAllProviders", (err, result) => {
       if (err) {
         res.status(500).send({ response: "Error en los parametros" });

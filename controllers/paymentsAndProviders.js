@@ -252,7 +252,12 @@ const executeSetProvider = async (params, res, url) => {
 };
 
 const executeGetProviderCoincidences = async (params, res) => {
-  const { idSystemUser, idLoginHistory, topIndex, offset = process.env.OFFSET } = params;
+  const {
+    idSystemUser,
+    idLoginHistory,
+    topIndex,
+    offset = process.env.OFFSET,
+  } = params;
   try {
     const request = new sql.Request();
     request.input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser);
@@ -317,7 +322,12 @@ const executeGetProviderById = async (params, res) => {
 };
 
 const executeGetRequestForProviderCoincidences = async (params, res) => {
-  const { idSystemUser, idLoginHistory, topIndex, offset = process.env.OFFSET } = params;
+  const {
+    idSystemUser,
+    idLoginHistory,
+    topIndex,
+    offset = process.env.OFFSET,
+  } = params;
   try {
     const request = new sql.Request();
     request.input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser);
