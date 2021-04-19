@@ -470,6 +470,76 @@ const executeGetContractProperties = async (params, callback) => {
   }
 };
 
+const executeGetContractPropertiesv2 = async (params) => {
+  const {
+    idCustomer,
+    idCustomerTenant,
+    idContract,
+    idSystemUser,
+    idLoginHistory,
+    offset = GLOBAL_CONSTANTS.OFFSET,
+    type,
+  } = params;
+  try {
+    const pool = await sql.connect();
+
+    const result = await pool
+      .request()
+      .input("p_nvcIdCustomer", sql.NVarChar, idCustomer)
+      .input("p_nvcIdCustomerTenant", sql.NVarChar, idCustomerTenant)
+      .input("p_nvcIdContract", sql.NVarChar, idContract)
+      .input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser)
+      .input("p_nvcIdLoginHistory", sql.NVarChar, idLoginHistory)
+      .input("p_chrOffset", sql.Char, offset)
+      .input("p_intType", sql.Int, type)
+      .execute("customerSch.USPgetDigitalContractProperties");
+    let resultRecordset = [];
+    if (type !== 4) {
+      resultRecordset = result.recordset;
+    } else {
+      resultRecordset = result.recordsets[1];
+    }
+    return resultRecordset;
+  } catch (err) {
+    throw err;
+  }
+};
+
+const executeGetContractPropertiesv3 = async (params) => {
+  const {
+    idCustomer,
+    idCustomerTenant,
+    idContract,
+    idSystemUser,
+    idLoginHistory,
+    offset = GLOBAL_CONSTANTS.OFFSET,
+    type,
+  } = params;
+  try {
+    const pool = await sql.connect();
+
+    const result = await pool
+      .request()
+      .input("p_nvcIdCustomer", sql.NVarChar, idCustomer)
+      .input("p_nvcIdCustomerTenant", sql.NVarChar, idCustomerTenant)
+      .input("p_nvcIdContract", sql.NVarChar, idContract)
+      .input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser)
+      .input("p_nvcIdLoginHistory", sql.NVarChar, idLoginHistory)
+      .input("p_chrOffset", sql.Char, offset)
+      .input("p_intType", sql.Int, type)
+      .execute("customerSch.USPgetDigitalContractProperties");
+    let resultRecordset = [];
+    if (type !== 4) {
+      resultRecordset = result.recordset;
+    } else {
+      resultRecordset = result.recordsets[1];
+    }
+    return resultRecordset;
+  } catch (err) {
+    throw err;
+  }
+};
+
 const executeAddDocument = async (resultGet, params, dataParams, file, res) => {
   const {
     idCustomer,
@@ -579,6 +649,42 @@ const executeAddDocument = async (resultGet, params, dataParams, file, res) => {
   }
 };
 
+const executeAddDocumentv2 = async (resultGet, params) => {
+  const {
+    idCustomer,
+    idSystemUser,
+    idLoginHistory,
+    offset = GLOBAL_CONSTANTS.OFFSET,
+    documentName = null,
+    extension = "docx",
+    preview = null,
+    thumbnail = null,
+    bucket = "",
+  } = params;
+
+  const { idPreviousDocument, idDocumentType } = resultGet;
+
+  try {
+    const pool = await sql.connect();
+    const result = await pool
+      .request()
+      .input("p_nvcIdCustomer", sql.NVarChar, idCustomer)
+      .input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser)
+      .input("p_nvcIdLoginHistory", sql.NVarChar, idLoginHistory)
+      .input("p_nvcDocumentName", sql.NVarChar, documentName)
+      .input("p_nvcExtension", sql.NVarChar, extension)
+      .input("p_nvcPreview", sql.NVarChar, preview)
+      .input("p_nvcThumbnail", sql.NVarChar, thumbnail)
+      .input("p_chrOffset", sql.Char, offset)
+      .input("p_intIdDocumentType", sql.Int, idDocumentType)
+      .execute("documentSch.USPaddDocument");
+    const resultRecordset = result.recordset;
+    return resultRecordset;
+  } catch (err) {
+    throw err;
+  }
+};
+
 const processFileToUpload = async (resultObject, params, res) => {
   try {
     const bucketSource = resultObject.bucketSource.toLowerCase();
@@ -630,6 +736,45 @@ const processFileToUpload = async (resultObject, params, res) => {
     );
   } catch (error) {
     throw error;
+  }
+};
+
+const executeAddContractDocument = async (params, res, url) => {
+  const {
+    idContract,
+    idSystemUser,
+    idLoginHistory,
+    offset = GLOBAL_CONSTANTS.OFFSET,
+    type,
+  } = params;
+  const { idDocument } = url;
+  try {
+    const request = new sql.Request();
+    request.input("p_nvcIdContract", sql.NVarChar, idContract);
+    request.input("p_nvcIdDocument", sql.NVarChar, idDocument);
+    request.input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser);
+    request.input("p_nvcIdLoginHistory", sql.NVarChar, idLoginHistory);
+    request.input("p_chrOffset", sql.Char, offset);
+    request.input("p_intType", sql.Int, type);
+    request.execute("customerSch.USPaddContractDocument", (err, result) => {
+      if (err) {
+        res.status(500).send({ response: "Error en los parametros" });
+      } else {
+        const resultRecordset = result.recordset;
+        if (resultRecordset[0].stateCode !== 200) {
+          res.status(resultRecordset[0].stateCode).send({
+            response: resultRecordset[0].message,
+          });
+        } else {
+          res.status(200).send({
+            response: resultRecordset,
+          });
+        }
+      }
+    });
+  } catch (err) {
+    console.log("ERROR", err);
+    // ... error checks
   }
 };
 
@@ -718,6 +863,205 @@ const executeGetContract = async (params, res) => {
   }
 };
 
+const executeAddContractDocumentV2 = async (params) => {
+  const {
+    idContract,
+    idSystemUser,
+    idLoginHistory,
+    offset = GLOBAL_CONSTANTS.OFFSET,
+    type,
+    idDocument,
+  } = params;
+  try {
+    const pool = await sql.connect();
+    const result = await pool
+      .request()
+      .input("p_nvcIdContract", sql.NVarChar, idContract)
+      .input("p_nvcIdDocument", sql.NVarChar, idDocument)
+      .input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser)
+      .input("p_nvcIdLoginHistory", sql.NVarChar, idLoginHistory)
+      .input("p_chrOffset", sql.Char, offset)
+      .input("p_intType", sql.Int, type)
+      .execute("customerSch.USPaddContractDocument");
+    const resultRecordset = result.recordset;
+    if (resultRecordset[0].stateCode !== 200) {
+      throw new Error(resultRecordset[0].message);
+    }
+    return result;
+  } catch (err) {
+    throw err;
+  }
+};
+
+const executeGetContractV2 = async (params, res) => {
+  const {
+    download,
+    idCustomer,
+    idCustomerTenant,
+    idContract,
+    idSystemUser,
+    idLoginHistory,
+    offset = GLOBAL_CONSTANTS.OFFSET,
+    type,
+    url,
+    process,
+    bucket = "",
+  } = params;
+
+  try {
+    const pool = await sql.connect();
+    const result = await pool
+      .request()
+      .input("p_nvcIdCustomer", sql.NVarChar, idCustomer)
+      .input("p_nvcIdCustomerTenant", sql.NVarChar, idCustomerTenant)
+      .input("p_nvcIdContract", sql.NVarChar, idContract)
+      .input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser)
+      .input("p_nvcIdLoginHistory", sql.NVarChar, idLoginHistory)
+      .input("p_chrOffset", sql.Char, offset)
+      .input("p_intType", sql.Int, type)
+      .execute("customerSch.USPgetContract");
+    const resultRecordset = result.recordset;
+    if (
+      isEmpty(resultRecordset) === false &&
+      isNil(resultRecordset[0]) === false
+    ) {
+      const resultObject = resultRecordset[0];
+      if (download === true || process === true) {
+        //Obtenemos el bucketSource en donde esta almacenado el template word
+        const bucketSource = resultObject.bucketSource.toLowerCase();
+
+        //Obtenemos el buffer del documento a ser procesado
+        const file = await s3
+          .getObject({
+            Bucket: bucketSource,
+            Key: resultObject.idDocument,
+          })
+          .promise();
+
+        //Obtenemos el buffer y pasamos a binario
+        const buff = new Buffer.from(file.Body, "binary");
+
+        //Ejecutamos el USP que nos traerá las variables para remplazar el template
+        const dataProperties = await executeGetContractPropertiesv2(params);
+
+        //Cuando el documento es un pagare viene en el set 2 del sp y su id es 4
+        let objectParams = {};
+        if (type !== 4) {
+          //Extraemos las variables de reemplazo del set 1 como objeto para pólizas y contratos
+          objectParams =
+            isNil(dataProperties[0]) === false ? dataProperties[0] : {};
+        } else {
+          //Extraemos las variables de reemplazo del set 2 como array para el pagaré
+          objectParams = {
+            payments: isNil(dataProperties) === false ? dataProperties : [],
+          };
+        }
+
+        //Ejecutamos el USPaddDocument para saber en donde  y con que nombre guardar el nuevo documento a ser reemplazado por las variables
+        const dataAddDocument = await executeAddDocumentv2(
+          resultObject,
+          params
+        );
+
+        //obtenemos el objeto de respuesta del usp
+        const resultObjectAddDocument = dataAddDocument[0];
+
+        //Si existe un error arrogado por la base de datos lo informamos
+        if (resultObjectAddDocument.stateCode !== 200) {
+          res.status(resultObjectAddDocument.stateCode).send({
+            response: { message: resultObjectAddDocument.message },
+          });
+        } else {
+          //Si no existe un error arrogado por la base de datos continuamos
+
+          //Procesamiento de Docxtemplater
+          const zip = new PizZip(buff);
+          let doc;
+          doc = await new Docxtemplater(zip, {
+            parser: replaceConditionsDocx,
+            nullGetter: () => {
+              return "";
+            },
+          });
+          await doc.setData(objectParams);
+          await doc.render();
+
+          //El documento procesado lo obtenemos en buffer
+          const fileDocument = await doc
+            .getZip()
+            .generate({ type: "nodebuffer" });
+
+          //Almacenamos el bucketSource en donde se almacenara el nuevo documento procesado
+          const bucketSorce =
+            isNil(resultObjectAddDocument) === false &&
+            isNil(resultObjectAddDocument.bucketSource) === false
+              ? resultObjectAddDocument.bucketSource.toLowerCase()
+              : bucket.toLowerCase();
+
+          //Almacenamos el nombre de como se llamara el documento procesado
+          const idDocument = resultObjectAddDocument.idDocument;
+          const params2 = {
+            Bucket: bucketSorce,
+            Key: idDocument,
+            Body: fileDocument,
+          };
+
+          //Subimos a amazon el nuevo documento procesado
+          await s3.upload(params2).promise();
+
+          if (isNil(resultObject.idPreviousDocument) === false) {
+            //Si existe un documento previo procesado lo eliminaremos, por que ya tenemos uno nuevo
+            const params1 = {
+              Bucket: bucketSorce,
+              Key: resultObject.idPreviousDocument,
+            };
+
+            //Lo eliminamos con las funciones de amazon
+            await s3.deleteObject(params1).promise();
+          }
+
+          if (download === true) {
+            // si descargamos mandamos el buffer o binario y asociamos el id al contrato
+            await executeAddContractDocumentV2({
+              idContract,
+              idSystemUser,
+              idLoginHistory,
+              offset,
+              type,
+              idDocument,
+            });
+            res.send(fileDocument);
+          } else {
+            //Respondemos que todo salio bien
+            res.status(200).send({
+              response: [
+                {
+                  ...resultObject,
+                  url: `/api/viewFilesDocx/${idDocument}/${bucketSorce}`,
+                  idDocument,
+                },
+              ],
+            });
+          }
+        }
+      } else {
+        res.status(200).send({
+          response: [{ ...resultObject, url }],
+        });
+      }
+    } else {
+      res.status(200).send({
+        response: [],
+      });
+    }
+  } catch (err) {
+    console.log("err", err);
+    res.status(500).send({
+      response: { message: "Error al generar el documento", typeError: err },
+    });
+  }
+};
+
 const executeGetContractComment = async (params, res) => {
   const {
     idCustomer,
@@ -798,78 +1142,145 @@ const executeGetDocumentByIdContract = async (params, res, req) => {
     idSystemUser,
     idLoginHistory,
     type,
+    typeProcess,
     download,
     bucket = "",
     offset = GLOBAL_CONSTANTS.OFFSET,
+    onlyView = false,
   } = params;
   try {
-    const request = new sql.Request();
-    request.input("p_nvcIdContract", sql.NVarChar, idContract);
-    request.input("p_nvcIdDigitalContract", sql.NVarChar, idDigitalContract);
-    request.input("p_nvcIdCustomer", sql.NVarChar, idCustomer);
-    request.input("p_nvcIdCustomerTenant", sql.NVarChar, idCustomerTenant);
-    request.input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser);
-    request.input("p_nvcIdLoginHistory", sql.NVarChar, idLoginHistory);
-    request.input("p_chrOffset", sql.Char, offset);
-    request.input("p_intType", sql.Int, type);
-    request.execute("customerSch.USPgetDocumentByIdContract", (err, result) => {
-      if (err) {
-        res.status(500).send({ response: "Error en los parametros" });
-      } else {
-        const resultRecordset = result.recordset;
-        if (download === true) {
-          if (
-            isNil(resultRecordset[0]) === false &&
-            isNil(resultRecordset[0].idDocument) === false
-          ) {
-            const bucketSorce =
-              isNil(resultRecordset[0]) === false &&
-              isNil(resultRecordset[0].bucketSource) === false
-                ? resultRecordset[0].bucketSource.toLowerCase()
-                : bucket.toLowerCase();
-            s3.getObject(
-              {
-                Bucket: bucketSorce,
-                Key: resultRecordset[0].idDocument,
-              },
-              (err, data) => {
-                if (err) {
-                  res.status(500).send({
-                    response: err,
-                  });
-                } else {
-                  const buff = new Buffer.from(data.Body, "binary");
-                  res.setHeader("Content-Type", "application/octet-stream");
-                  res.setHeader(
-                    "Access-Control-Allow-Origin",
-                    req.headers.origin
-                  );
-                  res.status(200).send(buff);
-                }
-              }
-            );
+    const pool = await sql.connect();
+    const result = await pool
+      .request()
+      .input("p_nvcIdContract", sql.NVarChar, idContract)
+      .input("p_nvcIdDigitalContract", sql.NVarChar, idDigitalContract)
+      .input("p_nvcIdCustomer", sql.NVarChar, idCustomer)
+      .input("p_nvcIdCustomerTenant", sql.NVarChar, idCustomerTenant)
+      .input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser)
+      .input("p_nvcIdLoginHistory", sql.NVarChar, idLoginHistory)
+      .input("p_chrOffset", sql.Char, offset)
+      .input("p_intType", sql.Int, type)
+      .execute("customerSch.USPgetDocumentByIdContract");
+
+    const resultRecordset = result.recordset;
+
+    if (download === true) {
+      if (
+        isNil(resultRecordset[0]) === false &&
+        isNil(resultRecordset[0].idDocument) === false
+      ) {
+        if (resultRecordset[0].canGenerateDocument === true) {
+          const bucketSource = resultRecordset[0].bucketSource.toLowerCase();
+          const file = await s3
+            .getObject({
+              Bucket: bucketSource,
+              Key: resultRecordset[0].idDocument,
+            })
+            .promise();
+          const buff = new Buffer.from(file.Body, "binary");
+          const dataProperties = await executeGetContractPropertiesv3({
+            ...params,
+            type: typeProcess,
+          });
+          let objectParams = {};
+          if (typeProcess !== 4) {
+            objectParams =
+              isNil(dataProperties[0]) === false ? dataProperties[0] : {};
           } else {
-            res.status(500).send({
-              response: "No encontramos idDocument y content",
+            objectParams = {
+              payments: isNil(dataProperties) === false ? dataProperties : [],
+            };
+          }
+          const dataAddDocument = await executeAddDocumentv2(
+            resultRecordset[0],
+            params
+          );
+          const resultObjectAddDocument = dataAddDocument[0];
+          if (resultObjectAddDocument.stateCode !== 200) {
+            res.status(resultObjectAddDocument.stateCode).send({
+              response: { message: resultObjectAddDocument.message },
             });
+          } else {
+            const zip = new PizZip(buff);
+            let doc;
+            doc = await new Docxtemplater(zip, {
+              parser: replaceConditionsDocx,
+              nullGetter: () => {
+                return "";
+              },
+            });
+            await doc.setData(objectParams);
+            await doc.render();
+            const fileDocument = await doc
+              .getZip()
+              .generate({ type: "nodebuffer" });
+            const bucketSorce =
+              isNil(resultObjectAddDocument) === false &&
+              isNil(resultObjectAddDocument.bucketSource) === false
+                ? resultObjectAddDocument.bucketSource.toLowerCase()
+                : bucket.toLowerCase();
+            const idDocument = resultObjectAddDocument.idDocument;
+            const params2 = {
+              Bucket: bucketSorce,
+              Key: idDocument,
+              Body: fileDocument,
+            };
+            await s3.upload(params2).promise();
+
+            if (isNil(resultRecordset[0].idPreviousDocument) === false) {
+              const params1 = {
+                Bucket: bucketSorce,
+                Key: resultRecordset[0].idPreviousDocument,
+              };
+              await s3.deleteObject(params1).promise();
+            }
+            if (onlyView===false) {
+              
+              res.setHeader("Content-Type", "application/octet-stream");
+              res.setHeader("Access-Control-Allow-Origin", req.headers.origin);
+              res.status(200).send(fileDocument);
+            }else{
+              res.status(200).send({
+                response: {url:`/api/viewFilesDocx/${idDocument}/${bucketSorce}`},
+              });
+            }
           }
         } else {
-          if (
+          const bucketSorce =
             isNil(resultRecordset[0]) === false &&
-            isNil(resultRecordset[0].idDocument) === false
-          ) {
-            res.status(200).send({ extension: resultRecordset[0].extension });
-          } else {
-            res.status(500).send({
-              response: "No encontramos idDocument y content",
-            });
-          }
+            isNil(resultRecordset[0].bucketSource) === false
+              ? resultRecordset[0].bucketSource.toLowerCase()
+              : bucket.toLowerCase();
+          const dataDocument = await s3
+            .getObject({
+              Bucket: bucketSorce,
+              Key: resultRecordset[0].idDocument,
+            })
+            .promise();
+          const buff = new Buffer.from(dataDocument.Body, "binary");
+          res.setHeader("Content-Type", "application/octet-stream");
+          res.setHeader("Access-Control-Allow-Origin", req.headers.origin);
+          res.status(200).send(buff);
         }
+      } else {
+        res.status(500).send({
+          response: "No encontramos idDocument y content",
+        });
       }
-    });
+    } else {
+      if (
+        isNil(resultRecordset[0]) === false &&
+        isNil(resultRecordset[0].idDocument) === false
+      ) {
+        res.status(200).send({ extension: resultRecordset[0].extension });
+      } else {
+        res.status(500).send({
+          response: "No encontramos idDocument y content",
+        });
+      }
+    }
   } catch (err) {
-    console.log("ERROR", err);
-    // ... error checks
+    res.status(500).send({ response: "Error en los parametros" });
   }
 };
 
@@ -1056,45 +1467,6 @@ const executeAddContractComment = async (params, res, url) => {
   }
 };
 
-const executeAddContractDocument = async (params, res, url) => {
-  const {
-    idContract,
-    idSystemUser,
-    idLoginHistory,
-    offset = GLOBAL_CONSTANTS.OFFSET,
-    type,
-  } = params;
-  const { idDocument } = url;
-  try {
-    const request = new sql.Request();
-    request.input("p_nvcIdContract", sql.NVarChar, idContract);
-    request.input("p_nvcIdDocument", sql.NVarChar, idDocument);
-    request.input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser);
-    request.input("p_nvcIdLoginHistory", sql.NVarChar, idLoginHistory);
-    request.input("p_chrOffset", sql.Char, offset);
-    request.input("p_intType", sql.Int, type);
-    request.execute("customerSch.USPaddContractDocument", (err, result) => {
-      if (err) {
-        res.status(500).send({ response: "Error en los parametros" });
-      } else {
-        const resultRecordset = result.recordset;
-        if (resultRecordset[0].stateCode !== 200) {
-          res.status(resultRecordset[0].stateCode).send({
-            response: resultRecordset[0].message,
-          });
-        } else {
-          res.status(200).send({
-            response: resultRecordset,
-          });
-        }
-      }
-    });
-  } catch (err) {
-    console.log("ERROR", err);
-    // ... error checks
-  }
-};
-
 const executeGetCustomerAgentCoincidences = async (params, res) => {
   const {
     idSystemUser,
@@ -1265,6 +1637,10 @@ const ControllerAdmin = {
   getContract: (req, res) => {
     const params = req.body;
     executeGetContract(params, res);
+  },
+  getContractV2: (req, res) => {
+    const params = req.body;
+    executeGetContractV2(params, res);
   },
   getContractComment: (req, res) => {
     const params = req.body;

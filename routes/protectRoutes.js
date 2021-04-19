@@ -235,6 +235,7 @@ router.put(
   ControllerAdmin.switchCustomerInContract
 );
 router.post("/admin/getContract", ControllerAdmin.getContract);
+router.post("/admin/getContract/v2", ControllerAdmin.getContractV2);
 router.post("/admin/getContractComment", ControllerAdmin.getContractComment);
 router.put("/admin/setContract/:idContract", ControllerAdmin.setContract);
 router.put(
