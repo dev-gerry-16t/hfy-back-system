@@ -206,6 +206,10 @@ router.post(
   "/catalogs/getAllIncidenePaymentMethods",
   ControllerCatalogs.getAllIncidenePaymentMethods
 );
+router.post(
+  "/catalogs/getAllPolicyPaymentMethods",
+  ControllerCatalogs.getAllPolicyPaymentMethods
+);
 //Catalogos//
 
 //Admin//

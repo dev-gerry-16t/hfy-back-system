@@ -454,7 +454,11 @@ const executeGetAllProviders = async (params, res) => {
     request.input("p_nvcIdLoginHistory", sql.NVarChar, idLoginHistory);
     request.input("p_intType", sql.Int, type);
     request.input("p_intIdProviderType", sql.Int, idProviderType);
-    request.input("p_nvcIdRequestForProvider", sql.NVarChar, idRequestForProvider);
+    request.input(
+      "p_nvcIdRequestForProvider",
+      sql.NVarChar,
+      idRequestForProvider
+    );
     request.execute("catCustomerSch.USPgetAllProviders", (err, result) => {
       if (err) {
         res.status(500).send({ response: "Error en los parametros" });
@@ -632,6 +636,39 @@ const executeGetAllIncidenePaymentMethods = async (params, res) => {
   } catch (error) {}
 };
 
+const executeGetAllPolicyPaymentMethods = async (params, res) => {
+  const {
+    idCustomerTenant,
+    idCustomer,
+    idTypeForm,
+    idSystemUser,
+    idLoginHistory,
+    type,
+  } = params;
+  try {
+    const request = new sql.Request();
+    request.input("p_nvcIdCustomerTenant", sql.NVarChar, idCustomerTenant);
+    request.input("p_nvcIdCustomer", sql.NVarChar, idCustomer);
+    request.input("p_nvcIdTypeForm", sql.NVarChar, idTypeForm);
+    request.input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser);
+    request.input("p_nvcIdLoginHistory", sql.NVarChar, idLoginHistory);
+    request.input("p_intType", sql.Int, type);
+    request.execute(
+      "catCustomerSch.USPgetAllPolicyPaymentMethods",
+      (err, result) => {
+        if (err) {
+          res.status(500).send({ response: "Error en los parametros" });
+        } else {
+          const resultRecordset = result.recordset;
+          res.status(200).send({
+            response: resultRecordset,
+          });
+        }
+      }
+    );
+  } catch (error) {}
+};
+
 const ControllerCatalogs = {
   getAllMaritalStatus: (req, res) => {
     const params = req.body;
@@ -733,6 +770,10 @@ const ControllerCatalogs = {
   getAllIncidenePaymentMethods: (req, res) => {
     const params = req.body;
     executeGetAllIncidenePaymentMethods(params, res);
+  },
+  getAllPolicyPaymentMethods: (req, res) => {
+    const params = req.body;
+    executeGetAllPolicyPaymentMethods(params, res);
   },
 };
 
