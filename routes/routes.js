@@ -36,6 +36,7 @@ router.get(
   ControllerRegister.getInvitation
 );
 router.post("/requestRecoveryPass", ControllerRecover.requestRecoveryPass);
+router.post("/catalogs/getAllPolicies", ControllerCatalogs.getAllPolicies);
 router.put(
   "/recoveryPass/:idRequestRecoveryPassword",
   ControllerRecover.recoveryPass
