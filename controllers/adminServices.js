@@ -1281,6 +1281,7 @@ const executeGetDocumentByIdContract = async (params, res, req) => {
       }
     }
   } catch (err) {
+    console.log("err", err);
     res.status(500).send({
       response: { message: "Error en los parametros", errorType: err },
     });
