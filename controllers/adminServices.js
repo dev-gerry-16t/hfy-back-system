@@ -1234,14 +1234,15 @@ const executeGetDocumentByIdContract = async (params, res, req) => {
               };
               await s3.deleteObject(params1).promise();
             }
-            if (onlyView===false) {
-              
+            if (onlyView === false) {
               res.setHeader("Content-Type", "application/octet-stream");
               res.setHeader("Access-Control-Allow-Origin", req.headers.origin);
               res.status(200).send(fileDocument);
-            }else{
+            } else {
               res.status(200).send({
-                response: {url:`/api/viewFilesDocx/${idDocument}/${bucketSorce}`},
+                response: {
+                  url: `/api/viewFilesDocx/${idDocument}/${bucketSorce}`,
+                },
               });
             }
           }
@@ -1280,7 +1281,9 @@ const executeGetDocumentByIdContract = async (params, res, req) => {
       }
     }
   } catch (err) {
-    res.status(500).send({ response: "Error en los parametros" });
+    res.status(500).send({
+      response: { message: "Error en los parametros", errorType: err },
+    });
   }
 };
 
