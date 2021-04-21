@@ -196,6 +196,7 @@ const executeGetAllPolicies = async (params, res) => {
     idSystemUser,
     idLoginHistory,
     type,
+    idProspectType = null,
   } = params;
   try {
     const request = new sql.Request();
@@ -204,6 +205,7 @@ const executeGetAllPolicies = async (params, res) => {
     request.input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser);
     request.input("p_nvcIdLoginHistory", sql.NVarChar, idLoginHistory);
     request.input("p_intType", sql.Int, type);
+    request.input("p_intIdProspectType", sql.Int, idProspectType);
     request.execute("catCustomerSch.USPgetAllPolicies", (err, result) => {
       if (err) {
         res.status(500).send({ response: "Error en los parametros" });
