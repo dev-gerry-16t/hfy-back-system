@@ -602,6 +602,24 @@ const executeSetTypeFormOwner = async (params, res) => {
     stepIn = null,
     isInCash = null,
     idPolicyPaymentMethod = null,
+    enterpriseIdCommercialSocietyType = null,
+    enterprisePublicWrtitingNo = null,
+    enterprisePublicBookNo = null,
+    enterpriseNotaryName = null,
+    enterpriseNotaryOfficeNo = null,
+    enterpriseSignedAtPlace = null,
+    enterpriseIdStatePublicProperty = null,
+    enterpriseCommercialInvoice = null,
+    legalRepGivenName = null,
+    legalRepLastName = null,
+    legalRepMothersMaidenName = null,
+    legalRepPublicWritingNo = null,
+    legalRepPublicBookNo = null,
+    legalRepNotaryName = null,
+    legalRepNotaryOfficeNo = null,
+    legalRepSignedAtPlace = null,
+    legalRepIdType = null,
+    legalRepIdTypeNumber = null,
   } = params;
 
   try {
@@ -667,6 +685,82 @@ const executeSetTypeFormOwner = async (params, res) => {
     request.input("p_tynStepIn", sql.TinyInt, stepIn);
     request.input("p_bitIsInCash", sql.Bit, isInCash);
     request.input("p_intIdPolicyPaymentMethod", sql.Int, idPolicyPaymentMethod);
+
+    request.input(
+      "p_intEnterpriseIdCommercialSocietyType",
+      sql.Int,
+      enterpriseIdCommercialSocietyType
+    );
+    request.input(
+      "p_nvcEnterprisePublicWrtitingNo",
+      sql.NVarChar,
+      enterprisePublicWrtitingNo
+    );
+    request.input(
+      "p_nvcEnterprisePublicBookNo",
+      sql.NVarChar,
+      enterprisePublicBookNo
+    );
+    request.input(
+      "p_nvcEnterpriseNotaryName",
+      sql.NVarChar,
+      enterpriseNotaryName
+    );
+    request.input(
+      "p_nvcEnterpriseNotaryOfficeNo",
+      sql.NVarChar,
+      enterpriseNotaryOfficeNo
+    );
+    request.input(
+      "p_nvcEnterpriseSignedAtPlace",
+      sql.NVarChar,
+      enterpriseSignedAtPlace
+    );
+    request.input(
+      "p_intEnterpriseIdStatePublicProperty",
+      sql.Int,
+      enterpriseIdStatePublicProperty
+    );
+    request.input(
+      "p_nvcEnterpriseCommercialInvoice",
+      sql.NVarChar,
+      enterpriseCommercialInvoice
+    );
+    request.input("p_nvcLegalRepGivenName", sql.NVarChar, legalRepGivenName);
+    request.input("p_nvcLegalRepLastName", sql.NVarChar, legalRepLastName);
+    request.input(
+      "p_nvcLegalRepMothersMaidenName",
+      sql.NVarChar,
+      legalRepMothersMaidenName
+    );
+    request.input(
+      "p_nvcLegalRepPublicWritingNo",
+      sql.NVarChar,
+      legalRepPublicWritingNo
+    );
+    request.input(
+      "p_nvcLegalRepPublicBookNo",
+      sql.NVarChar,
+      legalRepPublicBookNo
+    );
+    request.input("p_nvcLegalRepNotaryName", sql.NVarChar, legalRepNotaryName);
+    request.input(
+      "p_nvcLegalRepNotaryOfficeNo",
+      sql.NVarChar,
+      legalRepNotaryOfficeNo
+    );
+    request.input(
+      "p_nvcLegalRepSignedAtPlace",
+      sql.NVarChar,
+      legalRepSignedAtPlace
+    );
+    request.input("p_intLegalRepIdType", sql.Int, legalRepIdType);
+    request.input(
+      "p_nvcLegalRepIdTypeNumber",
+      sql.NVarChar,
+      legalRepIdTypeNumber
+    );
+
     request.execute("customerSch.USPsetCustomerTypeForm", (err, result) => {
       if (err) {
         res.status(500).send({ response: "Error en los parametros" });
