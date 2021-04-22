@@ -12,6 +12,7 @@ const router = express.Router();
 
 router.get("/", ControllerTest.test);
 router.get("/test", ControllerTest.testPath);
+router.post("/testStripe", ControllerTest.testStripe);
 router.get("/viewFile/:idDocument/:bucketSource", ControllerTest.viewFiles);
 router.get(
   "/viewFilesDocx/:idDocument/:bucketSource",

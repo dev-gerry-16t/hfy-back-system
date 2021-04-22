@@ -2,6 +2,7 @@ const sql = require("mssql");
 //const imageThumbnail = require("image-thumbnail");
 const AWS = require("aws-sdk");
 const GLOBAL_CONSTANTS = require("../constants/constants");
+const Stripe = require("stripe");
 
 const s3 = new AWS.S3({
   accessKeyId: GLOBAL_CONSTANTS.ACCESS_KEY_ID,
@@ -118,6 +119,23 @@ const ControllerTest = {
         res.send(buff);
       }
     );
+  },
+  testStripe: async (req, res) => {
+    try {
+      const params = req.body;
+      const stripe = new Stripe(
+        "sk_test_51IiP07KoHiI0GYNaYyc25Xk8aKkX8N8dVb1t9kxcF4wKXHEvzSfc78uN4RYxw9FMxQasPxkzRKc2PoDlccmD0UIS00Mt8W0DkM"
+      );
+      const payment = await stripe.paymentIntents.create({
+        ...params,
+        currency: "MXN",
+        confirm: true,
+      });
+      console.log("params", payment);
+      res.status(200).send({ message: payment });
+    } catch (error) {
+      res.status(500).send({ message: error });
+    }
   },
 };
 
