@@ -281,6 +281,7 @@ const executeSetTypeForm = async (params, res) => {
     otherIncomes = null,
     otherIncomesDescription = null,
     currentRent = null,
+    endorsementTaxId = null,
   } = params;
 
   try {
@@ -522,6 +523,7 @@ const executeSetTypeForm = async (params, res) => {
       sql.NVarChar(sql.MAX),
       otherIncomesDescription
     );
+    request.input("p_nvcEndorsementTaxId", sql.NVarChar, endorsementTaxId);
     request.execute("customerSch.USPsetTypeForm", (err, result) => {
       if (err) {
         res.status(500).send({ response: "Error en los parametros" });
