@@ -340,6 +340,7 @@ const executeUpdateRequestForProvider = async (params, res, url) => {
     idSystemUser,
     idLoginHistory,
     offset = process.env.OFFSET,
+    observations = null,
   } = params;
   const { idRequestForProvider } = url;
   try {
@@ -392,6 +393,7 @@ const executeUpdateRequestForProvider = async (params, res, url) => {
     request.input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser);
     request.input("p_nvcIdLoginHistory", sql.NVarChar, idLoginHistory);
     request.input("p_chrOffset", sql.Char, offset);
+    request.input("p_nvcObservations", sql.NVarChar, observations);
     request.execute(
       "customerSch.USPupdateRequestForProvider",
       (err, result) => {
@@ -436,6 +438,7 @@ const executeAddRequestForProvider = async (params, res) => {
     idLoginHistory,
     offset = process.env.OFFSET,
     idProvider,
+    observations = null,
   } = params;
   try {
     const request = new sql.Request();
@@ -445,6 +448,7 @@ const executeAddRequestForProvider = async (params, res) => {
     request.input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser);
     request.input("p_nvcIdLoginHistory", sql.NVarChar, idLoginHistory);
     request.input("p_chrOffset", sql.Char, offset);
+    request.input("p_nvcObservations", sql.NVarChar, observations);
     request.execute("customerSch.USPaddRequestForProvider", (err, result) => {
       if (err) {
         res.status(500).send({ response: "Error en los parametros" });
