@@ -114,10 +114,15 @@ const executeAddProperty = async (params, res) => {
         res.status(500).send({ response: "Error en los parametros" });
       } else {
         const resultRecordset = result.recordset;
-        const statusResponse = resultRecordset[0].stateCode;
-        res.status(statusResponse).send({
-          response: resultRecordset[0],
-        });
+        if (resultRecordset[0].stateCode !== 200) {
+          res.status(resultRecordset[0].stateCode).send({
+            response: { message: resultRecordset[0].message },
+          });
+        } else {
+          res.status(200).send({
+            response: resultRecordset[0],
+          });
+        }
       }
     });
   } catch (err) {
@@ -378,7 +383,7 @@ const executeGetAllPaymentInContract = async (params, res) => {
     request.input("p_nvcIdIncidence", sql.NVarChar, idIncidence);
     request.input("p_intIdPaymentType", sql.Int, idPaymentType);
     request.input("p_datPaymentDate", sql.Date, paymentDate);
-    request.input("p_decAmount", sql.Decimal(19,2), amount);
+    request.input("p_decAmount", sql.Decimal(19, 2), amount);
     request.input("p_intAdvancingRents", sql.Int, advancingRents);
     request.input("p_nvcDocuments", sql.NVarChar, documents);
     request.input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser);

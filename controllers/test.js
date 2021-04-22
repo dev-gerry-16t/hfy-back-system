@@ -131,7 +131,7 @@ const ControllerTest = {
         currency: "MXN",
         confirm: true,
       });
-      console.log("params", payment);
+      console.log("payment", payment);
       res.status(200).send({ message: payment });
     } catch (error) {
       res.status(500).send({ message: error });
