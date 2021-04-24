@@ -202,6 +202,14 @@ router.post(
   "/catalogs/getCustomerForIncidence",
   ControllerCatalogs.getCustomerForIncidence
 );
+router.post(
+  "/catalogs/getAllIncidenePaymentMethods",
+  ControllerCatalogs.getAllIncidenePaymentMethods
+);
+router.post(
+  "/catalogs/getAllPolicyPaymentMethods",
+  ControllerCatalogs.getAllPolicyPaymentMethods
+);
 //Catalogos//
 
 //Admin//
@@ -231,6 +239,7 @@ router.put(
   ControllerAdmin.switchCustomerInContract
 );
 router.post("/admin/getContract", ControllerAdmin.getContract);
+router.post("/admin/getContract/v2", ControllerAdmin.getContractV2);
 router.post("/admin/getContractComment", ControllerAdmin.getContractComment);
 router.put("/admin/setContract/:idContract", ControllerAdmin.setContract);
 router.put(

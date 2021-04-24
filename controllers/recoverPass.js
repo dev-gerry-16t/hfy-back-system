@@ -36,7 +36,7 @@ const executeMailTo = async (params, res) => {
 };
 
 const executeRequestRecoveryPass = async (params, res) => {
-  const { offset = "-06:00", userName } = params;
+  const { offset = process.env.OFFSET, userName } = params;
   try {
     const request = new sql.Request();
     request.input("p_nvcUsername", sql.VarChar, userName);
@@ -69,7 +69,7 @@ const executeRequestRecoveryPass = async (params, res) => {
 };
 
 const executeVerifyCodeRecoveryPass = async (param, res) => {
-  const { idRequestRecoveryPassword, code, offset = "-06:00" } = param;
+  const { idRequestRecoveryPassword, code, offset = process.env.OFFSET } = param;
   try {
     const request = new sql.Request();
     request.input(

@@ -98,7 +98,7 @@ const executeEmailSentAES = async (param) => {
     subject,
     content,
     jsonServiceResponse,
-    offset = "-06:00",
+    offset = process.env.OFFSET,
     jsonEmailServerConfig,
     idInvitation,
   } = param;
@@ -149,7 +149,7 @@ const executeRequestSignUpPSU = async (param, res) => {
     lastName,
     mothersMaidenName,
     phoneNumber,
-    offset = "-06:00",
+    offset = process.env.OFFSET,
     idInvitation = null,
     hasAcceptedTC = 1,
   } = param;
@@ -199,7 +199,7 @@ const executeRequestSignUpVCFSU = async (param, res) => {
   const {
     idRequestSignUp,
     code,
-    offset = "-06:00",
+    offset = process.env.OFFSET,
     idInvitation = null,
   } = param;
   try {

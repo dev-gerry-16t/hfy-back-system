@@ -1,7 +1,7 @@
 const sql = require("mssql");
 
 const executeUserProfile = async (params, res) => {
-  const { idSystemUser, token, offset = "-06:00" } = params;
+  const { idSystemUser, token, offset = process.env.OFFSET } = params;
   try {
     const request = new sql.Request();
     request.input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser);
@@ -53,7 +53,7 @@ const executeSetUserProfile = async (params, res, url) => {
     extension,
     preview,
     thumbnail,
-    offset = "-06:00",
+    offset = process.env.OFFSET,
   } = params;
   const { idSystemUser } = url;
   try {

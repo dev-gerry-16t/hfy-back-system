@@ -441,13 +441,26 @@ const executeGetAllCollaboratorTypes = async (params, res) => {
 };
 
 const executeGetAllProviders = async (params, res) => {
-  const { idContract, idSystemUser, idLoginHistory, type } = params;
+  const {
+    idContract,
+    idSystemUser,
+    idLoginHistory,
+    type,
+    idProviderType = null,
+    idRequestForProvider = null,
+  } = params;
   try {
     const request = new sql.Request();
     request.input("p_nvcIdContract", sql.NVarChar, idContract);
     request.input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser);
     request.input("p_nvcIdLoginHistory", sql.NVarChar, idLoginHistory);
     request.input("p_intType", sql.Int, type);
+    request.input("p_intIdProviderType", sql.Int, idProviderType);
+    request.input(
+      "p_nvcIdRequestForProvider",
+      sql.NVarChar,
+      idRequestForProvider
+    );
     request.execute("catCustomerSch.USPgetAllProviders", (err, result) => {
       if (err) {
         res.status(500).send({ response: "Error en los parametros" });
@@ -567,6 +580,7 @@ const executeGetAllIncidenceStatus = async (params, res) => {
     request.execute(
       "catCustomerSch.USPgetAllIncidenceStatus",
       (err, result) => {
+        console.log("err", err);
         if (err) {
           res.status(500).send({ response: "Error en los parametros" });
         } else {
@@ -597,6 +611,63 @@ const executeGetCustomerForIncidence = async (params, res) => {
         });
       }
     });
+  } catch (error) {}
+};
+
+const executeGetAllIncidenePaymentMethods = async (params, res) => {
+  const { idIncidence, idSystemUser, idLoginHistory, type } = params;
+  try {
+    const request = new sql.Request();
+    request.input("p_nvcIdIncidence", sql.NVarChar, idIncidence);
+    request.input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser);
+    request.input("p_nvcIdLoginHistory", sql.NVarChar, idLoginHistory);
+    request.input("p_intType", sql.Int, type);
+    request.execute(
+      "catCustomerSch.USPgetAllIncidenePaymentMethods",
+      (err, result) => {
+        if (err) {
+          res.status(500).send({ response: "Error en los parametros" });
+        } else {
+          const resultRecordset = result.recordset;
+          res.status(200).send({
+            response: resultRecordset,
+          });
+        }
+      }
+    );
+  } catch (error) {}
+};
+
+const executeGetAllPolicyPaymentMethods = async (params, res) => {
+  const {
+    idCustomerTenant,
+    idCustomer,
+    idTypeForm,
+    idSystemUser,
+    idLoginHistory,
+    type,
+  } = params;
+  try {
+    const request = new sql.Request();
+    request.input("p_nvcIdCustomerTenant", sql.NVarChar, idCustomerTenant);
+    request.input("p_nvcIdCustomer", sql.NVarChar, idCustomer);
+    request.input("p_nvcIdTypeForm", sql.NVarChar, idTypeForm);
+    request.input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser);
+    request.input("p_nvcIdLoginHistory", sql.NVarChar, idLoginHistory);
+    request.input("p_intType", sql.Int, type);
+    request.execute(
+      "catCustomerSch.USPgetAllPolicyPaymentMethods",
+      (err, result) => {
+        if (err) {
+          res.status(500).send({ response: "Error en los parametros" });
+        } else {
+          const resultRecordset = result.recordset;
+          res.status(200).send({
+            response: resultRecordset,
+          });
+        }
+      }
+    );
   } catch (error) {}
 };
 
@@ -697,6 +768,14 @@ const ControllerCatalogs = {
   getCustomerForIncidence: (req, res) => {
     const params = req.body;
     executeGetCustomerForIncidence(params, res);
+  },
+  getAllIncidenePaymentMethods: (req, res) => {
+    const params = req.body;
+    executeGetAllIncidenePaymentMethods(params, res);
+  },
+  getAllPolicyPaymentMethods: (req, res) => {
+    const params = req.body;
+    executeGetAllPolicyPaymentMethods(params, res);
   },
 };
 

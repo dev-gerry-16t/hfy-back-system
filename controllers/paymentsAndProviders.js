@@ -1,77 +1,7 @@
 const sql = require("mssql");
 const isEmpty = require("lodash/isEmpty");
 const isNil = require("lodash/isNil");
-const nodemailer = require("nodemailer");
-
-const executeEmailSentAES = async (param) => {
-  const {
-    idEmailStatus = 1,
-    idEmailTemplate = 1,
-    idRequestSignUp = null,
-    idUserSender = null,
-    idUserReceiver = null,
-    sender = null,
-    receiver = null,
-    subject = null,
-    content = null,
-    jsonServiceResponse = null,
-    offset = "-06:00",
-    jsonEmailServerConfig = null,
-    idInvitation = null,
-  } = param;
-  try {
-    const request = new sql.Request();
-    request.input("p_intIdEmailStatus", sql.Int, idEmailStatus);
-    request.input("p_intIdEmailTemplate", sql.Int, idEmailTemplate);
-    request.input("p_nvcIdRequesSignUp", sql.NVarChar, idRequestSignUp);
-    request.input("p_nvcIdUserSender", sql.NVarChar, idUserSender);
-    request.input("p_nvcIdUserReceiver", sql.NVarChar, idUserReceiver);
-    request.input("p_nvcSender", sql.NVarChar, sender);
-    request.input("p_nvcReceiver", sql.NVarChar, receiver);
-    request.input("p_nvcSubject", sql.NVarChar, subject);
-    request.input("p_nvcContent", sql.NVarChar, content);
-    request.input(
-      "p_nvcJsonServiceResponse",
-      sql.NVarChar,
-      jsonServiceResponse
-    );
-    request.input("p_chrOffset", sql.Char, offset);
-    request.input("p_nvcIdInvitation", sql.NVarChar, idInvitation);
-    await request.execute("comSch.USPaddEmailSent", async (err, result) => {
-      if (err) {
-        console.log("err", err);
-      } else {
-        console.log("success");
-      }
-    });
-  } catch (error) {}
-};
-
-const executeMailTo = async (params) => {
-  const { receiver, content, user, pass, host, port, subject } = params;
-  const transporter = nodemailer.createTransport({
-    auth: {
-      user,
-      pass,
-    },
-    host,
-    port,
-  });
-  const mailOptions = {
-    from: user,
-    to: receiver,
-    subject,
-    html: content,
-  };
-
-  transporter.sendMail(mailOptions, (error, info) => {
-    if (error) {
-      console.log("error", error);
-    } else {
-      executeEmailSentAES(params);
-    }
-  });
-};
+const executeMailTo = require("../actions/sendInformationUser");
 
 const executeValidatePaymentSchedule = async (params, res) => {
   const {
@@ -80,7 +10,7 @@ const executeValidatePaymentSchedule = async (params, res) => {
     idContract,
     idSystemUser,
     idLoginHistory,
-    offset = "-06:00",
+    offset = process.env.OFFSET,
   } = params;
   try {
     const request = new sql.Request();
@@ -118,7 +48,7 @@ const executeUpdateMovingDialog = async (params, res) => {
     idCustomerTenant,
     idSystemUser,
     idLoginHistory,
-    offset = "-06:00",
+    offset = process.env.OFFSET,
   } = params;
   try {
     const request = new sql.Request();
@@ -163,7 +93,7 @@ const executeSetProvider = async (params, res, url) => {
     isActive,
     idSystemUser,
     idLoginHistory,
-    offset = "-06:00",
+    offset = process.env.OFFSET,
   } = params;
   const { idProvider = null } = url;
   try {
@@ -252,7 +182,12 @@ const executeSetProvider = async (params, res, url) => {
 };
 
 const executeGetProviderCoincidences = async (params, res) => {
-  const { idSystemUser, idLoginHistory, topIndex, offset = "-06:00" } = params;
+  const {
+    idSystemUser,
+    idLoginHistory,
+    topIndex,
+    offset = process.env.OFFSET,
+  } = params;
   try {
     const request = new sql.Request();
     request.input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser);
@@ -281,7 +216,7 @@ const executeGetProviderById = async (params, res) => {
     idProvider,
     idSystemUser,
     idLoginHistory,
-    offset = "-06:00",
+    offset = process.env.OFFSET,
   } = params;
   try {
     const request = new sql.Request();
@@ -317,7 +252,12 @@ const executeGetProviderById = async (params, res) => {
 };
 
 const executeGetRequestForProviderCoincidences = async (params, res) => {
-  const { idSystemUser, idLoginHistory, topIndex, offset = "-06:00" } = params;
+  const {
+    idSystemUser,
+    idLoginHistory,
+    topIndex,
+    offset = process.env.OFFSET,
+  } = params;
   try {
     const request = new sql.Request();
     request.input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser);
@@ -349,7 +289,7 @@ const executeGetRequestForProviderById = async (params, res) => {
     idSystemUser,
     idLoginHistory,
     idRequestForProvider,
-    offset = "-06:00",
+    offset = process.env.OFFSET,
   } = params;
   try {
     const request = new sql.Request();
@@ -399,7 +339,8 @@ const executeUpdateRequestForProvider = async (params, res, url) => {
     collaborator,
     idSystemUser,
     idLoginHistory,
-    offset = "-06:00",
+    offset = process.env.OFFSET,
+    observations = null,
   } = params;
   const { idRequestForProvider } = url;
   try {
@@ -452,6 +393,7 @@ const executeUpdateRequestForProvider = async (params, res, url) => {
     request.input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser);
     request.input("p_nvcIdLoginHistory", sql.NVarChar, idLoginHistory);
     request.input("p_chrOffset", sql.Char, offset);
+    request.input("p_nvcObservations", sql.NVarChar, observations);
     request.execute(
       "customerSch.USPupdateRequestForProvider",
       (err, result) => {
@@ -494,10 +436,9 @@ const executeAddRequestForProvider = async (params, res) => {
     scheduleDate,
     idSystemUser,
     idLoginHistory,
-    offset = "-06:00",
+    offset = process.env.OFFSET,
     idProvider,
-    idIncidence = null,
-    customerRequestedForPayment = null,
+    observations = null,
   } = params;
   try {
     const request = new sql.Request();
@@ -507,12 +448,7 @@ const executeAddRequestForProvider = async (params, res) => {
     request.input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser);
     request.input("p_nvcIdLoginHistory", sql.NVarChar, idLoginHistory);
     request.input("p_chrOffset", sql.Char, offset);
-    request.input("p_nvcIdIncidence", sql.NVarChar, idIncidence);
-    request.input(
-      "p_nvcCustomerRequestedForPayment",
-      sql.NVarChar,
-      customerRequestedForPayment
-    );
+    request.input("p_nvcObservations", sql.NVarChar, observations);
     request.execute("customerSch.USPaddRequestForProvider", (err, result) => {
       if (err) {
         res.status(500).send({ response: "Error en los parametros" });
@@ -555,7 +491,7 @@ const executeAddIncidence = async (params, res) => {
     documents,
     idSystemUser,
     idLoginHistory,
-    offset = "-06:00",
+    offset = process.env.OFFSET,
   } = params;
   try {
     const request = new sql.Request();
@@ -606,7 +542,7 @@ const executeGetIncidenceCoincidences = async (params, res) => {
     idSystemUser,
     idLoginHistory,
     topIndex,
-    offset = "-06:00",
+    offset = process.env.OFFSET,
   } = params;
   try {
     const request = new sql.Request();
@@ -640,7 +576,7 @@ const executeGetIncidenceById = async (params, res) => {
     idIncidence,
     idSystemUser,
     idLoginHistory,
-    offset = "-06:00",
+    offset = process.env.OFFSET,
   } = params;
   try {
     const request = new sql.Request();
@@ -688,16 +624,18 @@ const executeUpdateIncidence = async (params, res, url) => {
     incidenceType = null,
     description = null,
     annotations = null,
-    requiresPayment = null,
     amount = null,
     customerRequestedForPayment = null,
     isPaymentAccepted = null,
     documents = null,
     idRequestForProviderStatus = null,
     confirmProvider = null,
+    idIncidencePaymentMethod = null,
     idSystemUser,
     idLoginHistory,
-    offset = "-06:00",
+    idProvider = null,
+    scheduleDate = null,
+    offset = process.env.OFFSET,
   } = params;
   const { idIncidence } = url;
   try {
@@ -709,7 +647,6 @@ const executeUpdateIncidence = async (params, res, url) => {
     request.input("p_nvcIncidenceType", sql.NVarChar, incidenceType);
     request.input("p_nvcDescription", sql.NVarChar, description);
     request.input("p_nvcAnnotations", sql.NVarChar, annotations);
-    request.input("p_bitRequiresPayment", sql.Bit, requiresPayment);
     request.input("p_decAmount", sql.Decimal(19, 2), amount);
     request.input(
       "p_nvcCustomerRequestedForPayment",
@@ -727,6 +664,13 @@ const executeUpdateIncidence = async (params, res, url) => {
     request.input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser);
     request.input("p_nvcIdLoginHistory", sql.NVarChar, idLoginHistory);
     request.input("p_chrOffset", sql.Char, offset);
+    request.input("p_nvcIdProvider", sql.NVarChar, idProvider);
+    request.input("p_dtmScheduleDate", sql.DateTime, scheduleDate);
+    request.input(
+      "p_intIdIncidencePaymentMethod",
+      sql.Int,
+      idIncidencePaymentMethod
+    );
     request.execute("customerSch.USPupdateIncidence", (err, result) => {
       if (err) {
         res.status(500).send({ response: "Error en los parametros" });

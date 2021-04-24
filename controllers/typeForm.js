@@ -1,75 +1,5 @@
 const sql = require("mssql");
-const nodemailer = require("nodemailer");
-
-const executeEmailSentAES = async (param) => {
-  const {
-    idEmailStatus = 1,
-    idEmailTemplate = 1,
-    idRequestSignUp = null,
-    idUserSender = null,
-    idUserReceiver = null,
-    sender = null,
-    receiver = null,
-    subject = null,
-    content = null,
-    jsonServiceResponse = null,
-    offset = "-06:00",
-    jsonEmailServerConfig = null,
-    idInvitation = null,
-  } = param;
-  try {
-    const request = new sql.Request();
-    request.input("p_intIdEmailStatus", sql.Int, idEmailStatus);
-    request.input("p_intIdEmailTemplate", sql.Int, idEmailTemplate);
-    request.input("p_nvcIdRequesSignUp", sql.NVarChar, idRequestSignUp);
-    request.input("p_nvcIdUserSender", sql.NVarChar, idUserSender);
-    request.input("p_nvcIdUserReceiver", sql.NVarChar, idUserReceiver);
-    request.input("p_nvcSender", sql.NVarChar, sender);
-    request.input("p_nvcReceiver", sql.NVarChar, receiver);
-    request.input("p_nvcSubject", sql.NVarChar, subject);
-    request.input("p_nvcContent", sql.NVarChar, content);
-    request.input(
-      "p_nvcJsonServiceResponse",
-      sql.NVarChar,
-      jsonServiceResponse
-    );
-    request.input("p_chrOffset", sql.Char, offset);
-    request.input("p_nvcIdInvitation", sql.NVarChar, idInvitation);
-    await request.execute("comSch.USPaddEmailSent", async (err, result) => {
-      if (err) {
-        console.log("err", err);
-      } else {
-        console.log("success");
-      }
-    });
-  } catch (error) {}
-};
-
-const executeMailTo = async (params) => {
-  const { receiver, content, user, pass, host, port, subject } = params;
-  const transporter = nodemailer.createTransport({
-    auth: {
-      user,
-      pass,
-    },
-    host,
-    port,
-  });
-  const mailOptions = {
-    from: user,
-    to: receiver,
-    subject,
-    html: content,
-  };
-
-  transporter.sendMail(mailOptions, (error, info) => {
-    if (error) {
-      console.log("error", error);
-    } else {
-      executeEmailSentAES(params);
-    }
-  });
-};
+const executeMailTo = require("../actions/sendInformationUser");
 
 const executeGetTypeForm = async (params, res) => {
   const {
@@ -78,7 +8,7 @@ const executeGetTypeForm = async (params, res) => {
     idCustomerTenant,
     idSystemUser,
     idLoginHistory,
-    offset = "-06:00",
+    offset = process.env.OFFSET,
   } = params;
   try {
     const request = new sql.Request();
@@ -147,7 +77,7 @@ const executeGetCustomerTypeForm = async (params, res) => {
     idSystemUser,
     idLoginHistory,
     idContract = null,
-    offset = "-06:00",
+    offset = process.env.OFFSET,
   } = params;
 
   try {
@@ -192,7 +122,7 @@ const executeSetTypeFormReference = async (params, res) => {
     isActive = null,
     idSystemUser,
     idLoginHistory,
-    offset = "-06:00",
+    offset = process.env.OFFSET,
     idContract,
   } = params;
   try {
@@ -259,7 +189,7 @@ const executeSetTypeForm = async (params, res) => {
     idCustomerTenant = null,
     idSystemUser = null,
     idLoginHistory = null,
-    offset = "-06:00",
+    offset = process.env.OFFSET,
     idCountryNationality = null,
     idType = null,
     idTypeNumber = null,
@@ -351,6 +281,7 @@ const executeSetTypeForm = async (params, res) => {
     otherIncomes = null,
     otherIncomesDescription = null,
     currentRent = null,
+    endorsementTaxId = null,
   } = params;
 
   try {
@@ -592,8 +523,8 @@ const executeSetTypeForm = async (params, res) => {
       sql.NVarChar(sql.MAX),
       otherIncomesDescription
     );
+    request.input("p_nvcEndorsementTaxId", sql.NVarChar, endorsementTaxId);
     request.execute("customerSch.USPsetTypeForm", (err, result) => {
-      console.log('err, result',err, result);
       if (err) {
         res.status(500).send({ response: "Error en los parametros" });
       } else {
@@ -631,7 +562,7 @@ const executeSetTypeFormOwner = async (params, res) => {
     idCustomer = null,
     idSystemUser = null,
     idLoginHistory = null,
-    offset = "-06:00",
+    offset = process.env.OFFSET,
     idTypeForm = null,
     isOwner = null,
     givenName = null,
@@ -672,6 +603,25 @@ const executeSetTypeFormOwner = async (params, res) => {
     hasInsurance = null,
     stepIn = null,
     isInCash = null,
+    idPolicyPaymentMethod = null,
+    enterpriseIdCommercialSocietyType = null,
+    enterprisePublicWrtitingNo = null,
+    enterprisePublicBookNo = null,
+    enterpriseNotaryName = null,
+    enterpriseNotaryOfficeNo = null,
+    enterpriseSignedAtPlace = null,
+    enterpriseIdStatePublicProperty = null,
+    enterpriseCommercialInvoice = null,
+    legalRepGivenName = null,
+    legalRepLastName = null,
+    legalRepMothersMaidenName = null,
+    legalRepPublicWritingNo = null,
+    legalRepPublicBookNo = null,
+    legalRepNotaryName = null,
+    legalRepNotaryOfficeNo = null,
+    legalRepSignedAtPlace = null,
+    legalRepIdType = null,
+    legalRepIdTypeNumber = null,
   } = params;
 
   try {
@@ -736,6 +686,83 @@ const executeSetTypeFormOwner = async (params, res) => {
     request.input("p_bitHasInsurance", sql.Bit, hasInsurance);
     request.input("p_tynStepIn", sql.TinyInt, stepIn);
     request.input("p_bitIsInCash", sql.Bit, isInCash);
+    request.input("p_intIdPolicyPaymentMethod", sql.Int, idPolicyPaymentMethod);
+
+    request.input(
+      "p_intEnterpriseIdCommercialSocietyType",
+      sql.Int,
+      enterpriseIdCommercialSocietyType
+    );
+    request.input(
+      "p_nvcEnterprisePublicWrtitingNo",
+      sql.NVarChar,
+      enterprisePublicWrtitingNo
+    );
+    request.input(
+      "p_nvcEnterprisePublicBookNo",
+      sql.NVarChar,
+      enterprisePublicBookNo
+    );
+    request.input(
+      "p_nvcEnterpriseNotaryName",
+      sql.NVarChar,
+      enterpriseNotaryName
+    );
+    request.input(
+      "p_nvcEnterpriseNotaryOfficeNo",
+      sql.NVarChar,
+      enterpriseNotaryOfficeNo
+    );
+    request.input(
+      "p_nvcEnterpriseSignedAtPlace",
+      sql.NVarChar,
+      enterpriseSignedAtPlace
+    );
+    request.input(
+      "p_intEnterpriseIdStatePublicProperty",
+      sql.Int,
+      enterpriseIdStatePublicProperty
+    );
+    request.input(
+      "p_nvcEnterpriseCommercialInvoice",
+      sql.NVarChar,
+      enterpriseCommercialInvoice
+    );
+    request.input("p_nvcLegalRepGivenName", sql.NVarChar, legalRepGivenName);
+    request.input("p_nvcLegalRepLastName", sql.NVarChar, legalRepLastName);
+    request.input(
+      "p_nvcLegalRepMothersMaidenName",
+      sql.NVarChar,
+      legalRepMothersMaidenName
+    );
+    request.input(
+      "p_nvcLegalRepPublicWritingNo",
+      sql.NVarChar,
+      legalRepPublicWritingNo
+    );
+    request.input(
+      "p_nvcLegalRepPublicBookNo",
+      sql.NVarChar,
+      legalRepPublicBookNo
+    );
+    request.input("p_nvcLegalRepNotaryName", sql.NVarChar, legalRepNotaryName);
+    request.input(
+      "p_nvcLegalRepNotaryOfficeNo",
+      sql.NVarChar,
+      legalRepNotaryOfficeNo
+    );
+    request.input(
+      "p_nvcLegalRepSignedAtPlace",
+      sql.NVarChar,
+      legalRepSignedAtPlace
+    );
+    request.input("p_intLegalRepIdType", sql.Int, legalRepIdType);
+    request.input(
+      "p_nvcLegalRepIdTypeNumber",
+      sql.NVarChar,
+      legalRepIdTypeNumber
+    );
+
     request.execute("customerSch.USPsetCustomerTypeForm", (err, result) => {
       if (err) {
         res.status(500).send({ response: "Error en los parametros" });
@@ -777,7 +804,7 @@ const executeAddTypeFormDocument = async (params, res, url) => {
     type,
     idSystemUser,
     idLoginHistory,
-    offset = "-06:00",
+    offset = process.env.OFFSET,
     idContract,
   } = params;
   const { idDocument } = url;

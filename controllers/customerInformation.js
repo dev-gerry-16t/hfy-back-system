@@ -6,7 +6,7 @@ const executeGetCustomerById = async (params, res) => {
     idCustomer,
     idSystemUser,
     idLoginHistory,
-    offset = "-06:00",
+    offset = process.env.OFFSET,
   } = params;
   try {
     const request = new sql.Request();
@@ -35,7 +35,7 @@ const executeTenantCoincidences = async (params, res) => {
     idCustomer,
     idSystemUser,
     idLoginHistory,
-    offset = "-06:00",
+    offset = process.env.OFFSET,
     topIndex = null,
   } = params;
   try {
@@ -80,7 +80,7 @@ const executeAddProperty = async (params, res) => {
     secondStreetReference,
     totalSuites,
     departament,
-    offset = "-06:00",
+    offset = process.env.OFFSET,
   } = params;
   try {
     const parseDepartment = JSON.stringify(departament);
@@ -159,7 +159,7 @@ const executeGetStatsChart = async (params, res) => {
     idSystemUser,
     idLoginHistory,
     jsonConditions = [],
-    offset = "-06:00",
+    offset = process.env.OFFSET,
   } = params;
   const parseConditions = JSON.stringify(jsonConditions);
   try {
@@ -244,7 +244,7 @@ const executeGetTenantsById = async (params, res) => {
     idSystemUser,
     idLoginHistory,
     idCustomerTenant,
-    offset = "-06:00",
+    offset = process.env.OFFSET,
   } = params;
   try {
     const request = new sql.Request();
@@ -328,7 +328,7 @@ const executeGetAllPayments = async (params, res) => {
     type,
     idCustomerTenant,
     idContract,
-    offset = "-06:00",
+    offset = process.env.OFFSET,
   } = params;
   try {
     const request = new sql.Request();
@@ -368,7 +368,7 @@ const executeGetAllPaymentInContract = async (params, res) => {
     amount,
     advancingRents,
     documents,
-    offset = "-06:00",
+    offset = process.env.OFFSET,
   } = params;
   try {
     const request = new sql.Request();
@@ -417,7 +417,7 @@ const executeRequestAdvance = async (params, res) => {
     accountNumber,
     clabeNumber,
     idBank,
-    offset = "-06:00",
+    offset = process.env.OFFSET,
   } = params;
   try {
     const request = new sql.Request();
@@ -487,7 +487,7 @@ const executeEmailSentAES = async (param) => {
     subject,
     content,
     jsonServiceResponse,
-    offset = "-06:00",
+    offset = process.env.OFFSET,
     jsonEmailServerConfig,
     idInvitation,
   } = param;
@@ -536,7 +536,7 @@ const executeSendTenantInvitation = async (params, res) => {
     idPersonType,
     givenName,
     email,
-    offset = "-06:00",
+    offset = process.env.OFFSET,
   } = params;
   try {
     const request = new sql.Request();
@@ -581,7 +581,7 @@ const executeSendTenantInvitation = async (params, res) => {
 };
 
 const executeGetAgentIndicators = async (params, res) => {
-  const { idSystemUser, idLoginHistory, offset = "-06:00" } = params;
+  const { idSystemUser, idLoginHistory, offset = process.env.OFFSET } = params;
   try {
     const request = new sql.Request();
     request.input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser);
@@ -608,7 +608,7 @@ const executeGetAgentContractCoincidences = async (params, res) => {
     idSystemUser,
     idLoginHistory,
     topIndex = null,
-    offset = "-06:00",
+    offset = process.env.OFFSET,
   } = params;
   try {
     const request = new sql.Request();
@@ -636,7 +636,7 @@ const executeGetAgentContractCoincidences = async (params, res) => {
 };
 
 const executeGetAgentCommissionChart = async (params, res) => {
-  const { idSystemUser, idLoginHistory, offset = "-06:00" } = params;
+  const { idSystemUser, idLoginHistory, offset = process.env.OFFSET } = params;
   try {
     const request = new sql.Request();
     request.input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser);
