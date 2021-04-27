@@ -7,6 +7,8 @@ const accountSid = process.env.TWILIO_ACCOUNT_SID;
 const authToken = process.env.TWILIO_AUTH_TOKEN;
 const client = require("twilio")(accountSid, authToken);
 const XLSX = require("xlsx");
+const fs = require("fs");
+const path = require("path");
 
 const s3 = new AWS.S3({
   accessKeyId: GLOBAL_CONSTANTS.ACCESS_KEY_ID,
@@ -156,11 +158,12 @@ const ControllerTest = {
   },
   testXlsx: async (req, res) => {
     try {
-      const excel = await XLSX.readFile("/whatsappContacts.xlsx");
+      const excel = XLSX.readFile(
+        path.resolve(__dirname, "./whatsappContacts.xlsx")
+      );
       const namePage = excel.SheetNames;
       const dataJson = XLSX.utils.sheet_to_json(excel.Sheets[namePage[0]]);
-      console.log("dataJson", dataJson);
-      res.status(200).send({ message: "ok" });
+      res.status(200).send({ message: dataJson });
     } catch (error) {
       res.status(500).send({ message: error });
     }
