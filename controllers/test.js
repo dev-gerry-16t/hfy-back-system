@@ -3,6 +3,10 @@ const sql = require("mssql");
 const AWS = require("aws-sdk");
 const GLOBAL_CONSTANTS = require("../constants/constants");
 const Stripe = require("stripe");
+const accountSid = process.env.TWILIO_ACCOUNT_SID;
+const authToken = process.env.TWILIO_AUTH_TOKEN;
+const client = require("twilio")(accountSid, authToken);
+const XLSX = require("xlsx");
 
 const s3 = new AWS.S3({
   accessKeyId: GLOBAL_CONSTANTS.ACCESS_KEY_ID,
@@ -133,6 +137,30 @@ const ControllerTest = {
       });
       console.log("payment", payment);
       res.status(200).send({ message: payment });
+    } catch (error) {
+      res.status(500).send({ message: error });
+    }
+  },
+  testTwilio: async (req, res) => {
+    try {
+      const message = await client.messages.create({
+        from: "whatsapp:+14155238886",
+        body: "Te invito a integrarte a homify",
+        to: "whatsapp:+5215611278220",
+      });
+      console.log("message", message);
+      res.status(200).send({ message });
+    } catch (error) {
+      res.status(500).send({ message: error });
+    }
+  },
+  testXlsx: async (req, res) => {
+    try {
+      const excel = await XLSX.readFile("/whatsappContacts.xlsx");
+      const namePage = excel.SheetNames;
+      const dataJson = XLSX.utils.sheet_to_json(excel.Sheets[namePage[0]]);
+      console.log("dataJson", dataJson);
+      res.status(200).send({ message: "ok" });
     } catch (error) {
       res.status(500).send({ message: error });
     }
