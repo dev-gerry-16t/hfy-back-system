@@ -1,4 +1,10 @@
 const sql = require("mssql");
+const XLSX = require("xlsx");
+const isEmpty = require("lodash/isEmpty");
+const isNil = require("lodash/isNil");
+const accountSid = process.env.TWILIO_ACCOUNT_SID;
+const authToken = process.env.TWILIO_AUTH_TOKEN;
+const client = require("twilio")(accountSid, authToken);
 const executeMailTo = require("../actions/sendInformationUser");
 
 const executeAddLandingProspect = async (params, res) => {
@@ -150,6 +156,59 @@ const executeGetLandingProspectStats = async (params, res) => {
   }
 };
 
+const executeBulkPotentialAgent = async (params, res, file) => {
+  const { idSystemUser, idLoginHistory, offset = process.env.OFFSET } = params;
+  try {
+    const excel = XLSX.read(file.buffer, { type: "buffer" });
+    const namePage = excel.SheetNames;
+    const dataJson = XLSX.utils.sheet_to_json(excel.Sheets[namePage[0]]);
+    const pool = await sql.connect();
+    const tvpPotentialAgent = new sql.Table();
+
+    tvpPotentialAgent.columns.add("id", sql.Int);
+    tvpPotentialAgent.columns.add("countryCode", sql.VarChar(6));
+    tvpPotentialAgent.columns.add("contactsPublicDisplayName", sql.NVarChar);
+    tvpPotentialAgent.columns.add("phoneNumber", sql.NVarChar);
+
+    if (isEmpty(dataJson) === false) {
+      dataJson.forEach((element, ix) => {
+        tvpPotentialAgent.rows.add(
+          ix + 1,
+          element["Country Code \t"],
+          element["Saved Name \t\t\t\t\t"],
+          element["Phone Number \t\t\t\t\t"]
+        );
+      });
+    }
+
+    const result = await pool
+      .request()
+      .input("p_udttPotentialAgent", tvpPotentialAgent)
+      .input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser)
+      .input("p_nvcIdLoginHistory", sql.NVarChar, idLoginHistory)
+      .input("p_chrOffset", sql.Char, offset)
+      .execute("landingSch.USPbulkPotentialAgent");
+    const resultRecordset = result.recordset;
+
+    if (isEmpty(resultRecordset) === false) {
+      await Promise.all(
+        resultRecordset.map(async (element) => {
+          const message = await client.messages.create({
+            from: "whatsapp:+14155238886",
+            body: element.content,
+            to: `whatsapp:${element.phoneNumber}`,
+          });
+        })
+      );
+    }
+
+    res.send("ok");
+  } catch (error) {
+    console.log("error", error);
+    res.send("no ok");
+  }
+};
+
 const ControllerLeads = {
   addLandingProspect: (req, res) => {
     const params = req.body;
@@ -167,6 +226,11 @@ const ControllerLeads = {
   getLandingProspectStats: (req, res) => {
     const params = req.body;
     executeGetLandingProspectStats(params, res);
+  },
+  bulkPotentialAgent: (req, res) => {
+    const params = JSON.parse(req.body.fileProperties);
+    const fileParams = req.file;
+    executeBulkPotentialAgent(params, res, fileParams);
   },
 };
 

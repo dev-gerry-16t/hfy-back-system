@@ -289,6 +289,7 @@ router.post(
   "/leads/getLandingProspectStats",
   ControllerLeads.getLandingProspectStats
 );
+router.post("/leads/bulkPotentialAgent", ControllerLeads.bulkPotentialAgent);
 // Lead//
 
 //Historico //
@@ -296,6 +297,10 @@ router.post("/historic/getAudit", ControllerAudit.getAudit);
 //Historico //
 
 //Providers//
+router.post(
+  "/providerPayment/getRequestForProviderProperties",
+  ControllerPaymentProvider.getRequestForProviderProperties
+);
 router.post(
   "/providerPayment/validatePaymentSchedule",
   ControllerPaymentProvider.validatePaymentSchedule
