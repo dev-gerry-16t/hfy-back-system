@@ -5,8 +5,8 @@ const PizZip = require("pizzip");
 const isEmpty = require("lodash/isEmpty");
 const isNil = require("lodash/isNil");
 const GLOBAL_CONSTANTS = require("../constants/constants");
-const executeMailTo = require("../actions/sendInformationUser");
 const replaceConditionsDocx = require("../actions/conditions");
+const executeMailTo = require("../actions/sendInformationUser");
 
 const s3 = new AWS.S3({
   accessKeyId: GLOBAL_CONSTANTS.ACCESS_KEY_ID,
@@ -852,6 +852,128 @@ const executeGetRequestForProviderProperties = async (params, res) => {
   }
 };
 
+const executeGetRequestForProviderPropertiesv2 = async (params, res) => {
+  const {
+    idRequestForProvider,
+    idSystemUser,
+    idLoginHistory,
+    offset = process.env.OFFSET,
+  } = params;
+  try {
+    const pool = await sql.connect();
+    const result = await pool
+      .request()
+      .input("p_nvcIdRequestForProvider", sql.NVarChar, idRequestForProvider)
+      .input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser)
+      .input("p_nvcIdLoginHistory", sql.NVarChar, idLoginHistory)
+      .input("p_chrOffset", sql.Char, offset)
+      .execute("customerSch.USPgetRequestForProviderProperties");
+    const resultRecordset = result.recordset[0];
+    const bucketSourceS3 = resultRecordset.bucketSource.toLowerCase();
+    const file = await s3
+      .getObject({
+        Bucket: bucketSourceS3,
+        Key: resultRecordset.idDocument,
+      })
+      .promise();
+    const buff = new Buffer.from(file.Body, "binary");
+    const dataAddDocument = await executeAddDocument({
+      ...params,
+      idDocumentType: resultRecordset.idDocumentType,
+    });
+    const resultObjectAddDocument = dataAddDocument[0];
+    if (resultObjectAddDocument.stateCode !== 200) {
+      res.status(resultObjectAddDocument.stateCode).send({
+        response: { message: resultObjectAddDocument.message },
+      });
+    } else {
+      const zip = new PizZip(buff);
+      let doc;
+      doc = await new Docxtemplater(zip, {
+        parser: replaceConditionsDocx,
+        nullGetter: () => {
+          return "";
+        },
+      });
+      await doc.setData(resultRecordset);
+      await doc.render();
+      const fileDocument = await doc.getZip().generate({ type: "nodebuffer" });
+      const bucketSorceData =
+        isNil(resultObjectAddDocument) === false &&
+        isNil(resultObjectAddDocument.bucketSource) === false
+          ? resultObjectAddDocument.bucketSource.toLowerCase()
+          : bucketSource.toLowerCase();
+      const idDocumentData = resultObjectAddDocument.idDocument;
+      const params2 = {
+        Bucket: bucketSorceData,
+        Key: idDocumentData,
+        Body: fileDocument,
+      };
+      await executeAddRequestForProviderDocument({
+        ...params,
+        idDocument: idDocumentData,
+      });
+      await s3.upload(params2).promise();
+      if (isNil(resultRecordset.idPreviousDocument) === false) {
+        const params1 = {
+          Bucket: bucketSourceS3,
+          Key: resultRecordset.idPreviousDocument,
+        };
+        await s3.deleteObject(params1).promise();
+      }
+      res.status(200).send({
+        response: {
+          url: `/api/viewFilesDocx/${idDocumentData}/${bucketSorceData}`,
+        },
+      });
+    }
+  } catch (error) {
+    res.status(500).send({
+      response: { message: "Error en el sistema", messageType: error },
+    });
+  }
+};
+
+const executeSignRequestForProvider = async (params, res, url) => {
+  const {
+    isFaceToFace,
+    digitalSignature,
+    idSystemUser,
+    idLoginHistory,
+    offset = process.env.OFFSET,
+  } = params;
+  const { idRequestForProvider } = url;
+  try {
+    const pool = await sql.connect();
+    const result = await pool
+      .request()
+      .input("p_nvcIdRequestForProvider", sql.NVarChar, idRequestForProvider)
+      .input("p_bitIsFaceToFace", sql.Bit, isFaceToFace)
+      .input("p_nvcDigitalSignature", sql.NVarChar, digitalSignature)
+      .input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser)
+      .input("p_nvcIdLoginHistory", sql.NVarChar, idLoginHistory)
+      .input("p_chrOffset", sql.Char, offset)
+      .execute("customerSch.USPsignRequestForProvider");
+
+    result.recordset.forEach((element) => {
+      if (element.canSendEmail === true) {
+        const configEmailServer = JSON.parse(element.jsonEmailServerConfig);
+        executeMailTo({
+          ...element,
+          ...configEmailServer,
+        });
+      }
+    });
+    res.status(200).send({
+      response: "Solicitud procesado exitosamente",
+    });
+  } catch (error) {
+    res.status(500).send({
+      response: { message: "Error de sistema", messageType: error },
+    });
+  }
+};
+
 const ControllerPaymentProvider = {
   validatePaymentSchedule: (req, res) => {
     const params = req.body;
@@ -911,6 +1033,15 @@ const ControllerPaymentProvider = {
   getRequestForProviderProperties: (req, res) => {
     const params = req.body;
     executeGetRequestForProviderProperties(params, res);
+  },
+  getRequestForProviderPropertiesv2: (req, res) => {
+    const params = req.body;
+    executeGetRequestForProviderPropertiesv2(params, res);
+  },
+  signRequestForProvider: (req, res) => {
+    const params = req.body;
+    const url = req.params;
+    executeSignRequestForProvider(params, res, url);
   },
 };
 

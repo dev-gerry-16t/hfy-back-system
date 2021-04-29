@@ -298,6 +298,10 @@ router.post("/historic/getAudit", ControllerAudit.getAudit);
 
 //Providers//
 router.post(
+  "/providerPayment/getRequestForProviderProperties/v2",
+  ControllerPaymentProvider.getRequestForProviderPropertiesv2
+);
+router.post(
   "/providerPayment/getRequestForProviderProperties",
   ControllerPaymentProvider.getRequestForProviderProperties
 );
@@ -324,6 +328,10 @@ router.post(
 router.put(
   "/providerPayment/setProvider/:idProvider",
   ControllerPaymentProvider.setProvider
+);
+router.put(
+  "/providerPayment/signRequestForProvider/:idRequestForProvider",
+  ControllerPaymentProvider.signRequestForProvider
 );
 router.put(
   "/providerPayment/updateRequestForProvider/:idRequestForProvider",
