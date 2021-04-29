@@ -924,6 +924,7 @@ const executeGetRequestForProviderPropertiesv2 = async (params, res) => {
       res.status(200).send({
         response: {
           url: `/api/viewFilesDocx/${idDocumentData}/${bucketSorceData}`,
+          fullNameTenant: resultRecordset.nvcCustomerTenantFullName,
         },
       });
     }
