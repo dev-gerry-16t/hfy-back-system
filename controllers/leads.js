@@ -191,7 +191,7 @@ const executeBulkPotentialAgent = async (params, res, file) => {
     const resultRecordset = result.recordset;
 
     if (isEmpty(resultRecordset) === false) {
-      await Promise.all(
+      const secondResult = await Promise.all(
         resultRecordset.map(async (element) => {
           console.log("element", element);
           const message = await client.messages.create({
@@ -210,7 +210,11 @@ const executeBulkPotentialAgent = async (params, res, file) => {
     res.send("ok");
   } catch (error) {
     console.log("error", error);
-    res.send("no ok");
+    res
+      .status(500)
+      .send({
+        response: { message: "Error en el sistema", messageType: error },
+      });
   }
 };
 

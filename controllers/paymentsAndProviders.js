@@ -783,6 +783,7 @@ const executeGetRequestForProviderProperties = async (params, res) => {
     idPreviousDocument,
     idDocumentType,
     bucketSource,
+    canGenerateDocument,
   } = params;
   try {
     const pool = await sql.connect();
@@ -795,55 +796,68 @@ const executeGetRequestForProviderProperties = async (params, res) => {
       .execute("customerSch.USPgetRequestForProviderProperties");
     const resultRecordset = result.recordset;
     const bucketSourceS3 = bucketSource.toLowerCase();
-    const file = await s3
-      .getObject({
-        Bucket: bucketSourceS3,
-        Key: idDocument,
-      })
-      .promise();
-    const buff = new Buffer.from(file.Body, "binary");
-    const dataAddDocument = await executeAddDocument(params);
-    const resultObjectAddDocument = dataAddDocument[0];
-    if (resultObjectAddDocument.stateCode !== 200) {
-      res.status(resultObjectAddDocument.stateCode).send({
-        response: { message: resultObjectAddDocument.message },
-      });
+    if (canGenerateDocument === true) {
+      const file = await s3
+        .getObject({
+          Bucket: bucketSourceS3,
+          Key: idDocument,
+        })
+        .promise();
+      const buff = new Buffer.from(file.Body, "binary");
+      const dataAddDocument = await executeAddDocument(params);
+      const resultObjectAddDocument = dataAddDocument[0];
+      if (resultObjectAddDocument.stateCode !== 200) {
+        res.status(resultObjectAddDocument.stateCode).send({
+          response: { message: resultObjectAddDocument.message },
+        });
+      } else {
+        const zip = new PizZip(buff);
+        let doc;
+        doc = await new Docxtemplater(zip, {
+          parser: replaceConditionsDocx,
+          nullGetter: () => {
+            return "";
+          },
+        });
+        await doc.setData(resultRecordset[0]);
+        await doc.render();
+        const fileDocument = await doc
+          .getZip()
+          .generate({ type: "nodebuffer" });
+        const bucketSorceData =
+          isNil(resultObjectAddDocument) === false &&
+          isNil(resultObjectAddDocument.bucketSource) === false
+            ? resultObjectAddDocument.bucketSource.toLowerCase()
+            : bucketSource.toLowerCase();
+        const idDocumentData = resultObjectAddDocument.idDocument;
+        const params2 = {
+          Bucket: bucketSorceData,
+          Key: idDocumentData,
+          Body: fileDocument,
+        };
+        await executeAddRequestForProviderDocument({
+          ...params,
+          idDocument: idDocumentData,
+        });
+        await s3.upload(params2).promise();
+        if (isNil(idPreviousDocument) === false) {
+          const params1 = {
+            Bucket: bucketSourceS3,
+            Key: idPreviousDocument,
+          };
+          await s3.deleteObject(params1).promise();
+        }
+        res.send(fileDocument);
+      }
     } else {
-      const zip = new PizZip(buff);
-      let doc;
-      doc = await new Docxtemplater(zip, {
-        parser: replaceConditionsDocx,
-        nullGetter: () => {
-          return "";
-        },
-      });
-      await doc.setData(resultRecordset[0]);
-      await doc.render();
-      const fileDocument = await doc.getZip().generate({ type: "nodebuffer" });
-      const bucketSorceData =
-        isNil(resultObjectAddDocument) === false &&
-        isNil(resultObjectAddDocument.bucketSource) === false
-          ? resultObjectAddDocument.bucketSource.toLowerCase()
-          : bucketSource.toLowerCase();
-      const idDocumentData = resultObjectAddDocument.idDocument;
-      const params2 = {
-        Bucket: bucketSorceData,
-        Key: idDocumentData,
-        Body: fileDocument,
-      };
-      await executeAddRequestForProviderDocument({
-        ...params,
-        idDocument: idDocumentData,
-      });
-      await s3.upload(params2).promise();
-      if (isNil(idPreviousDocument) === false) {
-        const params1 = {
+      const file = await s3
+        .getObject({
           Bucket: bucketSourceS3,
           Key: idPreviousDocument,
-        };
-        await s3.deleteObject(params1).promise();
-      }
-      res.send(fileDocument);
+        })
+        .promise();
+      const buff = new Buffer.from(file.Body, "binary");
+      res.send(buff);
     }
   } catch (error) {
     res.status(500).send({
