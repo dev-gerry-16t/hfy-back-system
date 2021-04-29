@@ -193,11 +193,16 @@ const executeBulkPotentialAgent = async (params, res, file) => {
     if (isEmpty(resultRecordset) === false) {
       await Promise.all(
         resultRecordset.map(async (element) => {
+          console.log("element", element);
           const message = await client.messages.create({
             from: "whatsapp:+14155238886",
-            body: element.content,
+            body:
+              isNil(element.content) === false
+                ? element.content
+                : "Texto de prueba Homify con content null",
             to: `whatsapp:${element.phoneNumber}`,
           });
+          console.log("message", message);
         })
       );
     }

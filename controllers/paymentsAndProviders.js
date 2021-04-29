@@ -954,19 +954,25 @@ const executeSignRequestForProvider = async (params, res, url) => {
       .input("p_nvcIdLoginHistory", sql.NVarChar, idLoginHistory)
       .input("p_chrOffset", sql.Char, offset)
       .execute("customerSch.USPsignRequestForProvider");
-
-    result.recordset.forEach((element) => {
-      if (element.canSendEmail === true) {
-        const configEmailServer = JSON.parse(element.jsonEmailServerConfig);
-        executeMailTo({
-          ...element,
-          ...configEmailServer,
-        });
-      }
-    });
-    res.status(200).send({
-      response: "Solicitud procesado exitosamente",
-    });
+    const resultRecordset = result.recordset;
+    if (resultRecordset[0].stateCode !== 200) {
+      res
+        .status(resultRecordset[0].stateCode)
+        .send({ response: { message: resultRecordset[0].message } });
+    } else {
+      result.recordset.forEach((element) => {
+        if (element.canSendEmail === true) {
+          const configEmailServer = JSON.parse(element.jsonEmailServerConfig);
+          executeMailTo({
+            ...element,
+            ...configEmailServer,
+          });
+        }
+      });
+      res.status(200).send({
+        response: "Solicitud procesado exitosamente",
+      });
+    }
   } catch (error) {
     res.status(500).send({
       response: { message: "Error de sistema", messageType: error },
