@@ -290,6 +290,10 @@ router.post(
   ControllerLeads.getLandingProspectStats
 );
 router.post("/leads/bulkPotentialAgent", ControllerLeads.bulkPotentialAgent);
+router.post(
+  "/leads/getPotentialAgentCoincidences",
+  ControllerLeads.getPotentialAgentCoincidences
+);
 // Lead//
 
 //Historico //

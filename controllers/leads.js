@@ -6,6 +6,7 @@ const accountSid = process.env.TWILIO_ACCOUNT_SID;
 const authToken = process.env.TWILIO_AUTH_TOKEN;
 const client = require("twilio")(accountSid, authToken);
 const executeMailTo = require("../actions/sendInformationUser");
+const executeUpdateShortMessageService = require("../actions/updateShortMessageService");
 
 const executeAddLandingProspect = async (params, res) => {
   const {
@@ -189,32 +190,97 @@ const executeBulkPotentialAgent = async (params, res, file) => {
       .input("p_chrOffset", sql.Char, offset)
       .execute("landingSch.USPbulkPotentialAgent");
     const resultRecordset = result.recordset;
-
     if (isEmpty(resultRecordset) === false) {
-      const secondResult = await Promise.all(
-        resultRecordset.map(async (element) => {
-          console.log("element", element);
-          const message = await client.messages.create({
-            from: "whatsapp:+14155238886",
-            body:
-              isNil(element.content) === false
-                ? element.content
-                : "Texto de prueba Homify con content null",
-            to: `whatsapp:${element.phoneNumber}`,
-          });
-          console.log("message", message);
-        })
-      );
-    }
+      if (resultRecordset[0].stateCode !== 200) {
+        res.status(resultRecordset[0].stateCode).send({
+          response: {
+            message: resultRecordset[0].message,
+            messageType: resultRecordset[0].errorMessage,
+          },
+        });
+      } else {
+        const secondResult = await Promise.all(
+          resultRecordset.map(async (element) => {
+            if (element.canSendMessage === true) {
+              const message = await client.messages.create({
+                from: "whatsapp:+14155238886",
+                body: element.content,
+                statusCallback: "https://apitest.homify.ai/api/whatsapp",
+                to: `whatsapp:${element.phoneNumber}`,
+              });
+              const {
+                sid,
+                accountSid,
+                messagingServiceSid,
+                status,
+                dateSent,
+              } = message;
+              return {
+                idSystemUser,
+                idLoginHistory,
+                idShortMessageService: element.idShortMessageService,
+                serviceSID: sid,
+                serviceAccountSID: accountSid,
+                serviceChatSID: messagingServiceSid,
+                status,
+                sentAt: dateSent,
+                jsonServiceResponse: JSON.stringify(message),
+              };
+            }
+          })
+        );
 
-    res.send("ok");
+        if (isEmpty(secondResult) === false) {
+          secondResult.forEach(async (element) => {
+            try {
+              if (isEmpty(element) === false) {
+                await executeUpdateShortMessageService(element);
+              }
+            } catch (error) {
+              throw error;
+            }
+          });
+        }
+
+        res.status(200).send({
+          response: {
+            message: "Solicitud procesada exitosamente",
+          },
+        });
+      }
+    }
   } catch (error) {
     console.log("error", error);
+    res.status(500).send({
+      response: { message: "Error en el sistema", messageType: error },
+    });
+  }
+};
+
+const executeGetPotentialAgentCoincidences = async (params, res) => {
+  const {
+    idSystemUser,
+    idLoginHistory,
+    offset = process.env.OFFSET,
+    topIndex,
+  } = params;
+  try {
+    const pool = await sql.connect();
+    const result = await pool
+      .request()
+      .input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser)
+      .input("p_nvcIdLoginHistory", sql.NVarChar, idLoginHistory)
+      .input("p_chrOffset", sql.Char, offset)
+      .input("p_intTopIndex", sql.Int, topIndex)
+      .execute("landingSch.USPgetPotentialAgentCoincidences");
+    const resultRecordset = result.recordset;
+    res.status(200).send({
+      response: resultRecordset,
+    });
+  } catch (error) {
     res
       .status(500)
-      .send({
-        response: { message: "Error en el sistema", messageType: error },
-      });
+      .send({ response: { message: "Error de sistema", messageType: error } });
   }
 };
 
@@ -240,6 +306,10 @@ const ControllerLeads = {
     const params = JSON.parse(req.body.fileProperties);
     const fileParams = req.file;
     executeBulkPotentialAgent(params, res, fileParams);
+  },
+  getPotentialAgentCoincidences: (req, res) => {
+    const params = req.body;
+    executeGetPotentialAgentCoincidences(params, res);
   },
 };
 
