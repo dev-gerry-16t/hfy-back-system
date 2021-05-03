@@ -1,6 +1,7 @@
 const sql = require("mssql");
 const nodemailer = require("nodemailer");
 const ERROR_SQL = require("../constants/errors");
+const executeMailToV2 = require("../actions/sendInformationUser");
 
 const executeRegister = async (params, res) => {
   const { email, password, name, surname } = params;
@@ -219,8 +220,19 @@ const executeRequestSignUpVCFSU = async (param, res) => {
             .status(resultRecordset.stateCode)
             .send({ response: resultRecordset });
         } else {
+          result.recordset.forEach((element) => {
+            if (element.canSendEmail === true) {
+              const configEmailServer = JSON.parse(
+                element.jsonEmailServerConfig
+              );
+              executeMailToV2({
+                ...element,
+                ...configEmailServer,
+              });
+            }
+          });
           res.status(200).send({
-            response: resultRecordset,
+            response: { idRequestSignUp: resultRecordset.idRequestSignUp },
           });
         }
       }

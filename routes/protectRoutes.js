@@ -289,6 +289,11 @@ router.post(
   "/leads/getLandingProspectStats",
   ControllerLeads.getLandingProspectStats
 );
+router.post("/leads/bulkPotentialAgent", ControllerLeads.bulkPotentialAgent);
+router.post(
+  "/leads/getPotentialAgentCoincidences",
+  ControllerLeads.getPotentialAgentCoincidences
+);
 // Lead//
 
 //Historico //
@@ -296,6 +301,14 @@ router.post("/historic/getAudit", ControllerAudit.getAudit);
 //Historico //
 
 //Providers//
+router.post(
+  "/providerPayment/getRequestForProviderProperties/v2",
+  ControllerPaymentProvider.getRequestForProviderPropertiesv2
+);
+router.post(
+  "/providerPayment/getRequestForProviderProperties",
+  ControllerPaymentProvider.getRequestForProviderProperties
+);
 router.post(
   "/providerPayment/validatePaymentSchedule",
   ControllerPaymentProvider.validatePaymentSchedule
@@ -319,6 +332,10 @@ router.post(
 router.put(
   "/providerPayment/setProvider/:idProvider",
   ControllerPaymentProvider.setProvider
+);
+router.put(
+  "/providerPayment/signRequestForProvider/:idRequestForProvider",
+  ControllerPaymentProvider.signRequestForProvider
 );
 router.put(
   "/providerPayment/updateRequestForProvider/:idRequestForProvider",

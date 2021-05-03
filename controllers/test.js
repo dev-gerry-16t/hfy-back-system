@@ -2,6 +2,7 @@ const sql = require("mssql");
 //const imageThumbnail = require("image-thumbnail");
 const AWS = require("aws-sdk");
 const GLOBAL_CONSTANTS = require("../constants/constants");
+const executeUpdateShortMessageService = require("../actions/updateShortMessageService");
 
 const s3 = new AWS.S3({
   accessKeyId: GLOBAL_CONSTANTS.ACCESS_KEY_ID,
@@ -19,6 +20,22 @@ const ControllerTest = {
     res
       .status(200)
       .send(`Bienvenido al Backend homify :) ${GLOBAL_CONSTANTS.VERSION}`);
+  },
+  whatsapp: async (req, res) => {
+    const params = req.body;
+    const { SmsSid, SmsStatus, AccountSid, MessageSid } = params;
+    await executeUpdateShortMessageService({
+      idSystemUser: null,
+      idLoginHistory: null,
+      idShortMessageService: null,
+      serviceSID: SmsSid,
+      serviceAccountSID: AccountSid,
+      serviceChatSID: null,
+      status: SmsStatus,
+      sentAt: null,
+      jsonServiceResponse: JSON.stringify(params),
+    });
+    res.status(200).send(`ok`);
   },
   upload: (req, res) => {
     const fileName = req.file.originalname.split(".");

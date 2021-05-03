@@ -1,7 +1,17 @@
 const sql = require("mssql");
+const AWS = require("aws-sdk");
+const Docxtemplater = require("docxtemplater");
+const PizZip = require("pizzip");
 const isEmpty = require("lodash/isEmpty");
 const isNil = require("lodash/isNil");
+const GLOBAL_CONSTANTS = require("../constants/constants");
+const replaceConditionsDocx = require("../actions/conditions");
 const executeMailTo = require("../actions/sendInformationUser");
+
+const s3 = new AWS.S3({
+  accessKeyId: GLOBAL_CONSTANTS.ACCESS_KEY_ID,
+  secretAccessKey: GLOBAL_CONSTANTS.SECRET_ACCESS_KEY,
+});
 
 const executeValidatePaymentSchedule = async (params, res) => {
   const {
@@ -304,6 +314,7 @@ const executeGetRequestForProviderById = async (params, res) => {
     request.execute(
       "customerSch.USPgetRequestForProviderById",
       (err, result) => {
+        console.log("err", err);
         if (err) {
           res.status(500).send({ response: "Error en los parametros" });
         } else {
@@ -704,6 +715,286 @@ const executeUpdateIncidence = async (params, res, url) => {
   }
 };
 
+const executeAddDocument = async (params) => {
+  const {
+    idCustomer = null,
+    idSystemUser,
+    idLoginHistory,
+    offset = GLOBAL_CONSTANTS.OFFSET,
+    documentName = "Contrato_de_servicio.docx",
+    extension = "docx",
+    preview = null,
+    thumbnail = null,
+    idDocumentType,
+  } = params;
+  try {
+    const pool = await sql.connect();
+    const result = await pool
+      .request()
+      .input("p_nvcIdCustomer", sql.NVarChar, idCustomer)
+      .input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser)
+      .input("p_nvcIdLoginHistory", sql.NVarChar, idLoginHistory)
+      .input("p_nvcDocumentName", sql.NVarChar, documentName)
+      .input("p_nvcExtension", sql.NVarChar, extension)
+      .input("p_nvcPreview", sql.NVarChar, preview)
+      .input("p_nvcThumbnail", sql.NVarChar, thumbnail)
+      .input("p_chrOffset", sql.Char, offset)
+      .input("p_intIdDocumentType", sql.Int, idDocumentType)
+      .execute("documentSch.USPaddDocument");
+    const resultRecordset = result.recordset;
+    return resultRecordset;
+  } catch (err) {
+    throw err;
+  }
+};
+
+const executeAddRequestForProviderDocument = async (params) => {
+  const {
+    idRequestForProvider,
+    idDocument,
+    idSystemUser,
+    idLoginHistory,
+    offset = process.env.OFFSET,
+  } = params;
+  try {
+    const pool = await sql.connect();
+    const result = await pool
+      .request()
+      .input("p_nvcIdRequestForProvider", sql.NVarChar, idRequestForProvider)
+      .input("p_nvcIdDocument", sql.NVarChar, idDocument)
+      .input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser)
+      .input("p_nvcIdLoginHistory", sql.NVarChar, idLoginHistory)
+      .input("p_chrOffset", sql.Char, offset)
+      .execute("customerSch.USPaddRequestForProviderDocument");
+    const resultRecordset = result.recordset;
+    return resultRecordset;
+  } catch (err) {
+    throw err;
+  }
+};
+
+const executeGetRequestForProviderProperties = async (params, res) => {
+  const {
+    idRequestForProvider,
+    idSystemUser,
+    idLoginHistory,
+    offset = process.env.OFFSET,
+    idDocument,
+    idPreviousDocument,
+    idDocumentType,
+    bucketSource,
+    canGenerateDocument,
+  } = params;
+  try {
+    const pool = await sql.connect();
+    const result = await pool
+      .request()
+      .input("p_nvcIdRequestForProvider", sql.NVarChar, idRequestForProvider)
+      .input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser)
+      .input("p_nvcIdLoginHistory", sql.NVarChar, idLoginHistory)
+      .input("p_chrOffset", sql.Char, offset)
+      .execute("customerSch.USPgetRequestForProviderProperties");
+    const resultRecordset = result.recordset;
+    const bucketSourceS3 = bucketSource.toLowerCase();
+    if (canGenerateDocument === true) {
+      const file = await s3
+        .getObject({
+          Bucket: bucketSourceS3,
+          Key: idDocument,
+        })
+        .promise();
+      const buff = new Buffer.from(file.Body, "binary");
+      const dataAddDocument = await executeAddDocument(params);
+      const resultObjectAddDocument = dataAddDocument[0];
+      if (resultObjectAddDocument.stateCode !== 200) {
+        res.status(resultObjectAddDocument.stateCode).send({
+          response: { message: resultObjectAddDocument.message },
+        });
+      } else {
+        const zip = new PizZip(buff);
+        let doc;
+        doc = await new Docxtemplater(zip, {
+          parser: replaceConditionsDocx,
+          nullGetter: () => {
+            return "";
+          },
+        });
+        await doc.setData(resultRecordset[0]);
+        await doc.render();
+        const fileDocument = await doc
+          .getZip()
+          .generate({ type: "nodebuffer" });
+        const bucketSorceData =
+          isNil(resultObjectAddDocument) === false &&
+          isNil(resultObjectAddDocument.bucketSource) === false
+            ? resultObjectAddDocument.bucketSource.toLowerCase()
+            : bucketSource.toLowerCase();
+        const idDocumentData = resultObjectAddDocument.idDocument;
+        const params2 = {
+          Bucket: bucketSorceData,
+          Key: idDocumentData,
+          Body: fileDocument,
+        };
+        await executeAddRequestForProviderDocument({
+          ...params,
+          idDocument: idDocumentData,
+        });
+        await s3.upload(params2).promise();
+        if (isNil(idPreviousDocument) === false) {
+          const params1 = {
+            Bucket: bucketSourceS3,
+            Key: idPreviousDocument,
+          };
+          await s3.deleteObject(params1).promise();
+        }
+        res.send(fileDocument);
+      }
+    } else {
+      const file = await s3
+        .getObject({
+          Bucket: bucketSourceS3,
+          Key: idPreviousDocument,
+        })
+        .promise();
+      const buff = new Buffer.from(file.Body, "binary");
+      res.send(buff);
+    }
+  } catch (error) {
+    res.status(500).send({
+      response: { message: "Error en el sistema", messageType: error },
+    });
+  }
+};
+
+const executeGetRequestForProviderPropertiesv2 = async (params, res) => {
+  const {
+    idRequestForProvider,
+    idSystemUser,
+    idLoginHistory,
+    offset = process.env.OFFSET,
+  } = params;
+  try {
+    const pool = await sql.connect();
+    const result = await pool
+      .request()
+      .input("p_nvcIdRequestForProvider", sql.NVarChar, idRequestForProvider)
+      .input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser)
+      .input("p_nvcIdLoginHistory", sql.NVarChar, idLoginHistory)
+      .input("p_chrOffset", sql.Char, offset)
+      .execute("customerSch.USPgetRequestForProviderProperties");
+    const resultRecordset = result.recordset[0];
+    const bucketSourceS3 = resultRecordset.bucketSource.toLowerCase();
+    const file = await s3
+      .getObject({
+        Bucket: bucketSourceS3,
+        Key: resultRecordset.idDocument,
+      })
+      .promise();
+    const buff = new Buffer.from(file.Body, "binary");
+    const dataAddDocument = await executeAddDocument({
+      ...params,
+      idDocumentType: resultRecordset.idDocumentType,
+    });
+    const resultObjectAddDocument = dataAddDocument[0];
+    if (resultObjectAddDocument.stateCode !== 200) {
+      res.status(resultObjectAddDocument.stateCode).send({
+        response: { message: resultObjectAddDocument.message },
+      });
+    } else {
+      const zip = new PizZip(buff);
+      let doc;
+      doc = await new Docxtemplater(zip, {
+        parser: replaceConditionsDocx,
+        nullGetter: () => {
+          return "";
+        },
+      });
+      await doc.setData(resultRecordset);
+      await doc.render();
+      const fileDocument = await doc.getZip().generate({ type: "nodebuffer" });
+      const bucketSorceData =
+        isNil(resultObjectAddDocument) === false &&
+        isNil(resultObjectAddDocument.bucketSource) === false
+          ? resultObjectAddDocument.bucketSource.toLowerCase()
+          : bucketSource.toLowerCase();
+      const idDocumentData = resultObjectAddDocument.idDocument;
+      const params2 = {
+        Bucket: bucketSorceData,
+        Key: idDocumentData,
+        Body: fileDocument,
+      };
+      await executeAddRequestForProviderDocument({
+        ...params,
+        idDocument: idDocumentData,
+      });
+      await s3.upload(params2).promise();
+      if (isNil(resultRecordset.idPreviousDocument) === false) {
+        const params1 = {
+          Bucket: bucketSourceS3,
+          Key: resultRecordset.idPreviousDocument,
+        };
+        await s3.deleteObject(params1).promise();
+      }
+      res.status(200).send({
+        response: {
+          url: `/api/viewFilesDocx/${idDocumentData}/${bucketSorceData}`,
+          fullNameTenant: resultRecordset.nvcCustomerTenantFullName,
+        },
+      });
+    }
+  } catch (error) {
+    res.status(500).send({
+      response: { message: "Error en el sistema", messageType: error },
+    });
+  }
+};
+
+const executeSignRequestForProvider = async (params, res, url) => {
+  const {
+    isFaceToFace,
+    digitalSignature,
+    idSystemUser,
+    idLoginHistory,
+    offset = process.env.OFFSET,
+  } = params;
+  const { idRequestForProvider } = url;
+  try {
+    const pool = await sql.connect();
+    const result = await pool
+      .request()
+      .input("p_nvcIdRequestForProvider", sql.NVarChar, idRequestForProvider)
+      .input("p_bitIsFaceToFace", sql.Bit, isFaceToFace)
+      .input("p_nvcDigitalSignature", sql.NVarChar, digitalSignature)
+      .input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser)
+      .input("p_nvcIdLoginHistory", sql.NVarChar, idLoginHistory)
+      .input("p_chrOffset", sql.Char, offset)
+      .execute("customerSch.USPsignRequestForProvider");
+    const resultRecordset = result.recordset;
+    if (resultRecordset[0].stateCode !== 200) {
+      res
+        .status(resultRecordset[0].stateCode)
+        .send({ response: { message: resultRecordset[0].message } });
+    } else {
+      result.recordset.forEach((element) => {
+        if (element.canSendEmail === true) {
+          const configEmailServer = JSON.parse(element.jsonEmailServerConfig);
+          executeMailTo({
+            ...element,
+            ...configEmailServer,
+          });
+        }
+      });
+      res.status(200).send({
+        response: "Solicitud procesado exitosamente",
+      });
+    }
+  } catch (error) {
+    res.status(500).send({
+      response: { message: "Error de sistema", messageType: error },
+    });
+  }
+};
+
 const ControllerPaymentProvider = {
   validatePaymentSchedule: (req, res) => {
     const params = req.body;
@@ -759,6 +1050,19 @@ const ControllerPaymentProvider = {
     const params = req.body;
     const url = req.params;
     executeUpdateIncidence(params, res, url);
+  },
+  getRequestForProviderProperties: (req, res) => {
+    const params = req.body;
+    executeGetRequestForProviderProperties(params, res);
+  },
+  getRequestForProviderPropertiesv2: (req, res) => {
+    const params = req.body;
+    executeGetRequestForProviderPropertiesv2(params, res);
+  },
+  signRequestForProvider: (req, res) => {
+    const params = req.body;
+    const url = req.params;
+    executeSignRequestForProvider(params, res, url);
   },
 };
 
