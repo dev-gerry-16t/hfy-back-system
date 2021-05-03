@@ -232,7 +232,7 @@ const executeRequestSignUpVCFSU = async (param, res) => {
             }
           });
           res.status(200).send({
-            response: resultRecordset,
+            response: { idRequestSignUp: resultRecordset.idRequestSignUp },
           });
         }
       }
