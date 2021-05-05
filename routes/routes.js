@@ -7,12 +7,13 @@ const ControllerRecover = require("../controllers/recoverPass");
 const ControllerTest = require("../controllers/test");
 const ControllerLeads = require("../controllers/leads");
 const ControllerCatalogs = require("../controllers/catalogs");
-
 const router = express.Router();
 
 router.get("/", ControllerTest.test);
 router.get("/test", ControllerTest.testPath);
 router.post("/whatsapp", ControllerTest.whatsapp);
+router.post("/testStripe", ControllerTest.testStripe);
+router.post("/testStripeWebhook", ControllerTest.testStripeWebhook);
 router.get("/viewFile/:idDocument/:bucketSource", ControllerTest.viewFiles);
 router.get(
   "/viewFilesDocx/:idDocument/:bucketSource",

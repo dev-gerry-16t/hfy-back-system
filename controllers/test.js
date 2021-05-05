@@ -1,8 +1,12 @@
 const sql = require("mssql");
+const CryptoJS = require("crypto-js");
 //const imageThumbnail = require("image-thumbnail");
 const AWS = require("aws-sdk");
 const GLOBAL_CONSTANTS = require("../constants/constants");
 const executeUpdateShortMessageService = require("../actions/updateShortMessageService");
+const Stripe = require("stripe");
+const executeAddGWTransaction = require("../actions/addGWTransaction");
+const endpointSecret = process.env.END_POINT_SECRET_KEY;
 
 const s3 = new AWS.S3({
   accessKeyId: GLOBAL_CONSTANTS.ACCESS_KEY_ID,
@@ -135,6 +139,64 @@ const ControllerTest = {
         res.send(buff);
       }
     );
+  },
+  testStripe: async (req, res) => {
+    try {
+      const params = req.body;
+      const stripe = new Stripe(process.env.SECRET_KEY_STRIPE);
+      const payment = await stripe.paymentIntents.create({
+        ...params,
+        currency: "MXN",
+        confirm: true,
+      });
+      res.status(200).send({ message: payment });
+    } catch (error) {
+      res.status(500).send({ message: error });
+    }
+  },
+  testStripeWebhook: async (req, res) => {
+    const payment = req.body;
+    // switch (params.type) {
+    //   case "payment_intent.succeeded":
+    //     const paymentIntent = params.data.object;
+    //     // Then define and call a method to handle the successful payment intent.
+    //     // handlePaymentIntentSucceeded(paymentIntent);
+    //     break;
+    //   case "payment_method.attached":
+    //     const paymentMethod = params.data.object;
+    //     // Then define and call a method to handle the successful attachment of a PaymentMethod.
+    //     // handlePaymentMethodAttached(paymentMethod);
+    //     break;
+    //   // ... handle other event types
+    //   default:
+    //     console.log(`Unhandled event type ${params.type}`);
+    // }
+    try {
+      await executeAddGWTransaction({
+        idPaymentInContract: null,
+        idOrderPayment: null,
+        serviceIdPI: payment.data.object.id,
+        serviceIdPC: payment.data.object.charges.data[0].id,
+        amount: payment.data.object.amount,
+        last4:
+          payment.data.object.charges.data[0].payment_method_details.card.last4,
+        type: payment.data.object.charges.data[0].payment_method_details.type,
+        status: payment.data.object.status,
+        funding:
+          payment.data.object.charges.data[0].payment_method_details.card
+            .funding,
+        network:
+          payment.data.object.charges.data[0].payment_method_details.card
+            .network,
+        created: payment.data.object.created,
+        jsonServiceResponse: JSON.stringify(payment),
+        idSystemUser: null,
+        idLoginHistory: null,
+      });
+      res.status(200).send({ received: true });
+    } catch (error) {
+      res.status(500).send(error);
+    }
   },
 };
 

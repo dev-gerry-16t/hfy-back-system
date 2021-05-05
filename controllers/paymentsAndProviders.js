@@ -1,4 +1,5 @@
 const sql = require("mssql");
+const Stripe = require("stripe");
 const AWS = require("aws-sdk");
 const Docxtemplater = require("docxtemplater");
 const PizZip = require("pizzip");
@@ -7,11 +8,14 @@ const isNil = require("lodash/isNil");
 const GLOBAL_CONSTANTS = require("../constants/constants");
 const replaceConditionsDocx = require("../actions/conditions");
 const executeMailTo = require("../actions/sendInformationUser");
+const executeAddGWTransaction = require("../actions/addGWTransaction");
 
 const s3 = new AWS.S3({
   accessKeyId: GLOBAL_CONSTANTS.ACCESS_KEY_ID,
   secretAccessKey: GLOBAL_CONSTANTS.SECRET_ACCESS_KEY,
 });
+
+const stripe = new Stripe(GLOBAL_CONSTANTS.SECRET_KEY_STRIPE);
 
 const executeValidatePaymentSchedule = async (params, res) => {
   const {
@@ -866,6 +870,70 @@ const executeGetRequestForProviderProperties = async (params, res) => {
   }
 };
 
+const executeGetAmountForGWTransaction = async (params, res) => {
+  const {
+    idPaymentInContract = null,
+    idOrderPayment = null,
+    idContract,
+    idSystemUser,
+    idLoginHistory,
+    offset = process.env.OFFSET,
+    payment_method,
+  } = params;
+  try {
+    const pool = await sql.connect();
+    const result = await pool
+      .request()
+      .input("p_nvcIdPaymentInContract", sql.NVarChar, idPaymentInContract)
+      .input("p_nvcIdOrderPayment", sql.NVarChar, idOrderPayment)
+      .input("p_nvcIdContract", sql.NVarChar, idContract)
+      .input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser)
+      .input("p_nvcIdLoginHistory", sql.NVarChar, idLoginHistory)
+      .input("p_chrOffset", sql.Char, offset)
+      .execute("paymentSch.USPgetAmountForGWTransaction");
+    const resultRecordset = result.recordset[0];
+    if (resultRecordset.canBeProcess === true) {
+      const payment = await stripe.paymentIntents.create({
+        payment_method,
+        amount: resultRecordset.amount,
+        description: resultRecordset.description,
+        currency: resultRecordset.currency,
+        confirm: true,
+      });
+      await executeAddGWTransaction({
+        idPaymentInContract: idPaymentInContract,
+        idOrderPayment: idOrderPayment,
+        serviceIdPI: payment.id,
+        serviceIdPC: payment.charges.data[0].id,
+        amount: payment.amount,
+        last4: payment.charges.data[0].payment_method_details.card.last4,
+        type: payment.charges.data[0].payment_method_details.type,
+        status: payment.status,
+        funding: payment.charges.data[0].payment_method_details.card.funding,
+        network: payment.charges.data[0].payment_method_details.card.network,
+        created: payment.created,
+        jsonServiceResponse: JSON.stringify(payment),
+        idSystemUser,
+        idLoginHistory,
+      });
+      res.status(200).send({
+        response: { idOrderPayment },
+      });
+    } else {
+      res.status(500).send({
+        response: {
+          message: "Tu pago no puede ser procesado",
+          messageType: error,
+        },
+      });
+    }
+  } catch (error) {
+    res.status(500).send({
+      response: { message: "Error en el sistema", messageType: error },
+    });
+  }
+};
+
 const executeGetRequestForProviderPropertiesv2 = async (params, res) => {
   const {
     idRequestForProvider,
@@ -1063,6 +1131,10 @@ const ControllerPaymentProvider = {
     const params = req.body;
     const url = req.params;
     executeSignRequestForProvider(params, res, url);
+  },
+  getAmountForGWTransaction: (req, res) => {
+    const params = req.body;
+    executeGetAmountForGWTransaction(params, res);
   },
 };
 

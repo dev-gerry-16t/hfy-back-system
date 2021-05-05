@@ -365,6 +365,10 @@ router.put(
   "/providerPayment/updateIncidence/:idIncidence",
   ControllerPaymentProvider.updateIncidence
 );
+router.post(
+  "/providerPayment/getAmountForGWTransaction",
+  ControllerPaymentProvider.getAmountForGWTransaction
+);
 //Providers//
 
 module.exports = router;
