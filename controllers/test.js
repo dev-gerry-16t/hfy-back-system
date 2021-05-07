@@ -156,6 +156,7 @@ const ControllerTest = {
   },
   testStripeWebhook: async (req, res) => {
     const payment = req.body;
+    console.log(JSON.stringify(payment, null, 2));
     // switch (params.type) {
     //   case "payment_intent.succeeded":
     //     const paymentIntent = params.data.object;
