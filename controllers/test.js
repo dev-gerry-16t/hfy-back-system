@@ -1,4 +1,5 @@
 const sql = require("mssql");
+const isEmpty = require("lodash/isEmpty");
 const CryptoJS = require("crypto-js");
 //const imageThumbnail = require("image-thumbnail");
 const AWS = require("aws-sdk");
@@ -171,6 +172,7 @@ const ControllerTest = {
     //   default:
     //     console.log(`Unhandled event type ${params.type}`);
     // }
+    //console.log("payment", JSON.stringify(payment, null, 2));
     try {
       if (payment.data.object.payment_method_types[0] === "oxxo") {
         await executeAddGWTransaction({
@@ -194,19 +196,31 @@ const ControllerTest = {
           idPaymentInContract: null,
           idOrderPayment: null,
           serviceIdPI: payment.data.object.id,
-          serviceIdPC: payment.data.object.charges.data[0].id,
+          serviceIdPC:
+            isEmpty(payment.data.object.charges.data) === false
+              ? payment.data.object.charges.data[0].id
+              : null,
           amount: payment.data.object.amount,
           last4:
-            payment.data.object.charges.data[0].payment_method_details.card
-              .last4,
-          type: payment.data.object.charges.data[0].payment_method_details.type,
+            isEmpty(payment.data.object.charges.data) === false
+              ? payment.data.object.charges.data[0].payment_method_details.card
+                  .last4
+              : null,
+          type:
+            isEmpty(payment.data.object.charges.data) === false
+              ? payment.data.object.charges.data[0].payment_method_details.type
+              : null,
           status: payment.data.object.status,
           funding:
-            payment.data.object.charges.data[0].payment_method_details.card
-              .funding,
+            isEmpty(payment.data.object.charges.data) === false
+              ? payment.data.object.charges.data[0].payment_method_details.card
+                  .funding
+              : null,
           network:
-            payment.data.object.charges.data[0].payment_method_details.card
-              .network,
+            isEmpty(payment.data.object.charges.data) === false
+              ? payment.data.object.charges.data[0].payment_method_details.card
+                  .network
+              : null,
           created: payment.data.object.created,
           jsonServiceResponse: JSON.stringify(payment),
           idSystemUser: null,
@@ -216,7 +230,6 @@ const ControllerTest = {
 
       res.status(200).send({ received: true });
     } catch (error) {
-      console.log("error", error);
       res.status(500).send({ error: `${error}` });
     }
   },
