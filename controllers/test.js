@@ -196,7 +196,8 @@ const ControllerTest = {
       });
       res.status(200).send({ received: true });
     } catch (error) {
-      res.status(500).send(error);
+      console.log('error',error);
+      res.status(500).send({ error: `${error}` });
     }
   },
 };
