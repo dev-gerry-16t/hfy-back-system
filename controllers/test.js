@@ -156,7 +156,6 @@ const ControllerTest = {
   },
   testStripeWebhook: async (req, res) => {
     const payment = req.body;
-    console.log(JSON.stringify(payment, null, 2));
     // switch (params.type) {
     //   case "payment_intent.succeeded":
     //     const paymentIntent = params.data.object;
@@ -173,30 +172,51 @@ const ControllerTest = {
     //     console.log(`Unhandled event type ${params.type}`);
     // }
     try {
-      await executeAddGWTransaction({
-        idPaymentInContract: null,
-        idOrderPayment: null,
-        serviceIdPI: payment.data.object.id,
-        serviceIdPC: payment.data.object.charges.data[0].id,
-        amount: payment.data.object.amount,
-        last4:
-          payment.data.object.charges.data[0].payment_method_details.card.last4,
-        type: payment.data.object.charges.data[0].payment_method_details.type,
-        status: payment.data.object.status,
-        funding:
-          payment.data.object.charges.data[0].payment_method_details.card
-            .funding,
-        network:
-          payment.data.object.charges.data[0].payment_method_details.card
-            .network,
-        created: payment.data.object.created,
-        jsonServiceResponse: JSON.stringify(payment),
-        idSystemUser: null,
-        idLoginHistory: null,
-      });
+      if (payment.data.object.payment_method_types[0] === "oxxo") {
+        await executeAddGWTransaction({
+          idPaymentInContract: null,
+          idOrderPayment: null,
+          serviceIdPI: payment.data.object.id,
+          serviceIdPC: null,
+          amount: payment.data.object.amount,
+          last4: null,
+          type: payment.data.object.payment_method_types[0],
+          status: payment.data.object.status,
+          funding: null,
+          network: null,
+          created: payment.data.object.created,
+          jsonServiceResponse: JSON.stringify(payment),
+          idSystemUser: null,
+          idLoginHistory: null,
+        });
+      } else {
+        await executeAddGWTransaction({
+          idPaymentInContract: null,
+          idOrderPayment: null,
+          serviceIdPI: payment.data.object.id,
+          serviceIdPC: payment.data.object.charges.data[0].id,
+          amount: payment.data.object.amount,
+          last4:
+            payment.data.object.charges.data[0].payment_method_details.card
+              .last4,
+          type: payment.data.object.charges.data[0].payment_method_details.type,
+          status: payment.data.object.status,
+          funding:
+            payment.data.object.charges.data[0].payment_method_details.card
+              .funding,
+          network:
+            payment.data.object.charges.data[0].payment_method_details.card
+              .network,
+          created: payment.data.object.created,
+          jsonServiceResponse: JSON.stringify(payment),
+          idSystemUser: null,
+          idLoginHistory: null,
+        });
+      }
+
       res.status(200).send({ received: true });
     } catch (error) {
-      console.log('error',error);
+      console.log("error", error);
       res.status(500).send({ error: `${error}` });
     }
   },
