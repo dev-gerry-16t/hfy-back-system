@@ -206,10 +206,7 @@ const ControllerTest = {
               ? payment.data.object.charges.data[0].payment_method_details.card
                   .last4
               : null,
-          type:
-            isEmpty(payment.data.object.charges.data) === false
-              ? payment.data.object.charges.data[0].payment_method_details.type
-              : null,
+          type: payment.data.object.payment_method_types[0],
           status: payment.data.object.status,
           funding:
             isEmpty(payment.data.object.charges.data) === false
