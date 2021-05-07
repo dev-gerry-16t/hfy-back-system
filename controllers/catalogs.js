@@ -526,15 +526,26 @@ const executeGetAllCollaborators = async (params, res) => {
 };
 
 const executeGetAllRequestForProviderStatus = async (params, res) => {
-  const { idSystemUser, idLoginHistory, type } = params;
+  const {
+    idSystemUser,
+    idLoginHistory,
+    type,
+    idRequestForProvider = null,
+  } = params;
   try {
     const request = new sql.Request();
     request.input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser);
     request.input("p_nvcIdLoginHistory", sql.NVarChar, idLoginHistory);
     request.input("p_intType", sql.Int, type);
+    request.input(
+      "p_nvcIdRequestForProvider",
+      sql.NVarChar,
+      idRequestForProvider
+    );
     request.execute(
       "catCustomerSch.USPgetAllRequestForProviderStatus",
       (err, result) => {
+        console.log('err, result',err, result);
         if (err) {
           res.status(500).send({ response: "Error en los parametros" });
         } else {
