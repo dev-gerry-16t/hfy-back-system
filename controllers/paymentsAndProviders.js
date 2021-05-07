@@ -879,6 +879,7 @@ const executeGetAmountForGWTransaction = async (params, res) => {
     idLoginHistory,
     offset = process.env.OFFSET,
     payment_method,
+    payment_method_types,
   } = params;
   try {
     const pool = await sql.connect();
@@ -893,58 +894,96 @@ const executeGetAmountForGWTransaction = async (params, res) => {
       .execute("paymentSch.USPgetAmountForGWTransaction");
     const resultRecordset = result.recordset[0];
     if (resultRecordset.canBeProcess === true) {
-      const payment = await stripe.paymentIntents.create({
-        payment_method,
-        amount: resultRecordset.amount,
-        description: resultRecordset.description,
-        currency: resultRecordset.currency,
-        confirm: true,
-      });
-      if (payment.status === "requires_action") {
-        const paymentIntent = await stripe.paymentIntents.cancel(payment.id);
-        await executeAddGWTransaction({
-          idPaymentInContract: idPaymentInContract,
-          idOrderPayment: idOrderPayment,
-          serviceIdPI: paymentIntent.id,
-          serviceIdPC: null,
-          amount: paymentIntent.amount,
-          last4: null,
-          type: null,
-          status: paymentIntent.status,
-          funding: null,
-          network: null,
-          created: paymentIntent.created,
-          jsonServiceResponse: JSON.stringify(paymentIntent),
-          idSystemUser,
-          idLoginHistory,
+      if (isNil(payment_method) === false) {
+        const payment = await stripe.paymentIntents.create({
+          payment_method,
+          amount: resultRecordset.amount,
+          description: resultRecordset.description,
+          currency: resultRecordset.currency,
+          confirm: true,
         });
-      } else {
+        if (payment.status === "requires_action") {
+          const paymentIntent = await stripe.paymentIntents.cancel(payment.id);
+          await executeAddGWTransaction({
+            idPaymentInContract: idPaymentInContract,
+            idOrderPayment: idOrderPayment,
+            serviceIdPI: paymentIntent.id,
+            serviceIdPC: null,
+            amount: paymentIntent.amount,
+            last4: null,
+            type: null,
+            status: paymentIntent.status,
+            funding: null,
+            network: null,
+            created: paymentIntent.created,
+            jsonServiceResponse: JSON.stringify(paymentIntent),
+            idSystemUser,
+            idLoginHistory,
+          });
+        } else {
+          await executeAddGWTransaction({
+            idPaymentInContract: idPaymentInContract,
+            idOrderPayment: idOrderPayment,
+            serviceIdPI: payment.id,
+            serviceIdPC: payment.charges.data[0].id,
+            amount: payment.amount,
+            last4: payment.charges.data[0].payment_method_details.card.last4,
+            type: payment.charges.data[0].payment_method_details.type,
+            status: payment.status,
+            funding:
+              payment.charges.data[0].payment_method_details.card.funding,
+            network:
+              payment.charges.data[0].payment_method_details.card.network,
+            created: payment.created,
+            jsonServiceResponse: JSON.stringify(payment),
+            idSystemUser,
+            idLoginHistory,
+          });
+        }
+        res.status(200).send({
+          response: {
+            result: {
+              idOrderPayment,
+              paymentIntent: payment.id,
+              status: payment.status,
+            },
+          },
+        });
+      }
+      if (isNil(payment_method_types) === false) {
+        const payment = await stripe.paymentIntents.create({
+          payment_method_types,
+          amount: resultRecordset.amount,
+          description: resultRecordset.description,
+          currency: resultRecordset.currency,
+        });
         await executeAddGWTransaction({
           idPaymentInContract: idPaymentInContract,
           idOrderPayment: idOrderPayment,
           serviceIdPI: payment.id,
-          serviceIdPC: payment.charges.data[0].id,
+          serviceIdPC: null,
           amount: payment.amount,
-          last4: payment.charges.data[0].payment_method_details.card.last4,
-          type: payment.charges.data[0].payment_method_details.type,
+          last4: null,
+          type: payment.payment_method_types[0],
           status: payment.status,
-          funding: payment.charges.data[0].payment_method_details.card.funding,
-          network: payment.charges.data[0].payment_method_details.card.network,
+          funding: null,
+          network: null,
           created: payment.created,
           jsonServiceResponse: JSON.stringify(payment),
           idSystemUser,
           idLoginHistory,
         });
-      }
-      res.status(200).send({
-        response: {
-          result: {
-            idOrderPayment,
-            paymentIntent: payment.id,
-            status: payment.status,
+        res.status(200).send({
+          response: {
+            result: {
+              idOrderPayment,
+              paymentIntent: payment.id,
+              status: payment.status,
+              idClientSecret: payment.client_secret,
+            },
           },
-        },
-      });
+        });
+      }
     } else {
       res.status(500).send({
         response: {
