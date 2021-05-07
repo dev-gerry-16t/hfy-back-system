@@ -545,7 +545,6 @@ const executeGetAllRequestForProviderStatus = async (params, res) => {
     request.execute(
       "catCustomerSch.USPgetAllRequestForProviderStatus",
       (err, result) => {
-        console.log('err, result',err, result);
         if (err) {
           res.status(500).send({ response: "Error en los parametros" });
         } else {
