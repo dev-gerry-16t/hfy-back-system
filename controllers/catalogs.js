@@ -580,13 +580,20 @@ const executeGetAllIncidenceTypes = async (params, res) => {
 };
 
 const executeGetAllIncidenceStatus = async (params, res) => {
-  const { idContract, idSystemUser, idLoginHistory, type } = params;
+  const {
+    idContract,
+    idSystemUser,
+    idLoginHistory,
+    type,
+    idIncidence,
+  } = params;
   try {
     const request = new sql.Request();
     request.input("p_nvcIdContract", sql.NVarChar, idContract);
     request.input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser);
     request.input("p_nvcIdLoginHistory", sql.NVarChar, idLoginHistory);
     request.input("p_intType", sql.Int, type);
+    request.input("p_nvcIdIncidence", sql.NVarChar, idIncidence);
     request.execute(
       "catCustomerSch.USPgetAllIncidenceStatus",
       (err, result) => {

@@ -897,6 +897,7 @@ const executeGetAmountForGWTransaction = async (params, res) => {
       if (isNil(payment_method) === false) {
         const payment = await stripe.paymentIntents.create({
           payment_method,
+          payment_method_types,
           amount: resultRecordset.amount,
           description: resultRecordset.description,
           currency: resultRecordset.currency,
@@ -949,8 +950,7 @@ const executeGetAmountForGWTransaction = async (params, res) => {
             },
           },
         });
-      }
-      if (isNil(payment_method_types) === false) {
+      } else {
         const payment = await stripe.paymentIntents.create({
           payment_method_types,
           amount: resultRecordset.amount,

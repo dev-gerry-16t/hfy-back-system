@@ -172,7 +172,7 @@ const ControllerTest = {
     //   default:
     //     console.log(`Unhandled event type ${params.type}`);
     // }
-    //console.log("payment", JSON.stringify(payment, null, 2));
+    // console.log("payment", JSON.stringify(payment, null, 2));
     try {
       if (payment.data.object.payment_method_types[0] === "oxxo") {
         await executeAddGWTransaction({
