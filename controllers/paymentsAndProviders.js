@@ -988,11 +988,11 @@ const executeGetAmountForGWTransaction = async (params, res) => {
       res.status(500).send({
         response: {
           message: "Tu pago no puede ser procesado",
-          messageType: error,
         },
       });
     }
   } catch (error) {
+    console.log("error", error);
     res.status(500).send({
       response: { message: "Error en el sistema", messageType: error },
     });
