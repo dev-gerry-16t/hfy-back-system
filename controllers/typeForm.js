@@ -622,6 +622,8 @@ const executeSetTypeFormOwner = async (params, res) => {
     legalRepSignedAtPlace = null,
     legalRepIdType = null,
     legalRepIdTypeNumber = null,
+    dateOfBirth = null,
+    legalRepDateOfBirth = null,
   } = params;
 
   try {
@@ -762,7 +764,8 @@ const executeSetTypeFormOwner = async (params, res) => {
       sql.NVarChar,
       legalRepIdTypeNumber
     );
-
+    request.input("p_datLegalRepDateOfBirth", sql.Date, legalRepDateOfBirth);
+    request.input("p_datDateOfBirth", sql.Date, dateOfBirth);
     request.execute("customerSch.USPsetCustomerTypeForm", (err, result) => {
       if (err) {
         res.status(500).send({ response: "Error en los parametros" });

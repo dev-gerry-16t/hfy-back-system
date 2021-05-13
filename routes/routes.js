@@ -14,6 +14,7 @@ router.get("/test", ControllerTest.testPath);
 router.post("/whatsapp", ControllerTest.whatsapp);
 router.post("/testStripe", ControllerTest.testStripe);
 router.post("/testStripeWebhook", ControllerTest.testStripeWebhook);
+router.post("/testStripeWebhookConnect", ControllerTest.testStripeWebhookConnect);
 router.get("/viewFile/:idDocument/:bucketSource", ControllerTest.viewFiles);
 router.get(
   "/viewFilesDocx/:idDocument/:bucketSource",

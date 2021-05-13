@@ -172,7 +172,7 @@ const ControllerTest = {
     //   default:
     //     console.log(`Unhandled event type ${params.type}`);
     // }
-    // console.log("payment", JSON.stringify(payment, null, 2));
+    console.log("payment", JSON.stringify(payment, null, 2));
     try {
       if (payment.data.object.payment_method_types[0] === "oxxo") {
         await executeAddGWTransaction({
@@ -224,7 +224,15 @@ const ControllerTest = {
           idLoginHistory: null,
         });
       }
-
+      res.status(200).send({ received: true });
+    } catch (error) {
+      res.status(500).send({ error: `${error}` });
+    }
+  },
+  testStripeWebhookConnect: async (req, res) => {
+    const payment = req.body;
+    console.log("payment", JSON.stringify(payment, null, 2));
+    try {
       res.status(200).send({ received: true });
     } catch (error) {
       res.status(500).send({ error: `${error}` });

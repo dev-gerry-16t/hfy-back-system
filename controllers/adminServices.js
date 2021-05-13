@@ -1,4 +1,5 @@
 const sql = require("mssql");
+const Stripe = require("stripe");
 const AWS = require("aws-sdk");
 const Docxtemplater = require("docxtemplater");
 const PizZip = require("pizzip");
@@ -7,11 +8,171 @@ const isNil = require("lodash/isNil");
 const isEmpty = require("lodash/isEmpty");
 const executeMailTo = require("../actions/sendInformationUser");
 const replaceConditionsDocx = require("../actions/conditions");
+const executeSetCustomerAccount = require("../actions/setCustomerAccount");
 
 const s3 = new AWS.S3({
   accessKeyId: GLOBAL_CONSTANTS.ACCESS_KEY_ID,
   secretAccessKey: GLOBAL_CONSTANTS.SECRET_ACCESS_KEY,
 });
+const stripe = new Stripe(GLOBAL_CONSTANTS.SECRET_KEY_STRIPE);
+
+const parseDateOfBorth = (date) => {
+  let month = "";
+  let year = "";
+  let day = "";
+  if (isNil(date) === false) {
+    year = date.getFullYear();
+    month = date.getMonth() + 1;
+    day = date.getUTCDate();
+  }
+  return { year, month, day };
+};
+
+const getIdStripeDocument = async (array) => {
+  const idStripe = await Promise.all(
+    array.map(async (row, ix) => {
+      const file = await s3
+        .getObject({
+          Bucket: row.bucketSource.toLowerCase(),
+          Key: row.idDocument,
+        })
+        .promise();
+      const buff = new Buffer.from(file.Body, "binary");
+      const fileStripe = await stripe.files.create({
+        purpose: "identity_document",
+        file: {
+          data: buff,
+          name: row.idDocument,
+          type: "application/octet-stream",
+        },
+      });
+      return fileStripe.id;
+    })
+  );
+
+  return idStripe;
+};
+
+const executeGetDataForCustomerAccount = async (params, id) => {
+  const {
+    idSystemUser,
+    idLoginHistory,
+    offset = GLOBAL_CONSTANTS.OFFSET,
+  } = params;
+  try {
+    const pool = await sql.connect();
+    const result = await pool
+      .request()
+      .input("p_nvcIdContract", sql.NVarChar, id)
+      .input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser)
+      .input("p_nvcIdLoginHistory", sql.NVarChar, idLoginHistory)
+      .input("p_chrOffset", sql.Char, offset)
+      .execute("pymtGwSch.USPgetDataForCustomerAccount");
+
+    const {
+      idContract,
+      idCustomer,
+      idConnectAccount,
+      givenName,
+      lastName,
+      mothersMaidenName,
+      fullName,
+      type,
+      country,
+      emailAddress,
+      phoneNumber,
+      city,
+      line1,
+      line2,
+      postal_code,
+      state,
+      acceptedTCAt,
+      acceptedTCFromIP,
+      id_number,
+      accountHolder,
+      accountNumber,
+      clabeNumber,
+      accountCurrency,
+      dateOfBirth,
+      mcc,
+      product_description,
+    } = result.recordset[0];
+
+    const { year, month, day } = parseDateOfBorth(dateOfBirth);
+    const tokenIdNumber = await stripe.tokens.create({
+      pii: { id_number: "000000000" },
+    });
+    const [front, back] = await getIdStripeDocument(result.recordsets[1]);
+    const account = await stripe.accounts.create({
+      type,
+      country,
+      email: emailAddress,
+      capabilities: {
+        card_payments: { requested: true },
+        transfers: { requested: true },
+      },
+      business_type: "individual",
+      individual: {
+        address: {
+          city,
+          country,
+          line1,
+          line2,
+          postal_code,
+          state,
+        },
+        dob: {
+          day,
+          month,
+          year,
+        },
+        last_name: lastName,
+        id_number: tokenIdNumber.id,
+        maiden_name: mothersMaidenName,
+        email: emailAddress,
+        first_name: givenName,
+        phone: phoneNumber,
+        verification: {
+          document: {
+            back: isNil(back) === false ? back : null,
+            front: isNil(front) === false ? front : null,
+          },
+        },
+      },
+      external_account: {
+        object: "bank_account",
+        country: country,
+        currency: accountCurrency,
+        account_holder_name: accountHolder,
+        account_holder_type: "individual",
+        account_number: "000000001234567897",
+        // isNil(clabeNumber) === false ? Number(clabeNumber) : null,
+      },
+      tos_acceptance: {
+        date: Number(acceptedTCAt),
+        ip: acceptedTCFromIP,
+      },
+      business_profile: {
+        mcc,
+        product_description,
+      },
+    });
+    await executeSetCustomerAccount({
+      idContract,
+      idCustomer,
+      idConnectAccount: account.id,
+      idConnectAccountPerson: null,
+      createdConnectAccount: account.created,
+      jsonServiceResponseAccount: JSON.stringify(account),
+      jsonServiceResponsePerson: null,
+      isActive: true,
+      idSystemUser,
+      idLoginHistory,
+    });
+  } catch (err) {
+    throw err;
+  }
+};
 
 const executeGetContractStats = async (params, res) => {
   const {
@@ -274,6 +435,13 @@ const executeUpdateContract = async (params, res, url) => {
               });
             }
           });
+          // shouldAccountBeReactivated
+          if (
+            resultRecordset[0].shouldAccountBeCreated === 1 ||
+            resultRecordset[0].shouldAccountBeCreated === true
+          ) {
+            executeGetDataForCustomerAccount(params, idContract);
+          }
           res.status(200).send({
             response: "Solicitud procesada exitosamente",
           });
