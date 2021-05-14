@@ -247,13 +247,8 @@ const executeGetAllPolicyStatus = async (params, res) => {
 };
 
 const executeGetAllCommercialSocietyTypes = async (params, res) => {
-  const {
-    idCustomer,
-    idCustomerTenant,
-    idSystemUser,
-    idLoginHistory,
-    type,
-  } = params;
+  const { idCustomer, idCustomerTenant, idSystemUser, idLoginHistory, type } =
+    params;
   try {
     const request = new sql.Request();
     request.input("p_nvcIdCustomer", sql.NVarChar, idCustomer);
@@ -281,13 +276,8 @@ const executeGetAllCommercialSocietyTypes = async (params, res) => {
 };
 
 const executeGetAllStates = async (params, res) => {
-  const {
-    idCustomer,
-    idCustomerTenant,
-    idSystemUser,
-    idLoginHistory,
-    type,
-  } = params;
+  const { idCustomer, idCustomerTenant, idSystemUser, idLoginHistory, type } =
+    params;
   try {
     const request = new sql.Request();
     request.input("p_nvcIdCustomer", sql.NVarChar, idCustomer);
@@ -498,13 +488,8 @@ const executeGetAllProviderPaymentForms = async (params, res) => {
 };
 
 const executeGetAllCollaborators = async (params, res) => {
-  const {
-    idProvider,
-    idCollaboratorType,
-    idSystemUser,
-    idLoginHistory,
-    type,
-  } = params;
+  const { idProvider, idCollaboratorType, idSystemUser, idLoginHistory, type } =
+    params;
   try {
     const request = new sql.Request();
     request.input("p_nvcIdProvider", sql.NVarChar, idProvider);
@@ -688,6 +673,29 @@ const executeGetAllPolicyPaymentMethods = async (params, res) => {
   } catch (error) {}
 };
 
+const executeGetAllRejectionReasons = async (params, res) => {
+  const { idSystemUser, idLoginHistory, type } = params;
+  try {
+    const request = new sql.Request();
+    request.input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser);
+    request.input("p_nvcIdLoginHistory", sql.NVarChar, idLoginHistory);
+    request.input("p_intType", sql.Int, type);
+    request.execute(
+      "catCustomerSch.USPgetAllRejectionReasons",
+      (err, result) => {
+        if (err) {
+          res.status(500).send({ response: "Error en los parametros" });
+        } else {
+          const resultRecordset = result.recordset;
+          res.status(200).send({
+            response: resultRecordset,
+          });
+        }
+      }
+    );
+  } catch (error) {}
+};
+
 const ControllerCatalogs = {
   getAllMaritalStatus: (req, res) => {
     const params = req.body;
@@ -793,6 +801,10 @@ const ControllerCatalogs = {
   getAllPolicyPaymentMethods: (req, res) => {
     const params = req.body;
     executeGetAllPolicyPaymentMethods(params, res);
+  },
+  getAllRejectionReasons: (req, res) => {
+    const params = req.body;
+    executeGetAllRejectionReasons(params, res);
   },
 };
 

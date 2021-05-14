@@ -210,6 +210,10 @@ router.post(
   "/catalogs/getAllPolicyPaymentMethods",
   ControllerCatalogs.getAllPolicyPaymentMethods
 );
+router.post(
+  "/catalogs/getAllRejectionReasons",
+  ControllerCatalogs.getAllRejectionReasons
+);
 //Catalogos//
 
 //Admin//
