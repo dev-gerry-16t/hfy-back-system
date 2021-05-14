@@ -270,13 +270,20 @@ const executeGetTenantsById = async (params, res) => {
 };
 
 const executeGetAllBanks = async (params, res) => {
-  const { idCustomer, idSystemUser, idLoginHistory, type } = params;
+  const {
+    idCustomer,
+    idSystemUser,
+    idLoginHistory,
+    type,
+    clabe = null,
+  } = params;
   try {
     const request = new sql.Request();
     request.input("p_nvcIdCustomer", sql.NVarChar, idCustomer);
     request.input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser);
     request.input("p_nvcIdLoginHistory", sql.NVarChar, idLoginHistory);
     request.input("p_intType", sql.Int, type);
+    request.input("p_nvcClabe", sql.NVarChar, clabe);
     request.execute("catPaymentSch.USPgetAllBanks", (err, result) => {
       if (err) {
         res.status(500).send({ response: "Error en los parametros" });
@@ -378,7 +385,7 @@ const executeGetAllPaymentInContract = async (params, res) => {
     request.input("p_nvcIdIncidence", sql.NVarChar, idIncidence);
     request.input("p_intIdPaymentType", sql.Int, idPaymentType);
     request.input("p_datPaymentDate", sql.Date, paymentDate);
-    request.input("p_decAmount", sql.Decimal(19,2), amount);
+    request.input("p_decAmount", sql.Decimal(19, 2), amount);
     request.input("p_intAdvancingRents", sql.Int, advancingRents);
     request.input("p_nvcDocuments", sql.NVarChar, documents);
     request.input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser);
