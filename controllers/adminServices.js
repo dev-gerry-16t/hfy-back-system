@@ -240,7 +240,10 @@ const executeUpdateContract = async (params, res, url) => {
     idSystemUser,
     idLoginHistory,
     offset = GLOBAL_CONSTANTS.OFFSET,
+    idRejectionReason = null,
+    rejectionReason = null,
   } = params;
+
   const { idContract } = url;
   try {
     const request = new sql.Request();
@@ -253,6 +256,8 @@ const executeUpdateContract = async (params, res, url) => {
     request.input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser);
     request.input("p_nvcIdLoginHistory", sql.NVarChar, idLoginHistory);
     request.input("p_chrOffset", sql.Char, offset);
+    request.input("p_intIdRejectionReason", sql.Int, idRejectionReason);
+    request.input("p_nvcRejectionReason", sql.NVarChar, rejectionReason);
     request.execute("customerSch.USPupdateContract", (err, result) => {
       if (err) {
         res.status(500).send({ response: "Error en los parametros" });
