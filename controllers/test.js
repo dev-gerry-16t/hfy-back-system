@@ -7,6 +7,7 @@ const GLOBAL_CONSTANTS = require("../constants/constants");
 const executeUpdateShortMessageService = require("../actions/updateShortMessageService");
 const Stripe = require("stripe");
 const executeAddGWTransaction = require("../actions/addGWTransaction");
+const { executesetConnectAccountWH } = require("../actions/setCustomerAccount");
 const endpointSecret = process.env.END_POINT_SECRET_KEY;
 
 const s3 = new AWS.S3({
@@ -172,7 +173,7 @@ const ControllerTest = {
     //   default:
     //     console.log(`Unhandled event type ${params.type}`);
     // }
-    console.log("payment", JSON.stringify(payment, null, 2));
+    //console.log("payment", JSON.stringify(payment, null, 2));
     try {
       if (payment.data.object.payment_method_types[0] === "oxxo") {
         await executeAddGWTransaction({
@@ -231,8 +232,23 @@ const ControllerTest = {
   },
   testStripeWebhookConnect: async (req, res) => {
     const payment = req.body;
-    console.log("payment", JSON.stringify(payment, null, 2));
+    //console.log("payment", JSON.stringify(payment, null, 2));
     try {
+      executesetConnectAccountWH({
+        idConnectAccount: payment.account,
+        idBankAccount:
+          isEmpty(payment.data.object.external_accounts) === false &&
+          isEmpty(payment.data.object.external_accounts.data) === false
+            ? payment.data.object.external_accounts.data[0].id
+            : null,
+        created:
+          isEmpty(payment.data) === false &&
+          isEmpty(payment.data.object) === false
+            ? payment.data.object.created
+            : null,
+        isActive: null,
+        jsonServiceResponse: JSON.stringify(payment),
+      });
       res.status(200).send({ received: true });
     } catch (error) {
       res.status(500).send({ error: `${error}` });

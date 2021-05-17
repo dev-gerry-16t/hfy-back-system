@@ -14,6 +14,7 @@ const executeSetCustomerAccount = async (params) => {
     idSystemUser = null,
     idLoginHistory = null,
     offset = process.env.OFFSET,
+    idAccount = null,
   } = params;
   try {
     const pool = await sql.connect();
@@ -42,6 +43,7 @@ const executeSetCustomerAccount = async (params) => {
       .input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser)
       .input("p_nvcIdLoginHistory", sql.NVarChar, idLoginHistory)
       .input("p_chrOffset", sql.Char, offset)
+      .input("p_nvcIdAccount", sql.NVarChar, idAccount)
       .execute("pymtGwSch.USPsetCustomerAccount");
     const resultRecordset = result.recordset;
     resultRecordset.forEach((element) => {
@@ -59,4 +61,44 @@ const executeSetCustomerAccount = async (params) => {
   }
 };
 
-module.exports = executeSetCustomerAccount;
+const executesetConnectAccountWH = async (params) => {
+  const {
+    idConnectAccount,
+    idBankAccount,
+    created = null,
+    isActive = null,
+    jsonServiceResponse,
+    idSystemUser = null,
+    idLoginHistory = null,
+    offset = process.env.OFFSET,
+  } = params;
+  try {
+    const pool = await sql.connect();
+    const result = await pool
+      .request()
+      .input("p_nvcIdConnectAccount", sql.NVarChar, idConnectAccount)
+      .input("p_nvcIdBankAccount", sql.NVarChar, idBankAccount)
+      .input("p_nvcCreated", sql.NVarChar, created)
+      .input("p_bitIsActive", sql.Bit, isActive)
+      .input("p_nvcJsonServiceResponse", sql.NVarChar, jsonServiceResponse)
+      .input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser)
+      .input("p_nvcIdLoginHistory", sql.NVarChar, idLoginHistory)
+      .input("p_chrOffset", sql.Char, offset)
+      .execute("pymtGwSch.USPsetConnectAccountWH");
+    const resultRecordset = result.recordset;
+    resultRecordset.forEach((element) => {
+      if (element.canSendEmail === true) {
+        const configEmailServer = JSON.parse(element.jsonEmailServerConfig);
+        executeMailTo({
+          ...element,
+          ...configEmailServer,
+        });
+      }
+    });
+    return resultRecordset;
+  } catch (error) {
+    throw error;
+  }
+};
+
+module.exports = { executeSetCustomerAccount, executesetConnectAccountWH };

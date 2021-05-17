@@ -8,7 +8,7 @@ const isNil = require("lodash/isNil");
 const isEmpty = require("lodash/isEmpty");
 const executeMailTo = require("../actions/sendInformationUser");
 const replaceConditionsDocx = require("../actions/conditions");
-const executeSetCustomerAccount = require("../actions/setCustomerAccount");
+const { executeSetCustomerAccount } = require("../actions/setCustomerAccount");
 
 const s3 = new AWS.S3({
   accessKeyId: GLOBAL_CONSTANTS.ACCESS_KEY_ID,
@@ -96,6 +96,7 @@ const executeGetDataForCustomerAccount = async (params, id) => {
       dateOfBirth,
       mcc,
       product_description,
+      idAccount,
     } = result.recordset[0];
 
     const { year, month, day } = parseDateOfBorth(dateOfBirth);
@@ -168,6 +169,7 @@ const executeGetDataForCustomerAccount = async (params, id) => {
       isActive: true,
       idSystemUser,
       idLoginHistory,
+      idAccount,
     });
   } catch (err) {
     throw err;
