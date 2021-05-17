@@ -139,7 +139,7 @@ const executeEmailSentAES = async (param) => {
   } catch (error) {}
 };
 
-const executeRequestSignUpPSU = async (param, res) => {
+const executeRequestSignUpPSU = async (param, res, ip) => {
   const {
     username,
     password,
@@ -168,6 +168,7 @@ const executeRequestSignUpPSU = async (param, res) => {
     request.input("p_chrOffset", sql.Char, offset);
     request.input("p_bitHasAcceptedTC", sql.Bit, hasAcceptedTC);
     request.input("p_nvcIdInvitation", sql.NVarChar, idInvitation);
+    request.input("p_nvcRequestedFromIP", sql.NVarChar, ip);
     request.execute("authSch.USPrequestSignUp", async (err, result, value) => {
       if (err) {
         res.status(500).send({});
@@ -280,7 +281,12 @@ const ControllerRegister = {
   },
   signUp: (req, res) => {
     const params = req.body;
-    executeRequestSignUpPSU(params, res);
+    const ip = req.header("x-forwarded-for") || req.connection.remoteAddress;
+    let ipPublic = "";
+    if (ip) {
+      ipPublic = ip.split(",")[0];
+    }
+    executeRequestSignUpPSU(params, res, ipPublic);
   },
   verifyCode: (req, res) => {
     const params = req.body;
