@@ -424,6 +424,7 @@ const executeRequestAdvance = async (params, res) => {
     accountNumber,
     clabeNumber,
     idBank,
+    bankBranch,
     offset = process.env.OFFSET,
   } = params;
   try {
@@ -436,6 +437,7 @@ const executeRequestAdvance = async (params, res) => {
     request.input("p_nvcAccountHolder", sql.NVarChar, accountHolder);
     request.input("p_nvcAccountNumber", sql.NVarChar, accountNumber);
     request.input("p_nvcClabeNumber", sql.NVarChar, clabeNumber);
+    request.input("p_nvcBankBranch", sql.NVarChar, bankBranch);
     request.input("p_nvcIdBank", sql.NVarChar, idBank);
     request.input("p_chrOffset", sql.Char, offset);
     request.execute("customerSch.USPrequestAdvancePymt", (err, result) => {
@@ -665,6 +667,37 @@ const executeGetAgentCommissionChart = async (params, res) => {
   }
 };
 
+const executeGetRequestAdvancePymtPlan = async (params, res) => {
+  const {
+    idCustomer,
+    idContract,
+    totalRentsRequested,
+    totalPeriod,
+    idSystemUser,
+    idLoginHistory,
+    offset = process.env.OFFSET,
+  } = params;
+
+  try {
+    const pool = await sql.connect();
+    const result = await pool
+      .request()
+      .input("p_nvcIdCustomer", sql.NVarChar, idCustomer)
+      .input("p_nvcIdContract", sql.NVarChar, idContract)
+      .input("p_intTotalRentsRequested", sql.Int, totalRentsRequested)
+      .input("p_intTotalPeriod", sql.Int, totalPeriod)
+      .input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser)
+      .input("p_nvcIdLoginHistory", sql.NVarChar, idLoginHistory)
+      .input("p_chrOffset", sql.Char, offset)
+      .execute("customerSch.USPgetRequestAdvancePymtPlan");
+    res.status(200).send({ response: result.recordsets });
+  } catch (error) {
+    res.status(500).send({
+      response: { message: "Error en la petición", messageType: error },
+    });
+  }
+};
+
 const ControllerCustomer = {
   getCustomerById: (req, res) => {
     const params = req.body;
@@ -736,6 +769,10 @@ const ControllerCustomer = {
   getAgentCommissionChart: (req, res) => {
     const params = req.body;
     executeGetAgentCommissionChart(params, res);
+  },
+  getRequestAdvancePymtPlan: (req, res) => {
+    const params = req.body;
+    executeGetRequestAdvancePymtPlan(params, res);
   },
 };
 

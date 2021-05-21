@@ -66,6 +66,10 @@ router.post(
   "/customer/getAgentCommissionChart",
   ControllerCustomer.getAgentCommissionChart
 );
+router.post(
+  "/customer/getRequestAdvancePymtPlan",
+  ControllerCustomer.getRequestAdvancePymtPlan
+);
 
 //Documents//
 router.post("/addDocument", ControllerDocuments.addDocument);
