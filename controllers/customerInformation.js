@@ -1,5 +1,6 @@
 const sql = require("mssql");
 const nodemailer = require("nodemailer");
+const executeMailToV2 = require("../actions/sendInformationUser");
 
 const executeGetCustomerById = async (params, res) => {
   const {
@@ -419,13 +420,14 @@ const executeRequestAdvance = async (params, res) => {
     idSystemUser,
     idLoginHistory,
     idContract,
-    advanceRents,
     accountHolder,
     accountNumber,
     clabeNumber,
     idBank,
     bankBranch,
     offset = process.env.OFFSET,
+    totalRentsRequested,
+    totalPeriod,
   } = params;
   try {
     const request = new sql.Request();
@@ -433,25 +435,43 @@ const executeRequestAdvance = async (params, res) => {
     request.input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser);
     request.input("p_nvcIdLoginHistory", sql.NVarChar, idLoginHistory);
     request.input("p_nvcIdContract", sql.NVarChar, idContract);
-    request.input("p_intMaximumAdvanceRents", sql.Int, advanceRents);
     request.input("p_nvcAccountHolder", sql.NVarChar, accountHolder);
     request.input("p_nvcAccountNumber", sql.NVarChar, accountNumber);
     request.input("p_nvcClabeNumber", sql.NVarChar, clabeNumber);
     request.input("p_nvcBankBranch", sql.NVarChar, bankBranch);
     request.input("p_nvcIdBank", sql.NVarChar, idBank);
     request.input("p_chrOffset", sql.Char, offset);
+    request.input("p_intTotalRentsRequested", sql.Int, totalRentsRequested);
+    request.input("p_intTotalPeriod", sql.Int, totalPeriod);
     request.execute("customerSch.USPrequestAdvancePymt", (err, result) => {
       if (err) {
-        res.status(500).send({ response: "Error en los parametros" });
+        res.status(500).send({
+          response: { message: "Error en los parametros", messageType: err },
+        });
       } else {
         const resultRecordset = result.recordset;
         if (resultRecordset[0].stateCode !== 200) {
           res.status(resultRecordset[0].stateCode).send({
-            response: resultRecordset,
+            response: {
+              message: resultRecordset[0].message,
+            },
           });
         } else {
+          resultRecordset.forEach((element) => {
+            if (element.canSendEmail === true) {
+              const configEmailServer = JSON.parse(
+                element.jsonEmailServerConfig
+              );
+              executeMailToV2({
+                ...element,
+                ...configEmailServer,
+              });
+            }
+          });
           res.status(200).send({
-            response: resultRecordset,
+            response: {
+              idRequestAdvancePymt: resultRecordset[0].idRequestAdvancePymt,
+            },
           });
         }
       }
