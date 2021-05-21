@@ -696,6 +696,29 @@ const executeGetAllRejectionReasons = async (params, res) => {
   } catch (error) {}
 };
 
+const executeGetAllCommercialActivities = async (params, res) => {
+  const { idSystemUser, idLoginHistory, type } = params;
+  try {
+    const request = new sql.Request();
+    request.input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser);
+    request.input("p_nvcIdLoginHistory", sql.NVarChar, idLoginHistory);
+    request.input("p_intType", sql.Int, type);
+    request.execute(
+      "catCustomerSch.USPgetAllCommercialActivities",
+      (err, result) => {
+        if (err) {
+          res.status(500).send({ response: "Error en los parametros" });
+        } else {
+          const resultRecordset = result.recordset;
+          res.status(200).send({
+            response: resultRecordset,
+          });
+        }
+      }
+    );
+  } catch (error) {}
+};
+
 const ControllerCatalogs = {
   getAllMaritalStatus: (req, res) => {
     const params = req.body;
@@ -805,6 +828,10 @@ const ControllerCatalogs = {
   getAllRejectionReasons: (req, res) => {
     const params = req.body;
     executeGetAllRejectionReasons(params, res);
+  },
+  getAllCommercialActivities: (req, res) => {
+    const params = req.body;
+    executeGetAllCommercialActivities(params, res);
   },
 };
 
