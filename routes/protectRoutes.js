@@ -214,6 +214,10 @@ router.post(
   "/catalogs/getAllRejectionReasons",
   ControllerCatalogs.getAllRejectionReasons
 );
+router.post(
+  "/catalogs/getAllCommercialActivities",
+  ControllerCatalogs.getAllCommercialActivities
+);
 //Catalogos//
 
 //Admin//
