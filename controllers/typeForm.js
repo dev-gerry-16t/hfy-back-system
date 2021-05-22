@@ -622,6 +622,7 @@ const executeSetTypeFormOwner = async (params, res) => {
     legalRepSignedAtPlace = null,
     legalRepIdType = null,
     legalRepIdTypeNumber = null,
+    idCommercialActivity = null,
   } = params;
 
   try {
@@ -762,6 +763,7 @@ const executeSetTypeFormOwner = async (params, res) => {
       sql.NVarChar,
       legalRepIdTypeNumber
     );
+    request.input("p_intIdCommercialActivity", sql.Int, idCommercialActivity);
 
     request.execute("customerSch.USPsetCustomerTypeForm", (err, result) => {
       if (err) {
