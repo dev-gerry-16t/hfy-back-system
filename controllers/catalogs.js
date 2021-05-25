@@ -565,13 +565,8 @@ const executeGetAllIncidenceTypes = async (params, res) => {
 };
 
 const executeGetAllIncidenceStatus = async (params, res) => {
-  const {
-    idContract,
-    idSystemUser,
-    idLoginHistory,
-    type,
-    idIncidence,
-  } = params;
+  const { idContract, idSystemUser, idLoginHistory, type, idIncidence } =
+    params;
   try {
     const request = new sql.Request();
     request.input("p_nvcIdContract", sql.NVarChar, idContract);
@@ -719,6 +714,34 @@ const executeGetAllCommercialActivities = async (params, res) => {
   } catch (error) {}
 };
 
+const executeGetAllRequestAdvancePymtStatus = async (params, res) => {
+  const { idSystemUser, idLoginHistory, type, idRequestAdvancePymt } = params;
+  try {
+    const request = new sql.Request();
+    request.input(
+      "p_nvcIdRequestAdvancePymt",
+      sql.NVarChar,
+      idRequestAdvancePymt
+    );
+    request.input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser);
+    request.input("p_nvcIdLoginHistory", sql.NVarChar, idLoginHistory);
+    request.input("p_intType", sql.Int, type);
+    request.execute(
+      "catPaymentSch.USPgetAllRequestAdvancePymtStatus",
+      (err, result) => {
+        if (err) {
+          res.status(500).send({ response: "Error en los parametros" });
+        } else {
+          const resultRecordset = result.recordset;
+          res.status(200).send({
+            response: resultRecordset,
+          });
+        }
+      }
+    );
+  } catch (error) {}
+};
+
 const ControllerCatalogs = {
   getAllMaritalStatus: (req, res) => {
     const params = req.body;
@@ -832,6 +855,10 @@ const ControllerCatalogs = {
   getAllCommercialActivities: (req, res) => {
     const params = req.body;
     executeGetAllCommercialActivities(params, res);
+  },
+  getAllRequestAdvancePymtStatus: (req, res) => {
+    const params = req.body;
+    executeGetAllRequestAdvancePymtStatus(params, res);
   },
 };
 

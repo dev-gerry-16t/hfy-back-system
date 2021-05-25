@@ -1463,6 +1463,85 @@ const executeGetDocumentByIdContract = async (params, res, req) => {
   }
 };
 
+const executeGetRequestAdvancePymtById = async (params, res) => {
+  const {
+    idRequestAdvancePymt,
+    idSystemUser,
+    idLoginHistory,
+    offset = GLOBAL_CONSTANTS.OFFSET,
+  } = params;
+  try {
+    const pool = await sql.connect();
+    const result = await pool
+      .request()
+      .input("p_nvcIdRequestAdvancePymt", sql.NVarChar, idRequestAdvancePymt)
+      .input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser)
+      .input("p_nvcIdLoginHistory", sql.NVarChar, idLoginHistory)
+      .input("p_chrOffset", sql.Char, offset)
+      .execute("customerSch.USPgetRequestAdvancePymtById");
+    const resultRecordset = result.recordsets;
+    res.status(200).send({
+      response: resultRecordset,
+    });
+  } catch (err) {
+    res.status(500).send({
+      response: { message: "Error en los parametros", messageType: err },
+    });
+    // ... error checks
+  }
+};
+
+const executeUpdateRequestAdvancePymt = async (params, res, url) => {
+  const {
+    idRequestAdvancePymtStatus,
+    digitalSignature = null,
+    idSystemUser,
+    idLoginHistory,
+    offset = GLOBAL_CONSTANTS.OFFSET,
+  } = params;
+  const { idRequestAdvancePymt } = url;
+  try {
+    const pool = await sql.connect();
+    const result = await pool
+      .request()
+      .input("p_nvcIdRequestAdvancePymt", sql.NVarChar, idRequestAdvancePymt)
+      .input(
+        "p_intIdRequestAdvancePymtStatus",
+        sql.Int,
+        idRequestAdvancePymtStatus
+      )
+      .input("p_nvcDigitalSignature", sql.NVarChar, digitalSignature)
+      .input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser)
+      .input("p_nvcIdLoginHistory", sql.NVarChar, idLoginHistory)
+      .input("p_chrOffset", sql.Char, offset)
+      .execute("customerSch.USPupdateRequestAdvancePymt");
+    const resultRecordset = result.recordset;
+    if (resultRecordset[0].stateCode !== 200) {
+      res.status(resultRecordset[0].stateCode).send({
+        response: { message: resultRecordset[0].message },
+      });
+    } else {
+      resultRecordset.forEach((element) => {
+        if (element.canSendEmail === true) {
+          const configEmailServer = JSON.parse(element.jsonEmailServerConfig);
+          executeMailTo({
+            ...element,
+            ...configEmailServer,
+          });
+        }
+      });
+      res.status(200).send({
+        response: "Solicitud procesada exitosamente",
+      });
+    }
+  } catch (err) {
+    res.status(500).send({
+      response: { message: "Error en los parametros", messageType: err },
+    });
+    // ... error checks
+  }
+};
+
 const executeAddDigitalContractDocument = async (params, res, url) => {
   const {
     idDigitalContract,
@@ -1710,6 +1789,38 @@ const executeGetLegalContractCoincidences = async (params, res) => {
   }
 };
 
+const executeGetRequestAdvancePymtCoincidences = async (params, res) => {
+  const {
+    idSystemUser,
+    idLoginHistory,
+    topIndex,
+    offset = GLOBAL_CONSTANTS.OFFSET,
+  } = params;
+  try {
+    const request = new sql.Request();
+    request.input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser);
+    request.input("p_nvcIdLoginHistory", sql.NVarChar, idLoginHistory);
+    request.input("p_intTopIndex", sql.NVarChar, topIndex);
+    request.input("p_chrOffset", sql.Char, offset);
+    request.execute(
+      "customerSch.USPgetRequestAdvancePymtCoincidences",
+      (err, result) => {
+        if (err) {
+          res.status(500).send({ response: "Error en los parametros" });
+        } else {
+          const resultRecordset = result.recordset;
+          res.status(200).send({
+            response: resultRecordset,
+          });
+        }
+      }
+    );
+  } catch (err) {
+    console.log("ERROR", err);
+    // ... error checks
+  }
+};
+
 const executeSetPersonalReferenceForm = async (params, res, url) => {
   const {
     idRelationshipType,
@@ -1853,6 +1964,15 @@ const ControllerAdmin = {
     const params = req.body;
     executeGetDocumentByIdContract(params, res, req);
   },
+  getRequestAdvancePymtById: (req, res) => {
+    const params = req.body;
+    executeGetRequestAdvancePymtById(params, res, req);
+  },
+  updateRequestAdvancePymt: (req, res) => {
+    const params = req.body;
+    const url = req.params;
+    executeUpdateRequestAdvancePymt(params, res, url);
+  },
   getCustomerAgentCoincidences: (req, res) => {
     const params = req.body;
     executeGetCustomerAgentCoincidences(params, res);
@@ -1865,6 +1985,10 @@ const ControllerAdmin = {
     const params = req.body;
     const url = req.params; //idPersonalReference
     executeSetPersonalReferenceForm(params, res, url);
+  },
+  getRequestAdvancePymtCoincidences: (req, res) => {
+    const params = req.body;
+    executeGetRequestAdvancePymtCoincidences(params, res);
   },
 };
 

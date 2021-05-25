@@ -222,6 +222,10 @@ router.post(
   "/catalogs/getAllCommercialActivities",
   ControllerCatalogs.getAllCommercialActivities
 );
+router.post(
+  "/catalogs/getAllRequestAdvancePymtStatus",
+  ControllerCatalogs.getAllRequestAdvancePymtStatus
+);
 //Catalogos//
 
 //Admin//
@@ -275,6 +279,14 @@ router.post(
   ControllerAdmin.getDocumentByIdContract
 );
 router.post(
+  "/admin/getRequestAdvancePymtById",
+  ControllerAdmin.getRequestAdvancePymtById
+);
+router.put(
+  "/admin/updateRequestAdvancePym/:idRequestAdvancePymt",
+  ControllerAdmin.updateRequestAdvancePymt
+);
+router.post(
   "/admin/getCustomerAgentCoincidences",
   ControllerAdmin.getCustomerAgentCoincidences
 );
@@ -285,6 +297,10 @@ router.post(
 router.put(
   "/admin/setPersonalReferenceForm/:idPersonalReference",
   ControllerAdmin.setPersonalReferenceForm
+);
+router.post(
+  "/admin/getRequestAdvancePymtCoincidences",
+  ControllerAdmin.getRequestAdvancePymtCoincidences
 );
 //Admin//
 
