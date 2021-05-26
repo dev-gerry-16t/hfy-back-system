@@ -70,7 +70,10 @@ router.post(
   "/customer/getRequestAdvancePymtPlan",
   ControllerCustomer.getRequestAdvancePymtPlan
 );
-
+router.post(
+  "/customer/getRequestAdvancePymtProperties",
+  ControllerCustomer.getRequestAdvancePymtProperties
+);
 //Documents//
 router.post("/addDocument", ControllerDocuments.addDocument);
 router.post(

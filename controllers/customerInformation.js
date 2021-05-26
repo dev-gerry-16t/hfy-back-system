@@ -1,6 +1,18 @@
 const sql = require("mssql");
+const AWS = require("aws-sdk");
+const Docxtemplater = require("docxtemplater");
+const PizZip = require("pizzip");
+const isEmpty = require("lodash/isEmpty");
+const isNil = require("lodash/isNil");
 const nodemailer = require("nodemailer");
+const GLOBAL_CONSTANTS = require("../constants/constants");
+const replaceConditionsDocx = require("../actions/conditions");
 const executeMailToV2 = require("../actions/sendInformationUser");
+
+const s3 = new AWS.S3({
+  accessKeyId: GLOBAL_CONSTANTS.ACCESS_KEY_ID,
+  secretAccessKey: GLOBAL_CONSTANTS.SECRET_ACCESS_KEY,
+});
 
 const executeGetCustomerById = async (params, res) => {
   const {
@@ -718,6 +730,155 @@ const executeGetRequestAdvancePymtPlan = async (params, res) => {
   }
 };
 
+const executeAddRequestAdvancePymtDocument = async (params) => {
+  const {
+    idRequestAdvancePymt,
+    idDocument,
+    idSystemUser,
+    idLoginHistory,
+    offset = process.env.OFFSET,
+  } = params;
+  try {
+    const pool = await sql.connect();
+    const result = await pool
+      .request()
+      .input("p_uidIdRequestAdvancePymt", sql.NVarChar, idRequestAdvancePymt)
+      .input("p_nvcIdDocument", sql.NVarChar, idDocument)
+      .input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser)
+      .input("p_nvcIdLoginHistory", sql.NVarChar, idLoginHistory)
+      .input("p_chrOffset", sql.Char, offset)
+      .execute("customerSch.USPaddRequestAdvancePymtDocument");
+    const resultRecordset = result.recordset;
+    return resultRecordset;
+  } catch (err) {
+    throw err;
+  }
+};
+
+const executeAddDocument = async (params) => {
+  const {
+    idCustomer = null,
+    idSystemUser,
+    idLoginHistory,
+    offset = GLOBAL_CONSTANTS.OFFSET,
+    documentName = "Contrato_de_adelanto.docx",
+    extension = "docx",
+    preview = null,
+    thumbnail = null,
+    idDocumentType,
+  } = params;
+  try {
+    const pool = await sql.connect();
+    const result = await pool
+      .request()
+      .input("p_nvcIdCustomer", sql.NVarChar, idCustomer)
+      .input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser)
+      .input("p_nvcIdLoginHistory", sql.NVarChar, idLoginHistory)
+      .input("p_nvcDocumentName", sql.NVarChar, documentName)
+      .input("p_nvcExtension", sql.NVarChar, extension)
+      .input("p_nvcPreview", sql.NVarChar, preview)
+      .input("p_nvcThumbnail", sql.NVarChar, thumbnail)
+      .input("p_chrOffset", sql.Char, offset)
+      .input("p_intIdDocumentType", sql.Int, idDocumentType)
+      .execute("documentSch.USPaddDocument");
+    const resultRecordset = result.recordset;
+    return resultRecordset;
+  } catch (err) {
+    throw err;
+  }
+};
+
+const executeGetRequestAdvancePymtProperties = async (params, res) => {
+  const {
+    idRequestAdvancePymt,
+    idSystemUser,
+    idLoginHistory,
+    offset = process.env.OFFSET,
+    idDocument,
+    idDocumentType,
+    idPreviousDocument,
+    bucketSource,
+  } = params;
+
+  try {
+    const pool = await sql.connect();
+    const result = await pool
+      .request()
+      .input("p_nvcIdRequestAdvancePymt", sql.NVarChar, idRequestAdvancePymt)
+      .input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser)
+      .input("p_nvcIdLoginHistory", sql.NVarChar, idLoginHistory)
+      .input("p_chrOffset", sql.Char, offset)
+      .execute("customerSch.USPgetRequestAdvancePymtProperties");
+    const resultRecordset = result.recordset[0];
+    const bucketSourceS3 = bucketSource.toLowerCase();
+    const file = await s3
+      .getObject({
+        Bucket: bucketSourceS3,
+        Key: idDocument,
+      })
+      .promise();
+    const buff = new Buffer.from(file.Body, "binary");
+    const dataAddDocument = await executeAddDocument({
+      idSystemUser,
+      idLoginHistory,
+      idDocumentType: idDocumentType,
+    });
+    const resultObjectAddDocument = dataAddDocument[0];
+    if (resultObjectAddDocument.stateCode !== 200) {
+      res.status(resultObjectAddDocument.stateCode).send({
+        response: { message: resultObjectAddDocument.message },
+      });
+    } else {
+      const zip = new PizZip(buff);
+      let doc;
+      doc = await new Docxtemplater(zip, {
+        parser: replaceConditionsDocx,
+        nullGetter: () => {
+          return "";
+        },
+      });
+      await doc.setData(resultRecordset);
+      await doc.render();
+      const fileDocument = await doc.getZip().generate({ type: "nodebuffer" });
+      const bucketSorceData =
+        isNil(resultObjectAddDocument) === false &&
+        isNil(resultObjectAddDocument.bucketSource) === false
+          ? resultObjectAddDocument.bucketSource.toLowerCase()
+          : bucketSource.toLowerCase();
+      const idDocumentData = resultObjectAddDocument.idDocument;
+      const params2 = {
+        Bucket: bucketSorceData,
+        Key: idDocumentData,
+        Body: fileDocument,
+      };
+      await executeAddRequestAdvancePymtDocument({
+        idRequestAdvancePymt: resultRecordset.idRequestAdvancePymt,
+        idSystemUser,
+        idLoginHistory,
+        idDocument: idDocumentData,
+      });
+      await s3.upload(params2).promise();
+      if (isNil(idPreviousDocument) === false) {
+        const params1 = {
+          Bucket: bucketSourceS3,
+          Key: idPreviousDocument,
+        };
+        await s3.deleteObject(params1).promise();
+      }
+      res.status(200).send({
+        response: {
+          url: `/api/viewFilesDocx/${idDocumentData}/${bucketSorceData}`,
+          fullNameTenant: resultRecordset.nvcCustomerFullName,
+        },
+      });
+    }
+  } catch (error) {
+    res.status(500).send({
+      response: { message: "Error en la petición", messageType: error },
+    });
+  }
+};
+
 const ControllerCustomer = {
   getCustomerById: (req, res) => {
     const params = req.body;
@@ -793,6 +954,10 @@ const ControllerCustomer = {
   getRequestAdvancePymtPlan: (req, res) => {
     const params = req.body;
     executeGetRequestAdvancePymtPlan(params, res);
+  },
+  getRequestAdvancePymtProperties: (req, res) => {
+    const params = req.body;
+    executeGetRequestAdvancePymtProperties(params, res);
   },
 };
 
