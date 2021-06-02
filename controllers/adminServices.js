@@ -1491,6 +1491,72 @@ const executeGetRequestAdvancePymtById = async (params, res) => {
   }
 };
 
+const executeGetRequestAdvancePymtPlan = async (params) => {
+  const {
+    idRequestAdvancePymt,
+    idSystemUser,
+    idLoginHistory,
+    offset = GLOBAL_CONSTANTS.OFFSET,
+  } = params;
+  try {
+    const pool = await sql.connect();
+    const result = await pool
+      .request()
+      .input("p_nvcIdRequestAdvancePymt", sql.NVarChar, idRequestAdvancePymt)
+      .input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser)
+      .input("p_nvcIdLoginHistory", sql.NVarChar, idLoginHistory)
+      .input("p_chrOffset", sql.Char, offset)
+      .execute("pymtGwSch.USPgetRequestAdvancePymtPlan");
+    const resultRecordset = result.recordsets;
+    const generalData = resultRecordset[0][0];
+    const generalPrice = resultRecordset[1][0];
+    console.log("resultRecordset", resultRecordset);
+    const product = await stripe.products.create({
+      name: generalData.productName,
+    });
+
+    // const dataPrice = await Promise.all(
+    //   generalPrice.map(async (row, ix) => {
+    //     const price = await stripe.prices.create({
+    //       product: product.id,
+    //       unit_amount: row.unit_amount,
+    //       currency: row.currency,
+    //     });
+    //     return { price: price.id };
+    //   })
+    // );
+
+    const dataPrice = await stripe.prices.create({
+      product: product.id,
+      unit_amount: generalPrice.unit_amount,
+      currency: generalPrice.currency,
+      recurring: {
+        interval: "month",
+        interval_count: 3,
+      },
+    });
+
+    const customer = await stripe.customers.create({
+      email: generalData.emailAddress,
+    });
+    const subscription = await stripe.subscriptions.create(
+      {
+        customer: customer.id,
+        items: [{ price: dataPrice.id }],
+      },
+      {
+        stripeAccount: generalData.idConnectAccount,
+      }
+    );
+    console.log("subscription", subscription);
+  } catch (err) {
+    res.status(500).send({
+      response: { message: "Error en los parametros", messageType: err },
+    });
+    // ... error checks
+  }
+};
+
 const executeUpdateRequestAdvancePymt = async (params, res, url) => {
   const {
     idRequestAdvancePymtStatus,
@@ -1530,6 +1596,15 @@ const executeUpdateRequestAdvancePymt = async (params, res, url) => {
           });
         }
       });
+      // if (
+      //   resultRecordset[0].shouldPlanBeCreated === true ||
+      //   resultRecordset[0].shouldPlanBeCreated === 1
+      // ) {
+      //   executeGetRequestAdvancePymtPlan({
+      //     ...params,
+      //     idRequestAdvancePymt,
+      //   });
+      // }
       res.status(200).send({
         response: "Solicitud procesada exitosamente",
       });
