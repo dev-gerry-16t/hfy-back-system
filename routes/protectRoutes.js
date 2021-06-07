@@ -74,6 +74,15 @@ router.post(
   "/customer/getRequestAdvancePymtProperties",
   ControllerCustomer.getRequestAdvancePymtProperties
 );
+router.put(
+  "/customer/updateInvitation/:idInvitation",
+  ControllerCustomer.updateInvitation
+);
+router.post(
+  "/customer/getPropertyCoincidences",
+  ControllerCustomer.getPropertyCoincidences
+);
+
 //Documents//
 router.post("/addDocument", ControllerDocuments.addDocument);
 router.post(
@@ -129,6 +138,10 @@ router.post(
 router.post(
   "/typeForm/getTypeFormProperties",
   ControllerTypeForm.getTypeFormProperties
+);
+router.post(
+  "/typeForm/validateTypeFormProperties",
+  ControllerTypeForm.validateTypeFormProperties
 );
 //TypeForm//
 

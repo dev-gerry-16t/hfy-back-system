@@ -576,6 +576,8 @@ const executeSendTenantInvitation = async (params, res) => {
     idApartment,
     idPersonType,
     givenName,
+    lastName,
+    mothersMaidenName,
     email,
     offset = process.env.OFFSET,
   } = params;
@@ -587,6 +589,8 @@ const executeSendTenantInvitation = async (params, res) => {
     request.input("p_nvcIdApartment", sql.NVarChar, idApartment);
     request.input("p_intIdPersonType", sql.Int, idPersonType);
     request.input("p_nvcGivenName", sql.NVarChar, givenName);
+    request.input("p_nvcLastName", sql.NVarChar, lastName);
+    request.input("p_nvcMothersMaidenName", sql.NVarChar, mothersMaidenName);
     request.input("p_nvcEmailAddress", sql.NVarChar, email);
     request.input("p_chrOffset", sql.Char, offset);
     request.execute(
@@ -699,6 +703,59 @@ const executeGetAgentCommissionChart = async (params, res) => {
   }
 };
 
+const executeUpdateInvitation = async (params, res, url) => {
+  const {
+    idSystemUser,
+    idLoginHistory,
+    isActive,
+    requestResend,
+    offset = process.env.OFFSET,
+  } = params;
+  const { idInvitation } = url;
+  try {
+    const pool = await sql.connect();
+    const result = await pool
+      .request()
+      .input("p_nvcIdInvitation", sql.NVarChar, idInvitation)
+      .input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser)
+      .input("p_nvcIdLoginHistory", sql.NVarChar, idLoginHistory)
+      .input("p_bitIsActive", sql.Bit, isActive)
+      .input("p_bitRequestResend", sql.Bit, requestResend)
+      .input("p_chrOffset", sql.Char, offset)
+      .execute("customerSch.USPupdateInvitation");
+    const resultRecordset = result.recordset;
+    if (resultRecordset[0].stateCode !== 200) {
+      res.status(resultRecordset[0].stateCode).send({
+        response: { message: resultRecordset[0].message },
+      });
+    } else {
+      result.recordset.forEach((element) => {
+        if (element.canSendEmail === true) {
+          const configEmailServer = JSON.parse(element.jsonEmailServerConfig);
+          executeMailToV2({
+            ...element,
+            ...configEmailServer,
+          });
+        }
+      });
+      res.status(200).send({
+        response: {
+          idInvitation: resultRecordset[0].idInvitation,
+          message: resultRecordset[0].message,
+        },
+      });
+    }
+  } catch (err) {
+    console.log("err", err);
+    res.status(500).send({
+      response: {
+        message: "No se pudo procesar tu solicitud",
+        messageType: err,
+      },
+    });
+  }
+};
+
 const executeGetRequestAdvancePymtPlan = async (params, res) => {
   const {
     idCustomer,
@@ -726,6 +783,39 @@ const executeGetRequestAdvancePymtPlan = async (params, res) => {
   } catch (error) {
     res.status(500).send({
       response: { message: "Error en la petición", messageType: error },
+    });
+  }
+};
+
+const executeGetPropertyCoincidences = async (params, res) => {
+  const {
+    idCustomer,
+    idSystemUser,
+    idLoginHistory,
+    topIndex,
+    offset = process.env.OFFSET,
+  } = params;
+  try {
+    const pool = await sql.connect();
+    const result = await pool
+      .request()
+      .input("p_nvcIdCustomer", sql.NVarChar, idCustomer)
+      .input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser)
+      .input("p_nvcIdLoginHistory", sql.NVarChar, idLoginHistory)
+      .input("p_intTopIndex", sql.Int, topIndex)
+      .input("p_chrOffset", sql.Char, offset)
+      .execute("customerSch.USPgetPropertyCoincidences");
+    const resultRecordset = result.recordset;
+    res.status(200).send({
+      response: resultRecordset,
+    });
+  } catch (err) {
+    console.log("err", err);
+    res.status(500).send({
+      response: {
+        message: "No se pudo procesar tu solicitud",
+        messageType: err,
+      },
     });
   }
 };
@@ -958,6 +1048,15 @@ const ControllerCustomer = {
   getRequestAdvancePymtProperties: (req, res) => {
     const params = req.body;
     executeGetRequestAdvancePymtProperties(params, res);
+  },
+  updateInvitation: (req, res) => {
+    const params = req.body;
+    const url = req.params;
+    executeUpdateInvitation(params, res, url);
+  },
+  getPropertyCoincidences: (req, res) => {
+    const params = req.body;
+    executeGetPropertyCoincidences(params, res);
   },
 };
 

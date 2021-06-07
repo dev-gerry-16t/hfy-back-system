@@ -546,7 +546,10 @@ const executeSetTypeForm = async (params, res) => {
             }
           });
           res.status(200).send({
-            response: "Solicitud procesada exitosamente",
+            response: {
+              message: "Solicitud procesada exitosamente",
+              isCompleted: resultRecordset[0].isCompleted,
+            },
           });
         }
       }
@@ -791,7 +794,10 @@ const executeSetTypeFormOwner = async (params, res) => {
             }
           });
           res.status(200).send({
-            response: "Solicitud procesada exitosamente",
+            response: {
+              message: "Solicitud procesada exitosamente",
+              isCompleted: resultRecordset[0].isCompleted,
+            },
           });
         }
       }
@@ -858,6 +864,30 @@ const executeAddTypeFormDocument = async (params, res, url) => {
   }
 };
 
+const executeValidateTypeFormProperties = async (params, res) => {
+  const { idTypeForm, idSystemUser, idLoginHistory, stepIn, jsonProperties } =
+    params;
+  try {
+    const pool = await sql.connect();
+    const result = await pool
+      .request()
+      .input("p_nvcIdTypeForm", sql.NVarChar, idTypeForm)
+      .input("p_nvcJsonProperties", sql.NVarChar, jsonProperties)
+      .input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser)
+      .input("p_nvcIdLoginHistory", sql.NVarChar, idLoginHistory)
+      .input("p_intStepIn", sql.Int, stepIn)
+      .execute("customerSch.USPvalidateTypeFormProperties");
+    const resultRecordset = result.recordset;
+    res.status(200).send({
+      response: resultRecordset,
+    });
+  } catch (err) {
+    res.status(500).send({
+      response: { message: "Error en los parametros", messageType: err },
+    });
+  }
+};
+
 const ControllerTypeForm = {
   getTypeForm: (req, res) => {
     const params = req.body;
@@ -887,6 +917,10 @@ const ControllerTypeForm = {
   getTypeFormProperties: (req, res) => {
     const params = req.body;
     executeGetTypeFormProperties(params, res);
+  },
+  validateTypeFormProperties: (req, res) => {
+    const params = req.body;
+    executeValidateTypeFormProperties(params, res);
   },
 };
 
