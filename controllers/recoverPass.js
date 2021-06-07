@@ -58,7 +58,7 @@ const executeRequestRecoveryPass = async (params, res) => {
             res
           );
         } else if (resultRecorset.canSendEmail === false) {
-          res.status(500).send({ result: resultRecorset200 });
+          res.status(200).send({ result: resultRecorset });
         }
       }
     });
@@ -69,7 +69,11 @@ const executeRequestRecoveryPass = async (params, res) => {
 };
 
 const executeVerifyCodeRecoveryPass = async (param, res) => {
-  const { idRequestRecoveryPassword, code, offset = process.env.OFFSET } = param;
+  const {
+    idRequestRecoveryPassword,
+    code,
+    offset = process.env.OFFSET,
+  } = param;
   try {
     const request = new sql.Request();
     request.input(
