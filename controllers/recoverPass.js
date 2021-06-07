@@ -58,7 +58,7 @@ const executeRequestRecoveryPass = async (params, res) => {
             res
           );
         } else if (resultRecorset.canSendEmail === false) {
-          res.status(500).send({ result: resultRecorset200 });
+          res.status(200).send({ result: resultRecorset });
         }
       }
     });
