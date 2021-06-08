@@ -170,7 +170,12 @@ const executeRequestSignUpPSU = async (param, res) => {
     request.input("p_nvcIdInvitation", sql.NVarChar, idInvitation);
     request.execute("authSch.USPrequestSignUp", async (err, result, value) => {
       if (err) {
-        res.status(500).send({});
+        res.status(500).send({
+          response: {
+            message: "Error en el sistema",
+            messageType: `${err}`,
+          },
+        });
       } else {
         const resultRecordset = result.recordset[0];
         if (resultRecordset.stateCode !== 200) {
