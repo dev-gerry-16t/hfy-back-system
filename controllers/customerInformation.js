@@ -756,6 +756,70 @@ const executeUpdateInvitation = async (params, res, url) => {
   }
 };
 
+const executeUpdateCustomerLoan = async (params, res, url) => {
+  const {
+    idCustomerTenant,
+    isAccepted,
+    idBank,
+    clabeNumber,
+    accountHolder,
+    digitalSignature,
+    idSystemUser,
+    idLoginHistory,
+    offset = process.env.OFFSET,
+  } = params;
+  const { idContract } = url;
+  try {
+    const pool = await sql.connect();
+    const result = await pool
+      .request()
+      .input("p_nvcIdCustomerTenant", sql.NVarChar, idCustomerTenant)
+      .input("p_nvcIdContract", sql.NVarChar, idContract)
+      .input("p_bitIsAccepted", sql.Bit, isAccepted)
+      .input("p_nvcIdBank", sql.NVarChar, idBank)
+      .input("p_nvcClabeNumber", sql.NVarChar, clabeNumber)
+      .input("p_nvcAccountHolder", sql.NVarChar, accountHolder)
+      .input("p_nvcDigitalSignature", sql.NVarChar, digitalSignature)
+      .input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser)
+      .input("p_nvcIdLoginHistory", sql.NVarChar, idLoginHistory)
+      .input("p_chrOffset", sql.Char, offset)
+      .execute("customerSch.USPupdateCustomerLoan");
+    const resultRecordset = result.recordset;
+    if (resultRecordset[0].stateCode !== 200) {
+      res.status(resultRecordset[0].stateCode).send({
+        response: {
+          message: resultRecordset[0].message,
+          errorMessage: resultRecordset[0].errorMessage,
+        },
+      });
+    } else {
+      // result.recordset.forEach((element) => {
+      //   if (element.canSendEmail === true) {
+      //     const configEmailServer = JSON.parse(element.jsonEmailServerConfig);
+      //     executeMailToV2({
+      //       ...element,
+      //       ...configEmailServer,
+      //     });
+      //   }
+      // });
+      res.status(200).send({
+        response: {
+          idContract: resultRecordset[0].idContract,
+          message: resultRecordset[0].message,
+        },
+      });
+    }
+  } catch (err) {
+    console.log("err", err);
+    res.status(500).send({
+      response: {
+        message: "No se pudo procesar tu solicitud",
+        messageType: `${err}`,
+      },
+    });
+  }
+};
+
 const executeGetRequestAdvancePymtPlan = async (params, res) => {
   const {
     idCustomer,
@@ -838,6 +902,31 @@ const executeAddRequestAdvancePymtDocument = async (params) => {
       .input("p_nvcIdLoginHistory", sql.NVarChar, idLoginHistory)
       .input("p_chrOffset", sql.Char, offset)
       .execute("customerSch.USPaddRequestAdvancePymtDocument");
+    const resultRecordset = result.recordset;
+    return resultRecordset;
+  } catch (err) {
+    throw err;
+  }
+};
+
+const executeAddLoanDocument = async (params) => {
+  const {
+    idContract,
+    idDocument,
+    idSystemUser,
+    idLoginHistory,
+    offset = process.env.OFFSET,
+  } = params;
+  try {
+    const pool = await sql.connect();
+    const result = await pool
+      .request()
+      .input("p_nvcIdContract", sql.NVarChar, idContract)
+      .input("p_nvcIdDocument", sql.NVarChar, idDocument)
+      .input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser)
+      .input("p_nvcIdLoginHistory", sql.NVarChar, idLoginHistory)
+      .input("p_chrOffset", sql.Char, offset)
+      .execute("customerSch.USPaddLoanDocument");
     const resultRecordset = result.recordset;
     return resultRecordset;
   } catch (err) {
@@ -969,6 +1058,128 @@ const executeGetRequestAdvancePymtProperties = async (params, res) => {
   }
 };
 
+const executeGetCustomerLoan = async (params, res) => {
+  const {
+    idContract,
+    idSystemUser,
+    idLoginHistory,
+    offset = process.env.OFFSET,
+  } = params;
+  try {
+    const pool = await sql.connect();
+    const result = await pool
+      .request()
+      .input("p_nvcIdContract", sql.NVarChar, idContract)
+      .input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser)
+      .input("p_nvcIdLoginHistory", sql.NVarChar, idLoginHistory)
+      .input("p_chrOffset", sql.Char, offset)
+      .execute("customerSch.USPgetCustomerLoan");
+    const resultRecordset = result.recordset;
+    res.status(200).send({
+      response: resultRecordset,
+    });
+  } catch (err) {
+    console.log("err", err);
+    res.status(500).send({
+      response: {
+        message: "No se pudo procesar tu solicitud",
+        messageType: `${err}`,
+      },
+    });
+  }
+};
+
+const executeGetCustomerLoanProperties = async (params, res) => {
+  const {
+    idContract,
+    idSystemUser,
+    idLoginHistory,
+    offset = process.env.OFFSET,
+    idDocument,
+    idDocumentType,
+    idPreviousDocument,
+    bucketSource,
+  } = params;
+
+  try {
+    const pool = await sql.connect();
+    const result = await pool
+      .request()
+      .input("p_nvcIdContract", sql.NVarChar, idContract)
+      .input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser)
+      .input("p_nvcIdLoginHistory", sql.NVarChar, idLoginHistory)
+      .input("p_chrOffset", sql.Char, offset)
+      .execute("customerSch.USPgetCustomerLoanProperties");
+    const resultRecordset = result.recordset[0];
+    const bucketSourceS3 = bucketSource.toLowerCase();
+    const file = await s3
+      .getObject({
+        Bucket: bucketSourceS3,
+        Key: idDocument,
+      })
+      .promise();
+    const buff = new Buffer.from(file.Body, "binary");
+    const dataAddDocument = await executeAddDocument({
+      idSystemUser,
+      idLoginHistory,
+      idDocumentType: idDocumentType,
+    });
+    const resultObjectAddDocument = dataAddDocument[0];
+    if (resultObjectAddDocument.stateCode !== 200) {
+      res.status(resultObjectAddDocument.stateCode).send({
+        response: { message: resultObjectAddDocument.message },
+      });
+    } else {
+      const zip = new PizZip(buff);
+      let doc;
+      doc = await new Docxtemplater(zip, {
+        parser: replaceConditionsDocx,
+        nullGetter: () => {
+          return "";
+        },
+      });
+      await doc.setData(resultRecordset);
+      await doc.render();
+      const fileDocument = await doc.getZip().generate({ type: "nodebuffer" });
+      const bucketSorceData =
+        isNil(resultObjectAddDocument) === false &&
+        isNil(resultObjectAddDocument.bucketSource) === false
+          ? resultObjectAddDocument.bucketSource.toLowerCase()
+          : bucketSource.toLowerCase();
+      const idDocumentData = resultObjectAddDocument.idDocument;
+      const params2 = {
+        Bucket: bucketSorceData,
+        Key: idDocumentData,
+        Body: fileDocument,
+      };
+      await executeAddLoanDocument({
+        idContract: idContract,
+        idSystemUser,
+        idLoginHistory,
+        idDocument: idDocumentData,
+      });
+      await s3.upload(params2).promise();
+      if (isNil(idPreviousDocument) === false) {
+        const params1 = {
+          Bucket: bucketSourceS3,
+          Key: idPreviousDocument,
+        };
+        await s3.deleteObject(params1).promise();
+      }
+      res.status(200).send({
+        response: {
+          url: `/api/viewFilesDocx/${idDocumentData}/${bucketSorceData}`,
+          fullNameTenant: resultRecordset.nvcCustomerTenantFullName,
+        },
+      });
+    }
+  } catch (error) {
+    res.status(500).send({
+      response: { message: "Error en la petición", messageType: `${error}` },
+    });
+  }
+};
+
 const ControllerCustomer = {
   getCustomerById: (req, res) => {
     const params = req.body;
@@ -1057,6 +1268,19 @@ const ControllerCustomer = {
   getPropertyCoincidences: (req, res) => {
     const params = req.body;
     executeGetPropertyCoincidences(params, res);
+  },
+  getCustomerLoan: (req, res) => {
+    const params = req.body;
+    executeGetCustomerLoan(params, res);
+  },
+  updateCustomerLoan: (req, res) => {
+    const params = req.body;
+    const url = req.params;
+    executeUpdateCustomerLoan(params, res, url);
+  },
+  getCustomerLoanProperties: (req, res) => {
+    const params = req.body;
+    executeGetCustomerLoanProperties(params, res);
   },
 };
 

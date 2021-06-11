@@ -78,9 +78,18 @@ router.put(
   "/customer/updateInvitation/:idInvitation",
   ControllerCustomer.updateInvitation
 );
+router.put(
+  "/customer/updateCustomerLoan/:idContract",
+  ControllerCustomer.updateCustomerLoan
+);
 router.post(
   "/customer/getPropertyCoincidences",
   ControllerCustomer.getPropertyCoincidences
+);
+router.post("/customer/getCustomerLoan", ControllerCustomer.getCustomerLoan);
+router.post(
+  "/customer/getCustomerLoanProperties",
+  ControllerCustomer.getCustomerLoanProperties
 );
 
 //Documents//

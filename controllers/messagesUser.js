@@ -25,17 +25,32 @@ const executeAddCustomerMessage = async (params, res) => {
     request.input("p_chrOffset", sql.Char, offset);
     request.execute("comSch.USPaddCustomerMessage", (err, result) => {
       if (err) {
-        res.status(500).send({ response: "Error en los parametros" });
+        res.status(500).send({
+          response: {
+            message: "Error en los parametros",
+            messageType: `${err}`,
+          },
+        });
       } else {
         const resultRecordset = result.recordset;
-        res.status(200).send({
-          response: resultRecordset,
-        });
+        console.log("resultRecordset", resultRecordset);
+        if (resultRecordset[0].stateCode !== 200) {
+          res.status(resultRecordset[0].stateCode).send({
+            response: { message: resultRecordset[0].message },
+          });
+        } else {
+          res.status(200).send({
+            response: resultRecordset,
+          });
+        }
       }
     });
   } catch (err) {
     console.log("ERROR", err);
     // ... error checks
+    res.status(500).send({
+      response: { message: "Error en el sistema", messageType: `${err}` },
+    });
   }
 };
 
@@ -67,6 +82,9 @@ const executeGetNotifications = async (params, res) => {
   } catch (err) {
     console.log("ERROR", err);
     // ... error checks
+    res.status(500).send({
+      response: { message: "Error en el sistema", messageType: `${err}` },
+    });
   }
 };
 
@@ -92,6 +110,9 @@ const executeUpdateNotifications = async (params, res, url) => {
   } catch (err) {
     console.log("ERROR", err);
     // ... error checks
+    res.status(500).send({
+      response: { message: "Error en el sistema", messageType: `${err}` },
+    });
   }
 };
 
@@ -127,6 +148,9 @@ const executeGetCustomerMessage = async (params, res) => {
   } catch (err) {
     console.log("ERROR", err);
     // ... error checks
+    res.status(500).send({
+      response: { message: "Error en el sistema", messageType: `${err}` },
+    });
   }
 };
 
