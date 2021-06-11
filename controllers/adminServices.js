@@ -1336,7 +1336,6 @@ const executeGetDocumentByIdContract = async (params, res, req) => {
       .input("p_chrOffset", sql.Char, offset)
       .input("p_intType", sql.Int, type)
       .execute("customerSch.USPgetDocumentByIdContract");
-
     const resultRecordset = result.recordset;
 
     if (download === true) {
@@ -1956,6 +1955,53 @@ const executeSetPersonalReferenceForm = async (params, res, url) => {
   }
 };
 
+const executeUpdateProspectInvitation = async (params, res, url) => {
+  const {
+    isActive,
+    requestResend,
+    idSystemUser,
+    idLoginHistory,
+    offset = GLOBAL_CONSTANTS.OFFSET,
+  } = params;
+  const { idProspect } = url;
+  try {
+    const pool = await sql.connect();
+    const result = await pool
+      .request()
+      .input("p_nvcIdProspect", sql.NVarChar, idProspect)
+      .input("p_bitIsActive", sql.Bit, isActive)
+      .input("p_bitRequestResend", sql.Bit, requestResend)
+      .input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser)
+      .input("p_nvcIdLoginHistory", sql.NVarChar, idLoginHistory)
+      .input("p_chrOffset", sql.Char, offset)
+      .execute("customerSch.USPupdateProspectInvitation");
+    const resultRecordset = result.recordset;
+    if (resultRecordset[0].stateCode !== 200) {
+      res.status(resultRecordset[0].stateCode).send({
+        response: { message: resultRecordset[0].message },
+      });
+    } else {
+      resultRecordset.forEach((element) => {
+        if (element.canSendEmail === true) {
+          const configEmailServer = JSON.parse(element.jsonEmailServerConfig);
+          executeMailTo({
+            ...element,
+            ...configEmailServer,
+          });
+        }
+      });
+      res.status(200).send({
+        response: "Solicitud procesada exitosamente",
+      });
+    }
+  } catch (err) {
+    res.status(500).send({
+      response: { message: "Error en los parametros", messageType: `${err}` },
+    });
+    // ... error checks
+  }
+};
+
 const ControllerAdmin = {
   getContractStats: (req, res) => {
     const params = req.body;
@@ -2064,6 +2110,11 @@ const ControllerAdmin = {
   getRequestAdvancePymtCoincidences: (req, res) => {
     const params = req.body;
     executeGetRequestAdvancePymtCoincidences(params, res);
+  },
+  updateProspectInvitation: (req, res) => {
+    const params = req.body;
+    const url = req.params; //idProspect
+    executeUpdateProspectInvitation(params, res, url);
   },
 };
 

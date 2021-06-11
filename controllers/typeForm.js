@@ -865,8 +865,14 @@ const executeAddTypeFormDocument = async (params, res, url) => {
 };
 
 const executeValidateTypeFormProperties = async (params, res) => {
-  const { idTypeForm, idSystemUser, idLoginHistory, stepIn, jsonProperties } =
-    params;
+  const {
+    idTypeForm,
+    idSystemUser,
+    idLoginHistory,
+    stepIn,
+    jsonProperties,
+    idContract,
+  } = params;
   try {
     const pool = await sql.connect();
     const result = await pool
@@ -876,6 +882,7 @@ const executeValidateTypeFormProperties = async (params, res) => {
       .input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser)
       .input("p_nvcIdLoginHistory", sql.NVarChar, idLoginHistory)
       .input("p_intStepIn", sql.Int, stepIn)
+      .input("p_uidIdContract", sql.NVarChar, idContract)
       .execute("customerSch.USPvalidateTypeFormProperties");
     const resultRecordset = result.recordset;
     res.status(200).send({

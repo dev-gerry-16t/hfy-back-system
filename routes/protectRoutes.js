@@ -327,6 +327,10 @@ router.post(
   "/admin/getRequestAdvancePymtCoincidences",
   ControllerAdmin.getRequestAdvancePymtCoincidences
 );
+router.put(
+  "/admin/updateProspectInvitation/:idProspect",
+  ControllerAdmin.updateProspectInvitation
+);
 //Admin//
 
 // Lead//
