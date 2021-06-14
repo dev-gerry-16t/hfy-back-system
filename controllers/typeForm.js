@@ -20,7 +20,14 @@ const executeGetTypeForm = async (params, res) => {
     request.input("p_chrOffset", sql.Char, offset);
     request.execute("customerSch.USPgetTypeForm", (err, result) => {
       if (err) {
-        res.status(500).send({ response: "Error en los parametros" });
+        res
+          .status(500)
+          .send({
+            response: {
+              message: "Error en los parametros",
+              messageType: `${err}`,
+            },
+          });
       } else {
         const resultRecordset1 = result.recordsets[0];
         const resultRecordset2 = result.recordsets[1];
