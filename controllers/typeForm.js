@@ -20,14 +20,12 @@ const executeGetTypeForm = async (params, res) => {
     request.input("p_chrOffset", sql.Char, offset);
     request.execute("customerSch.USPgetTypeForm", (err, result) => {
       if (err) {
-        res
-          .status(500)
-          .send({
-            response: {
-              message: "Error en los parametros",
-              messageType: `${err}`,
-            },
-          });
+        res.status(500).send({
+          response: {
+            message: "Error en los parametros",
+            messageType: `${err}`,
+          },
+        });
       } else {
         const resultRecordset1 = result.recordsets[0];
         const resultRecordset2 = result.recordsets[1];
@@ -289,6 +287,8 @@ const executeSetTypeForm = async (params, res) => {
     otherIncomesDescription = null,
     currentRent = null,
     endorsementTaxId = null,
+    isCCAccepted = null,
+    ccDigitalSignature = null,
   } = params;
 
   try {
@@ -531,6 +531,8 @@ const executeSetTypeForm = async (params, res) => {
       otherIncomesDescription
     );
     request.input("p_nvcEndorsementTaxId", sql.NVarChar, endorsementTaxId);
+    request.input("p_bitIsCCAccepted", sql.Bit, isCCAccepted);
+    request.input("p_vchCCDigitalSignature", sql.VarChar, ccDigitalSignature);
     request.execute("customerSch.USPsetTypeForm", (err, result) => {
       if (err) {
         res.status(500).send({ response: "Error en los parametros" });
@@ -556,6 +558,8 @@ const executeSetTypeForm = async (params, res) => {
             response: {
               message: "Solicitud procesada exitosamente",
               isCompleted: resultRecordset[0].isCompleted,
+              shouldCustomerBeAnalyzed:
+                resultRecordset[0].shouldCustomerBeAnalyzed,
             },
           });
         }
@@ -804,6 +808,8 @@ const executeSetTypeFormOwner = async (params, res) => {
             response: {
               message: "Solicitud procesada exitosamente",
               isCompleted: resultRecordset[0].isCompleted,
+              shouldCustomerBeAnalyzed:
+                resultRecordset[0].shouldCustomerBeAnalyzed,
             },
           });
         }
