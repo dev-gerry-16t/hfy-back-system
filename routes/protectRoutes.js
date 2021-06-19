@@ -91,6 +91,10 @@ router.post(
   "/customer/getCustomerLoanProperties",
   ControllerCustomer.getCustomerLoanProperties
 );
+router.post(
+  "/customer/getDispersionOrder",
+  ControllerCustomer.getDispersionOrder
+);
 
 //Documents//
 router.post("/addDocument", ControllerDocuments.addDocument);

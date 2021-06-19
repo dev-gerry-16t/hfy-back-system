@@ -8,6 +8,8 @@ const nodemailer = require("nodemailer");
 const GLOBAL_CONSTANTS = require("../constants/constants");
 const replaceConditionsDocx = require("../actions/conditions");
 const executeMailToV2 = require("../actions/sendInformationUser");
+const CryptoHandler = require("../actions/cryptoHandler");
+const rp = require("request-promise");
 
 const s3 = new AWS.S3({
   accessKeyId: GLOBAL_CONSTANTS.ACCESS_KEY_ID,
@@ -1180,6 +1182,71 @@ const executeGetCustomerLoanProperties = async (params, res) => {
   }
 };
 
+const executeGetDispersionOrder = async (params, res) => {
+  const {
+    idContract,
+    idSystemUser,
+    idLoginHistory,
+    offset = process.env.OFFSET,
+  } = params;
+  try {
+    // const pool = await sql.connect();
+    // const result = await pool
+    //   .request()
+    //   .input("p_nvcIdContract", sql.NVarChar, idContract)
+    //   .input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser)
+    //   .input("p_nvcIdLoginHistory", sql.NVarChar, idLoginHistory)
+    //   .input("p_chrOffset", sql.Char, offset)
+    //   .execute("stpSch.USPgetDispersionOrder");
+    // const resultRecordset = result.recordset;
+    // res.status(200).send({
+    //   response: resultRecordset,
+    // });
+    const result = {
+      institucionContraparte: "846",
+      empresa: "XXXXXX",
+      fechaOperacion: "",
+      folioOrigen: "",
+      claveRastreo: "123456789",
+      institucionOperante: "90646",
+      monto: 11.35,
+      tipoPago: "",
+      tipoCuentaOrdenante: "",
+      nombreOrdenante: "",
+      cuentaOrdenante: "646180123412345678",
+      rfcCurpOrdenante: "",
+      tipoCuentaBeneficiario: "41",
+      nombreBeneficiario: "S.A. de C.V.",
+      cuentaBeneficiario: "846180000000000016",
+      rfcCurpBeneficiario: "",
+      conceptoPago: "Prueba REST",
+      referenciaNumerica: "123456",
+    };
+    const crypto = new CryptoHandler(result, "android");
+    const orderPay = { ...result, firma: crypto.getSign() };
+    const response = await rp({
+      url: "https://demo.stpmex.com:7024/speiws/rest/ordenPago/registra",
+      method: "PUT",
+      headers: {
+        encoding: "UTF-8",
+        "content-type": "application/json",
+      },
+      json: true,
+      body: orderPay,
+      rejectUnauthorized: false,
+    });
+    console.log('response',response);
+    res.status(200).send(orderPay);
+  } catch (err) {
+    res.status(500).send({
+      response: {
+        message: "No se pudo procesar tu solicitud",
+        messageType: `${err}`,
+      },
+    });
+  }
+};
+
 const ControllerCustomer = {
   getCustomerById: (req, res) => {
     const params = req.body;
@@ -1281,6 +1348,10 @@ const ControllerCustomer = {
   getCustomerLoanProperties: (req, res) => {
     const params = req.body;
     executeGetCustomerLoanProperties(params, res);
+  },
+  getDispersionOrder: (req, res) => {
+    const params = req.body;
+    executeGetDispersionOrder(params, res);
   },
 };
 
