@@ -5,11 +5,12 @@ const PizZip = require("pizzip");
 const isEmpty = require("lodash/isEmpty");
 const isNil = require("lodash/isNil");
 const nodemailer = require("nodemailer");
+const rp = require("request-promise");
 const GLOBAL_CONSTANTS = require("../constants/constants");
 const replaceConditionsDocx = require("../actions/conditions");
 const executeMailToV2 = require("../actions/sendInformationUser");
 const CryptoHandler = require("../actions/cryptoHandler");
-const rp = require("request-promise");
+const { executeSetDispersionOrder } = require("../actions/setDataSpeiCollect");
 
 const s3 = new AWS.S3({
   accessKeyId: GLOBAL_CONSTANTS.ACCESS_KEY_ID,
@@ -1183,60 +1184,76 @@ const executeGetCustomerLoanProperties = async (params, res) => {
 };
 
 const executeGetDispersionOrder = async (params, res) => {
-  const {
-    idContract,
-    idSystemUser,
-    idLoginHistory,
-    offset = process.env.OFFSET,
-  } = params;
+  const offset = process.env.OFFSET;
   try {
-    // const pool = await sql.connect();
-    // const result = await pool
-    //   .request()
-    //   .input("p_nvcIdContract", sql.NVarChar, idContract)
-    //   .input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser)
-    //   .input("p_nvcIdLoginHistory", sql.NVarChar, idLoginHistory)
-    //   .input("p_chrOffset", sql.Char, offset)
-    //   .execute("stpSch.USPgetDispersionOrder");
-    // const resultRecordset = result.recordset;
-    // res.status(200).send({
-    //   response: resultRecordset,
-    // });
-    const result = {
-      institucionContraparte: "846",
-      empresa: "XXXXXX",
-      fechaOperacion: "",
-      folioOrigen: "",
-      claveRastreo: "123456789",
-      institucionOperante: "90646",
-      monto: 11.35,
-      tipoPago: "",
-      tipoCuentaOrdenante: "",
-      nombreOrdenante: "",
-      cuentaOrdenante: "646180123412345678",
-      rfcCurpOrdenante: "",
-      tipoCuentaBeneficiario: "41",
-      nombreBeneficiario: "S.A. de C.V.",
-      cuentaBeneficiario: "846180000000000016",
-      rfcCurpBeneficiario: "",
-      conceptoPago: "Prueba REST",
-      referenciaNumerica: "123456",
-    };
-    const crypto = new CryptoHandler(result, "android");
-    const orderPay = { ...result, firma: crypto.getSign() };
-    const response = await rp({
-      url: "https://demo.stpmex.com:7024/speiws/rest/ordenPago/registra",
-      method: "PUT",
-      headers: {
-        encoding: "UTF-8",
-        "content-type": "application/json",
-      },
-      json: true,
-      body: orderPay,
-      rejectUnauthorized: false,
+    const pool = await sql.connect();
+    const result = await pool
+      .request()
+      .input("p_chrOffset", sql.Char, offset)
+      .execute("stpSch.USPgetDispersionOrder");
+    const resultRecordset = result.recordset;
+    resultRecordset.forEach(async (element) => {
+      const {
+        idDispersionOrder,
+        institucionContraparte,
+        empresa,
+        fechaOperacion,
+        claveRastreo,
+        institucionOperante,
+        monto,
+        tipoPago,
+        tipoCuentaOrdenante,
+        nombreOrdenante,
+        cuentaOrdenante,
+        rfcCurpOrdenante,
+        tipoCuentaBeneficiario,
+        nombreBeneficiario,
+        cuentaBeneficiario,
+        rfcCurpBeneficiario,
+        conceptoPago,
+        referenciaNumerica,
+      } = element;
+
+      const bodyRequest = {
+        institucionContraparte,
+        empresa,
+        fechaOperacion,
+        folioOrigen: claveRastreo,
+        claveRastreo,
+        institucionOperante,
+        monto,
+        tipoPago,
+        tipoCuentaOrdenante,
+        nombreOrdenante,
+        cuentaOrdenante,
+        rfcCurpOrdenante,
+        tipoCuentaBeneficiario,
+        nombreBeneficiario,
+        cuentaBeneficiario,
+        rfcCurpBeneficiario,
+        conceptoPago,
+        referenciaNumerica,
+      };
+
+      const crypto = new CryptoHandler(bodyRequest, "HfyTest2021");
+      const orderPay = { ...bodyRequest, firma: crypto.getSign() };
+      const response = await rp({
+        url: "https://demo.stpmex.com:7024/speiws/rest/ordenPago/registra",
+        method: "PUT",
+        headers: {
+          encoding: "UTF-8",
+          "Content-Type": "application/json",
+        },
+        json: true,
+        body: orderPay,
+        rejectUnauthorized: false,
+      });
+      await executeSetDispersionOrder({
+        idDispersionOrder,
+        jsonServiceResponse: JSON.stringify(response),
+      });
     });
-    console.log('response',response);
-    res.status(200).send(orderPay);
+    res.status(200).send("ok");
   } catch (err) {
     res.status(500).send({
       response: {

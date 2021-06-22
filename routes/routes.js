@@ -14,7 +14,12 @@ router.get("/test", ControllerTest.testPath);
 router.post("/whatsapp", ControllerTest.whatsapp);
 router.post("/testStripe", ControllerTest.testStripe);
 router.post("/testStripeWebhook", ControllerTest.testStripeWebhook);
-router.post("/testStripeWebhookConnect", ControllerTest.testStripeWebhookConnect);
+router.post(
+  "/testStripeWebhookConnect",
+  ControllerTest.testStripeWebhookConnect
+);
+router.post("/connect/dispersionOrder", ControllerTest.dispersionOrder);
+router.post("/connect/collection", ControllerTest.collection);
 router.get("/viewFile/:idDocument/:bucketSource", ControllerTest.viewFiles);
 router.get(
   "/viewFilesDocx/:idDocument/:bucketSource",

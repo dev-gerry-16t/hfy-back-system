@@ -8,6 +8,10 @@ const executeUpdateShortMessageService = require("../actions/updateShortMessageS
 const Stripe = require("stripe");
 const executeAddGWTransaction = require("../actions/addGWTransaction");
 const { executesetConnectAccountWH } = require("../actions/setCustomerAccount");
+const {
+  executeSetDispersionOrder,
+  executeSetCollection,
+} = require("../actions/setDataSpeiCollect");
 const endpointSecret = process.env.END_POINT_SECRET_KEY;
 
 const s3 = new AWS.S3({
@@ -253,6 +257,30 @@ const ControllerTest = {
     } catch (error) {
       res.status(500).send({ error: `${error}` });
     }
+  },
+  dispersionOrder: async (req, res) => {
+    const payment = req.body;
+    try {
+      await executeSetDispersionOrder({
+        idDispersionOrder: null,
+        jsonServiceResponse: JSON.stringify(payment),
+      });
+      res.status(200).send({ mensaje: "recibido" });
+    } catch (error) {}
+  },
+  collection: async (req, res) => {
+    const payment = req.body;
+    try {
+      const response = await executeSetCollection({
+        jsonServiceResponse: JSON.stringify(payment),
+      });
+      const { id, stateCode } = response;
+      if (stateCode === 200) {
+        res.status(stateCode).send();
+      } else if (stateCode === 500) {
+        res.status(stateCode).send({ id });
+      }
+    } catch (error) {}
   },
 };
 
