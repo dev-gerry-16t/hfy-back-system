@@ -276,7 +276,7 @@ const ControllerTest = {
       });
       const { id, stateCode } = response;
       if (stateCode === 200) {
-        res.status(stateCode).send();
+        res.status(stateCode).send({ mensaje: "recibido" });
       } else if (stateCode === 500) {
         res.status(stateCode).send({ id });
       }
