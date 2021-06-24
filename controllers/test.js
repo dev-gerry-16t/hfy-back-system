@@ -1,6 +1,5 @@
 const sql = require("mssql");
 const isEmpty = require("lodash/isEmpty");
-const CryptoJS = require("crypto-js");
 //const imageThumbnail = require("image-thumbnail");
 const AWS = require("aws-sdk");
 const GLOBAL_CONSTANTS = require("../constants/constants");

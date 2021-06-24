@@ -1,5 +1,4 @@
 const crypto = require("crypto");
-const sign = crypto.createSign("SHA256");
 const fs = require("fs");
 
 class CryptoHandler {
@@ -24,11 +23,11 @@ class CryptoHandler {
         }
       }
       this.cadenaOriginal = `||${this.cadenaPrimaria}||`;
-      console.log('this.cadenaOriginal',this.cadenaOriginal);
     }
   }
 
   getSign() {
+    const sign = crypto.createSign("RSA-SHA256");
     sign.update(this.cadenaOriginal);
     sign.end();
     const key = fs.readFileSync(__dirname + `/key.pem`);

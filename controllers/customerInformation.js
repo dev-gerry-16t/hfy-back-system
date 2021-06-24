@@ -763,9 +763,6 @@ const executeUpdateCustomerLoan = async (params, res, url) => {
   const {
     idCustomerTenant,
     isAccepted,
-    idBank,
-    clabeNumber,
-    accountHolder,
     digitalSignature,
     idSystemUser,
     idLoginHistory,
@@ -779,9 +776,6 @@ const executeUpdateCustomerLoan = async (params, res, url) => {
       .input("p_nvcIdCustomerTenant", sql.NVarChar, idCustomerTenant)
       .input("p_nvcIdContract", sql.NVarChar, idContract)
       .input("p_bitIsAccepted", sql.Bit, isAccepted)
-      .input("p_nvcIdBank", sql.NVarChar, idBank)
-      .input("p_nvcClabeNumber", sql.NVarChar, clabeNumber)
-      .input("p_nvcAccountHolder", sql.NVarChar, accountHolder)
       .input("p_nvcDigitalSignature", sql.NVarChar, digitalSignature)
       .input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser)
       .input("p_nvcIdLoginHistory", sql.NVarChar, idLoginHistory)
@@ -1255,6 +1249,7 @@ const executeGetDispersionOrder = async (params, res) => {
 
     res.status(200).send({ response: "ok" });
   } catch (err) {
+    console.log("err", err);
     res.status(500).send({
       response: {
         message: "No se pudo procesar tu solicitud",
@@ -1307,7 +1302,7 @@ const executeGetConfigForCollAndDisp = async (params, res) => {
     });
     console.log("response", response);
 
-    res.status(200).send({ response: "ok" });
+    res.status(200).send({ response });
   } catch (err) {
     console.log("err", err);
     res.status(500).send({
