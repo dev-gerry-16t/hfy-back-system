@@ -19,31 +19,26 @@ const executeEmailSentAES = async (param) => {
     idInvitation = null,
   } = param;
   try {
-    const request = new sql.Request();
-    request.input("p_intIdEmailStatus", sql.Int, idEmailStatus);
-    request.input("p_intIdEmailTemplate", sql.Int, idEmailTemplate);
-    request.input("p_nvcIdRequesSignUp", sql.NVarChar, idRequestSignUp);
-    request.input("p_nvcIdUserSender", sql.NVarChar, idUserSender);
-    request.input("p_nvcIdUserReceiver", sql.NVarChar, idUserReceiver);
-    request.input("p_nvcSender", sql.NVarChar, sender);
-    request.input("p_nvcReceiver", sql.NVarChar, receiver);
-    request.input("p_nvcSubject", sql.NVarChar, subject);
-    request.input("p_nvcContent", sql.NVarChar, content);
-    request.input(
-      "p_nvcJsonServiceResponse",
-      sql.NVarChar,
-      jsonServiceResponse
-    );
-    request.input("p_chrOffset", sql.Char, offset);
-    request.input("p_nvcIdInvitation", sql.NVarChar, idInvitation);
-    await request.execute("comSch.USPaddEmailSent", async (err, result) => {
-      if (err) {
-        console.log("err", err);
-      } else {
-        console.log("success");
-      }
-    });
-  } catch (error) {}
+    const pool = await sql.connect();
+    const result = await pool
+      .request()
+      .input("p_intIdEmailStatus", sql.Int, idEmailStatus)
+      .input("p_intIdEmailTemplate", sql.Int, idEmailTemplate)
+      .input("p_nvcIdRequesSignUp", sql.NVarChar, idRequestSignUp)
+      .input("p_nvcIdUserSender", sql.NVarChar, idUserSender)
+      .input("p_nvcIdUserReceiver", sql.NVarChar, idUserReceiver)
+      .input("p_nvcSender", sql.NVarChar, sender)
+      .input("p_nvcReceiver", sql.NVarChar, receiver)
+      .input("p_nvcSubject", sql.NVarChar, subject)
+      .input("p_nvcContent", sql.NVarChar, content)
+      .input("p_nvcJsonServiceResponse", sql.NVarChar, jsonServiceResponse)
+      .input("p_chrOffset", sql.Char, offset)
+      .input("p_nvcIdInvitation", sql.NVarChar, idInvitation)
+      .execute("comSch.USPaddEmailSent");
+    return result;
+  } catch (error) {
+    return error;
+  }
 };
 
 const executeMailTo = async (params) => {
@@ -62,15 +57,13 @@ const executeMailTo = async (params) => {
     subject,
     html: content,
   };
-
-  transporter.sendMail(mailOptions, (error, info) => {
-    if (error) {
-      console.log("send error mail", `${error}`);
-    } else {
-      console.log("send success mail");
-      executeEmailSentAES(params);
-    }
-  });
+  try {
+    await transporter.sendMail(mailOptions);
+    await executeEmailSentAES(params);
+    console.log("correo enviado");
+  } catch (error) {
+    console.log(`Error al enviar correo: ${error}`);
+  }
 };
 
 module.exports = executeMailTo;

@@ -95,6 +95,10 @@ router.get(
   "/customer/getDispersionOrder",
   ControllerCustomer.getDispersionOrder
 );
+router.get(
+  "/customer/getConfigForCollAndDisp",
+  ControllerCustomer.getConfigForCollAndDisp
+);
 
 //Documents//
 router.post("/addDocument", ControllerDocuments.addDocument);

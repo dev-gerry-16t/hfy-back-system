@@ -17,15 +17,15 @@ const executeSetDispersionOrder = async (params) => {
       .input("p_chrOffset", sql.Char, offset)
       .execute("stpSch.USPsetDispersionOrder");
     const resultRecordset = result.recordset;
-    resultRecordset.forEach((element) => {
+    for (const element of resultRecordset) {
       if (element.canSendEmail === true) {
         const configEmailServer = JSON.parse(element.jsonEmailServerConfig);
-        executeMailTo({
+        await executeMailTo({
           ...element,
           ...configEmailServer,
         });
       }
-    });
+    }
     return resultRecordset;
   } catch (error) {
     throw error;
@@ -42,15 +42,15 @@ const executeSetCollection = async (params) => {
       .input("p_chrOffset", sql.Char, offset)
       .execute("stpSch.USPsetCollection");
     const resultRecordset = result.recordset;
-    resultRecordset.forEach((element) => {
+    for (const element of resultRecordset) {
       if (element.canSendEmail === true) {
         const configEmailServer = JSON.parse(element.jsonEmailServerConfig);
-        executeMailTo({
+        await executeMailTo({
           ...element,
           ...configEmailServer,
         });
       }
-    });
+    }
     const { causaDevolucion, id, stateCode } = resultRecordset[0];
     return { id: causaDevolucion, stateCode };
   } catch (error) {

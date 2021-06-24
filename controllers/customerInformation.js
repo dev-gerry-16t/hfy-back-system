@@ -1192,7 +1192,7 @@ const executeGetDispersionOrder = async (params, res) => {
       .input("p_chrOffset", sql.Char, offset)
       .execute("stpSch.USPgetDispersionOrder");
     const resultRecordset = result.recordset;
-    resultRecordset.forEach(async (element) => {
+    for (const element of resultRecordset) {
       const {
         idDispersionOrder,
         institucionContraparte,
@@ -1213,12 +1213,10 @@ const executeGetDispersionOrder = async (params, res) => {
         conceptoPago,
         referenciaNumerica,
       } = element;
-
       const bodyRequest = {
-        institucionContraparte,
+        institucionContraparte: 846,
         empresa,
         fechaOperacion,
-        folioOrigen: claveRastreo,
         claveRastreo,
         institucionOperante,
         monto,
@@ -1229,14 +1227,14 @@ const executeGetDispersionOrder = async (params, res) => {
         rfcCurpOrdenante,
         tipoCuentaBeneficiario,
         nombreBeneficiario,
-        cuentaBeneficiario,
+        cuentaBeneficiario: "846180000000000016",
         rfcCurpBeneficiario,
         conceptoPago,
         referenciaNumerica,
       };
-
-      const crypto = new CryptoHandler(bodyRequest, "HfyTest2021");
+      const crypto = new CryptoHandler(bodyRequest, "HfyTest2021", null);
       const orderPay = { ...bodyRequest, firma: crypto.getSign() };
+      console.log("orderPay", JSON.stringify(orderPay, null, 2));
       const response = await rp({
         url: "https://demo.stpmex.com:7024/speiws/rest/ordenPago/registra",
         method: "PUT",
@@ -1248,12 +1246,14 @@ const executeGetDispersionOrder = async (params, res) => {
         body: orderPay,
         rejectUnauthorized: false,
       });
+      console.log("response", JSON.stringify(response, null, 2));
       await executeSetDispersionOrder({
         idDispersionOrder,
         jsonServiceResponse: JSON.stringify(response),
       });
-    });
-    res.status(200).send("ok");
+    }
+
+    res.status(200).send({ response: "ok" });
   } catch (err) {
     res.status(500).send({
       response: {
@@ -1263,6 +1263,73 @@ const executeGetDispersionOrder = async (params, res) => {
     });
   }
 };
+
+const executeGetConfigForCollAndDisp = async (params, res) => {
+  const offset = process.env.OFFSET;
+  try {
+    const pool = await sql.connect();
+    const result = await pool
+      .request()
+      .input("p_chrOffset", sql.Char, offset)
+      .execute("stpSch.USPgetConfigForCollAndDisp");
+    const resultRecordset = result.recordset;
+
+    const { empresa, fechaOperacion, estado } = resultRecordset[0];
+    let bodyRequest = {};
+    let cadenaOriginal = "";
+    if (isNil(fechaOperacion) === false) {
+      bodyRequest = {
+        empresa,
+        fechaOperacion,
+      };
+      cadenaOriginal = `|||${empresa}|${fechaOperacion}|||||||||||||||||||||||||||||||||`;
+    } else {
+      bodyRequest = { empresa };
+      cadenaOriginal = `|||${empresa}||||||||||||||||||||||||||||||||||`;
+    }
+    const crypto = new CryptoHandler(
+      bodyRequest,
+      "HfyTest2021",
+      cadenaOriginal
+    );
+    const orderPay = { ...bodyRequest, estado, firma: crypto.getSign() };
+    console.log("orderPay", orderPay);
+    const response = await rp({
+      url: "https://demo.stpmex.com:7024/speiws/rest/ordenPago/consOrdenesFech",
+      method: "POST",
+      headers: {
+        encoding: "UTF-8",
+        "Content-Type": "application/json",
+      },
+      json: true,
+      body: orderPay,
+      rejectUnauthorized: false,
+    });
+    console.log("response", response);
+
+    res.status(200).send({ response: "ok" });
+  } catch (err) {
+    console.log("err", err);
+    res.status(500).send({
+      response: {
+        message: "No se pudo procesar tu solicitud",
+        messageType: `${err}`,
+      },
+    });
+  }
+};
+
+// setInterval(() => {
+//   hoy = new Date();
+//   hora = hoy.getHours();
+//   console.log("hoy", hoy);
+//   console.log("hora", hora);
+//   if (hora === 9 && hora < 10) {
+//     console.log("ejecutando");
+
+//     executeGetDispersionOrder();
+//   }
+// }, 60000);
 
 const ControllerCustomer = {
   getCustomerById: (req, res) => {
@@ -1369,6 +1436,10 @@ const ControllerCustomer = {
   getDispersionOrder: (req, res) => {
     const params = req.body;
     executeGetDispersionOrder(params, res);
+  },
+  getConfigForCollAndDisp: (req, res) => {
+    const params = req.body;
+    executeGetConfigForCollAndDisp(params, res);
   },
 };
 

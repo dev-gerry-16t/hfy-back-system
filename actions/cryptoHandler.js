@@ -3,17 +3,32 @@ const sign = crypto.createSign("SHA256");
 const fs = require("fs");
 
 class CryptoHandler {
-  constructor(ordenPagoWs, phrase) {
+  constructor(ordenPagoWs, phrase, original) {
     this.phrase = phrase;
-    this.cadenaPrimaria = "";
-    for (const property in ordenPagoWs) {
-      this.cadenaPrimaria += `${ordenPagoWs[property]}|`;
+    this.cadenaOriginal = "";
+    if (original) {
+      this.cadenaOriginal = original;
+    } else {
+      this.cadenaPrimaria = "";
+      for (const property in ordenPagoWs) {
+        if (property === "fechaOperacion") {
+          this.cadenaPrimaria += `${ordenPagoWs[property]}||`;
+        } else if (property === "rfcCurpBeneficiario") {
+          this.cadenaPrimaria += `${ordenPagoWs[property]}||||||`;
+        } else if (property === "conceptoPago") {
+          this.cadenaPrimaria += `${ordenPagoWs[property]}||||||`;
+        } else if (property === "referenciaNumerica") {
+          this.cadenaPrimaria += `${ordenPagoWs[property]}||||||`;
+        } else {
+          this.cadenaPrimaria += `${ordenPagoWs[property]}|`;
+        }
+      }
+      this.cadenaOriginal = `||${this.cadenaPrimaria}||`;
+      console.log('this.cadenaOriginal',this.cadenaOriginal);
     }
-    this.cadenaOriginal = `||${this.cadenaPrimaria}||`;
   }
 
   getSign() {
-    const sign = crypto.createSign("RSA-SHA256");
     sign.update(this.cadenaOriginal);
     sign.end();
     const key = fs.readFileSync(__dirname + `/key.pem`);

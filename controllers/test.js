@@ -261,24 +261,32 @@ const ControllerTest = {
   dispersionOrder: async (req, res) => {
     const payment = req.body;
     try {
-      await executeSetDispersionOrder({
-        idDispersionOrder: null,
-        jsonServiceResponse: JSON.stringify(payment),
-      });
-      res.status(200).send({ mensaje: "recibido" });
+      if (isEmpty(payment) === false) {
+        await executeSetDispersionOrder({
+          idDispersionOrder: null,
+          jsonServiceResponse: JSON.stringify(payment),
+        });
+        res.status(200).send({ mensaje: "recibido" });
+      } else {
+        res.status(400).send({ mensaje: "Error en los parámetros de entrada" });
+      }
     } catch (error) {}
   },
   collection: async (req, res) => {
     const payment = req.body;
     try {
-      const response = await executeSetCollection({
-        jsonServiceResponse: JSON.stringify(payment),
-      });
-      const { id, stateCode } = response;
-      if (stateCode === 200) {
-        res.status(stateCode).send({ mensaje: "recibido" });
-      } else if (stateCode === 500) {
-        res.status(stateCode).send({ id });
+      if (isEmpty(payment) === false) {
+        const response = await executeSetCollection({
+          jsonServiceResponse: JSON.stringify(payment),
+        });
+        const { id, stateCode } = response;
+        if (stateCode === 200) {
+          res.status(stateCode).send({ mensaje: "recibido" });
+        } else if (stateCode === 500) {
+          res.status(stateCode).send({ id });
+        }
+      } else {
+        res.status(400).send({ mensaje: "Error en los parámetros de entrada" });
       }
     } catch (error) {}
   },
