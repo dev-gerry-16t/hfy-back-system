@@ -11,6 +11,7 @@ const {
   executeSetDispersionOrder,
   executeSetCollection,
 } = require("../actions/setDataSpeiCollect");
+const executeGetDispersionOrder = require("../actions/dispersionOrder");
 const endpointSecret = process.env.END_POINT_SECRET_KEY;
 
 const s3 = new AWS.S3({
@@ -286,6 +287,25 @@ const ControllerTest = {
         }
       } else {
         res.status(400).send({ mensaje: "Error en los parámetros de entrada" });
+      }
+    } catch (error) {}
+  },
+  scheduleTask: async (req, res) => {
+    const payment = req.body;
+    try {
+      hoy = new Date();
+      hora = hoy.getHours();
+      dia = hoy.getDay();
+      minutos = hoy.getMinutes();
+      console.log("hoy", hoy);
+      console.log('dia',dia);
+      console.log("hora", hora);
+      console.log('minutos',minutos);
+      if (hora >= 9 && hora < 18 && dia !== 6 && dia !== 0) {
+        console.log("ejecutando");
+        executeGetDispersionOrder({}, res);
+      }
+      if (hora === 0 && minutos <= 10) {
       }
     } catch (error) {}
   },
