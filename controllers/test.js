@@ -292,22 +292,30 @@ const ControllerTest = {
   },
   scheduleTask: async (req, res) => {
     const payment = req.body;
-    try {
-      hoy = new Date();
-      hora = hoy.getHours();
-      dia = hoy.getDay();
-      minutos = hoy.getMinutes();
-      console.log("hoy", hoy);
-      console.log('dia',dia);
-      console.log("hora", hora);
-      console.log('minutos',minutos);
-      if (hora >= 9 && hora < 18 && dia !== 6 && dia !== 0) {
-        console.log("ejecutando");
-        executeGetDispersionOrder({}, res);
+    const headers = req.headers;
+    console.log("headers", headers);
+    if (headers["key_connect"] === GLOBAL_CONSTANTS.SECRET_KEY_ENCRYPT) {
+      try {
+        hoy = new Date();
+        hora = hoy.getHours();
+        dia = hoy.getDay();
+        minutos = hoy.getMinutes();
+        console.log("hoy", hoy);
+        console.log("dia", dia);
+        console.log("hora", hora);
+        console.log("minutos", minutos);
+        if (hora >= 9 && hora < 18 && dia !== 6 && dia !== 0) {
+          console.log("ejecutando");
+          executeGetDispersionOrder({}, res);
+        }
+        if (hora === 0 && minutos <= 10) {
+        }
+      } catch (error) {
+        res.status(500).send({ error: `${error}` });
       }
-      if (hora === 0 && minutos <= 10) {
-      }
-    } catch (error) {}
+    } else {
+      res.status(401).send({ message: "Sin autorizacion" });
+    }
   },
 };
 
