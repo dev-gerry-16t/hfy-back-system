@@ -1229,7 +1229,11 @@ const executeGetDispersionOrder = async (params, res) => {
         conceptoPago,
         referenciaNumerica,
       };
-      const crypto = new CryptoHandler(bodyRequest, "HfyTest2021", null);
+      const crypto = new CryptoHandler(
+        bodyRequest,
+        GLOBAL_CONSTANTS.SECRET_KEY_ENCRYPT,
+        null
+      );
       const orderPay = { ...bodyRequest, firma: crypto.getSign() };
       //console.log("orderPay", JSON.stringify(orderPay, null, 2));
       const response = await rp({
@@ -1287,7 +1291,7 @@ const executeGetConfigForCollAndDisp = async (params, res) => {
     }
     const crypto = new CryptoHandler(
       bodyRequest,
-      "HfyTest2021",
+      GLOBAL_CONSTANTS.SECRET_KEY_ENCRYPT,
       cadenaOriginal
     );
     const orderPay = { ...bodyRequest, estado, firma: crypto.getSign() };
@@ -1308,6 +1312,62 @@ const executeGetConfigForCollAndDisp = async (params, res) => {
     });
 
     res.status(200).send({ response: "Ok" });
+  } catch (err) {
+    console.log("err", err);
+    res.status(500).send({
+      response: {
+        message: "No se pudo procesar tu solicitud",
+        messageType: `${err}`,
+      },
+    });
+  }
+};
+
+const executeForgiveInterest = async (params, res, url) => {
+  const {
+    idCustomer,
+    idCustomerTenant,
+    idSystemUser,
+    idLoginHistory,
+    offset = process.env.OFFSET,
+  } = params;
+  const { idContract } = url;
+  try {
+    const pool = await sql.connect();
+    const result = await pool
+      .request()
+      .input("p_uidIdCustomer", sql.NVarChar, idCustomer)
+      .input("p_uidIdCustomerTenant", sql.NVarChar, idCustomerTenant)
+      .input("p_uidIdContract", sql.NVarChar, idContract)
+      .input("p_uidIdSystemUser", sql.NVarChar, idSystemUser)
+      .input("p_uidIdLoginHistory", sql.NVarChar, idLoginHistory)
+      .input("p_chrOffset", sql.Char, offset)
+      .execute("customerSch.USPforgiveInterest");
+    const resultRecordset = result.recordset;
+    if (resultRecordset[0].stateCode !== 200) {
+      res.status(resultRecordset[0].stateCode).send({
+        response: {
+          message: resultRecordset[0].message,
+          errorMessage: resultRecordset[0].errorMessage,
+        },
+      });
+    } else {
+      resultRecordset.forEach((element) => {
+        if (element.canSendEmail === true) {
+          const configEmailServer = JSON.parse(element.jsonEmailServerConfig);
+          executeMailToV2({
+            ...element,
+            ...configEmailServer,
+          });
+        }
+      });
+      res.status(200).send({
+        response: {
+          idContract: resultRecordset[0].idContract,
+          message: resultRecordset[0].message,
+        },
+      });
+    }
   } catch (err) {
     console.log("err", err);
     res.status(500).send({
@@ -1440,6 +1500,11 @@ const ControllerCustomer = {
   getConfigForCollAndDisp: (req, res) => {
     const params = req.body;
     executeGetConfigForCollAndDisp(params, res);
+  },
+  forgiveInterest: (req, res) => {
+    const params = req.body;
+    const url = req.params;
+    executeForgiveInterest(params, res, url);
   },
 };
 

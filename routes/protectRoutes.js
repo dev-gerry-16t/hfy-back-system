@@ -99,6 +99,10 @@ router.get(
   "/customer/getConfigForCollAndDisp",
   ControllerCustomer.getConfigForCollAndDisp
 );
+router.put(
+  "/customer/forgiveInterest/:idContract",
+  ControllerCustomer.forgiveInterest
+);
 
 //Documents//
 router.post("/addDocument", ControllerDocuments.addDocument);
