@@ -10,7 +10,10 @@ const GLOBAL_CONSTANTS = require("../constants/constants");
 const replaceConditionsDocx = require("../actions/conditions");
 const executeMailToV2 = require("../actions/sendInformationUser");
 const CryptoHandler = require("../actions/cryptoHandler");
-const { executeSetDispersionOrder } = require("../actions/setDataSpeiCollect");
+const {
+  executeSetDispersionOrder,
+  executeValidateCollAndDisp,
+} = require("../actions/setDataSpeiCollect");
 
 const s3 = new AWS.S3({
   accessKeyId: GLOBAL_CONSTANTS.ACCESS_KEY_ID,
@@ -1228,7 +1231,7 @@ const executeGetDispersionOrder = async (params, res) => {
       };
       const crypto = new CryptoHandler(bodyRequest, "HfyTest2021", null);
       const orderPay = { ...bodyRequest, firma: crypto.getSign() };
-      console.log("orderPay", JSON.stringify(orderPay, null, 2));
+      //console.log("orderPay", JSON.stringify(orderPay, null, 2));
       const response = await rp({
         url: "https://demo.stpmex.com:7024/speiws/rest/ordenPago/registra",
         method: "PUT",
@@ -1240,7 +1243,7 @@ const executeGetDispersionOrder = async (params, res) => {
         body: orderPay,
         rejectUnauthorized: false,
       });
-      console.log("response", JSON.stringify(response, null, 2));
+      //console.log("response", JSON.stringify(response, null, 2));
       await executeSetDispersionOrder({
         idDispersionOrder,
         jsonServiceResponse: JSON.stringify(response),
@@ -1288,7 +1291,7 @@ const executeGetConfigForCollAndDisp = async (params, res) => {
       cadenaOriginal
     );
     const orderPay = { ...bodyRequest, estado, firma: crypto.getSign() };
-    console.log("orderPay", orderPay);
+    //console.log("orderPay", orderPay);
     const response = await rp({
       url: "https://demo.stpmex.com:7024/speiws/rest/ordenPago/consOrdenesFech",
       method: "POST",
@@ -1300,9 +1303,11 @@ const executeGetConfigForCollAndDisp = async (params, res) => {
       body: orderPay,
       rejectUnauthorized: false,
     });
-    console.log("response", response);
+    await executeValidateCollAndDisp({
+      jsonServiceResponse: JSON.stringify(response),
+    });
 
-    res.status(200).send({ response });
+    res.status(200).send({ response: "Ok" });
   } catch (err) {
     console.log("err", err);
     res.status(500).send({

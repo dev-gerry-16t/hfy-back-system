@@ -58,4 +58,33 @@ const executeSetCollection = async (params) => {
   }
 };
 
-module.exports = { executeSetDispersionOrder, executeSetCollection };
+const executeValidateCollAndDisp = async (params) => {
+  const { jsonServiceResponse = null, offset = process.env.OFFSET } = params;
+  try {
+    const pool = await sql.connect();
+    const result = await pool
+      .request()
+      .input("p_nvcJsonServiceResponse", sql.NVarChar, jsonServiceResponse)
+      .input("p_chrOffset", sql.Char, offset)
+      .execute("stpSch.USPvalidateCollAndDisp");
+    const resultRecordset = result.recordset;
+    for (const element of resultRecordset) {
+      if (element.canSendEmail === true) {
+        const configEmailServer = JSON.parse(element.jsonEmailServerConfig);
+        await executeMailTo({
+          ...element,
+          ...configEmailServer,
+        });
+      }
+    }
+    return "ok";
+  } catch (error) {
+    throw error;
+  }
+};
+
+module.exports = {
+  executeSetDispersionOrder,
+  executeSetCollection,
+  executeValidateCollAndDisp,
+};

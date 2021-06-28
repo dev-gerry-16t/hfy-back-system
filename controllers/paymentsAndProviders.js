@@ -27,6 +27,7 @@ const executeValidatePaymentSchedule = async (params, res) => {
     offset = process.env.OFFSET,
   } = params;
   try {
+    //Batch
     const request = new sql.Request();
     request.input("p_nvcIdCustomer", sql.NVarChar, idCustomer);
     request.input("p_nvcIdCustomerTenant", sql.NVarChar, idCustomerTenant);
