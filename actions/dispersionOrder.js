@@ -76,16 +76,8 @@ const executeGetDispersionOrder = async (params, res) => {
     //     jsonServiceResponse: JSON.stringify(response),
     //   });
     // }
-
-    res.status(200).send({ response: "ok" });
   } catch (err) {
-    console.log("err", err);
-    res.status(500).send({
-      response: {
-        message: "No se pudo procesar tu solicitud",
-        messageType: `${err}`,
-      },
-    });
+    throw err;
   }
 };
 

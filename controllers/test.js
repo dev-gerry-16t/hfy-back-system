@@ -290,26 +290,14 @@ const ControllerTest = {
       }
     } catch (error) {}
   },
-  scheduleTask: async (req, res) => {
+  scheduleTaskDispersion: async (req, res) => {
     const payment = req.body;
     const headers = req.headers;
-    console.log("headers", headers);
     if (headers["key_connect"] === GLOBAL_CONSTANTS.SECRET_KEY_ENCRYPT) {
       try {
-        hoy = new Date();
-        hora = hoy.getHours();
-        dia = hoy.getDay();
-        minutos = hoy.getMinutes();
-        console.log("hoy", hoy);
-        console.log("dia", dia);
-        console.log("hora", hora);
-        console.log("minutos", minutos);
-        if (hora >= 9 && hora < 18 && dia !== 6 && dia !== 0) {
-          console.log("ejecutando");
-          executeGetDispersionOrder({}, res);
-        }
-        if (hora === 0 && minutos <= 10) {
-        }
+        executeGetDispersionOrder({}, res);
+        console.log("Se ejecuto correctamente la dispersión");
+        res.status(200).send({ message: "ok" });
       } catch (error) {
         res.status(500).send({ error: `${error}` });
       }
