@@ -1191,6 +1191,7 @@ const executeGetDispersionOrder = async (params, res) => {
     const resultRecordset = result.recordset;
     for (const element of resultRecordset) {
       const {
+        url,
         idDispersionOrder,
         institucionContraparte,
         empresa,
@@ -1237,7 +1238,7 @@ const executeGetDispersionOrder = async (params, res) => {
       const orderPay = { ...bodyRequest, firma: crypto.getSign() };
       //console.log("orderPay", JSON.stringify(orderPay, null, 2));
       const response = await rp({
-        url: "https://demo.stpmex.com:7024/speiws/rest/ordenPago/registra",
+        url,
         method: "PUT",
         headers: {
           encoding: "UTF-8",
@@ -1247,7 +1248,7 @@ const executeGetDispersionOrder = async (params, res) => {
         body: orderPay,
         rejectUnauthorized: false,
       });
-      //console.log("response", JSON.stringify(response, null, 2));
+      console.log("response", JSON.stringify(response, null, 2));
       await executeSetDispersionOrder({
         idDispersionOrder,
         jsonServiceResponse: JSON.stringify(response),
@@ -1276,7 +1277,7 @@ const executeGetConfigForCollAndDisp = async (params, res) => {
       .execute("stpSch.USPgetConfigForCollAndDisp");
     const resultRecordset = result.recordset;
 
-    const { empresa, fechaOperacion, estado } = resultRecordset[0];
+    const { empresa, fechaOperacion, estado, url } = resultRecordset[0];
     let bodyRequest = {};
     let cadenaOriginal = "";
     if (isNil(fechaOperacion) === false) {
@@ -1297,7 +1298,7 @@ const executeGetConfigForCollAndDisp = async (params, res) => {
     const orderPay = { ...bodyRequest, estado, firma: crypto.getSign() };
     //console.log("orderPay", orderPay);
     const response = await rp({
-      url: "https://demo.stpmex.com:7024/speiws/rest/ordenPago/consOrdenesFech",
+      url,
       method: "POST",
       headers: {
         encoding: "UTF-8",

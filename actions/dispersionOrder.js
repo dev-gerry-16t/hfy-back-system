@@ -16,6 +16,7 @@ const executeGetDispersionOrder = async (params, res) => {
     const resultRecordset = result.recordset;
     for (const element of resultRecordset) {
       const {
+        url,
         idDispersionOrder,
         institucionContraparte,
         empresa,
@@ -62,7 +63,7 @@ const executeGetDispersionOrder = async (params, res) => {
       const orderPay = { ...bodyRequest, firma: crypto.getSign() };
       //console.log("orderPay", JSON.stringify(orderPay, null, 2));
       const response = await rp({
-        url: "https://demo.stpmex.com:7024/speiws/rest/ordenPago/registra",
+        url,
         method: "PUT",
         headers: {
           encoding: "UTF-8",
