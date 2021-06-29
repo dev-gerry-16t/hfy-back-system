@@ -296,6 +296,7 @@ const ControllerTest = {
   scheduleTaskDispersion: async (req, res) => {
     const payment = req.body;
     const headers = req.headers;
+    console.log("Se ejecuto la dispersión");
     if (headers["key_connect"] === GLOBAL_CONSTANTS.SECRET_KEY_ENCRYPT) {
       try {
         executeGetDispersionOrder({}, res);
@@ -311,6 +312,7 @@ const ControllerTest = {
   scheduleTaskPayment: async (req, res) => {
     const payment = req.body;
     const headers = req.headers;
+    console.log("Se ejecuto los recordatorios");
     if (headers["key_connect"] === GLOBAL_CONSTANTS.SECRET_KEY_ENCRYPT) {
       try {
         executeValidatePaymentSchedule({}, res);

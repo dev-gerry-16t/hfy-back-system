@@ -1212,7 +1212,7 @@ const executeGetDispersionOrder = async (params, res) => {
         referenciaNumerica,
       } = element;
       const bodyRequest = {
-        institucionContraparte: 846,
+        institucionContraparte,
         empresa,
         fechaOperacion,
         claveRastreo,
@@ -1225,7 +1225,7 @@ const executeGetDispersionOrder = async (params, res) => {
         rfcCurpOrdenante,
         tipoCuentaBeneficiario,
         nombreBeneficiario,
-        cuentaBeneficiario: "846180000000000016",
+        cuentaBeneficiario,
         rfcCurpBeneficiario,
         conceptoPago,
         referenciaNumerica,
