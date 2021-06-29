@@ -995,7 +995,10 @@ const executeGetAmountForGWTransaction = async (params, res) => {
   } catch (error) {
     console.log("error", error);
     res.status(500).send({
-      response: { message: "Error en el sistema", messageType: error },
+      response: {
+        message: "Tu banco ha declinado la transacción",
+        messageType: error,
+      },
     });
   }
 };
