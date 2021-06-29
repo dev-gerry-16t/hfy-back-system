@@ -1,4 +1,5 @@
 const sql = require("mssql");
+const rp = require("request-promise");
 const GLOBAL_CONSTANTS = require("../constants/constants");
 const CryptoHandler = require("./cryptoHandler");
 const executeMailTo = require("./sendInformationUser");
