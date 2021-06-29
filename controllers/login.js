@@ -28,9 +28,11 @@ const executeLoginUser = async (params, res, ip, userAgent) => {
         } else if (result) {
           const idUser = result.recordset[0].idSystemUser;
           const tokenExpires = result.recordset[0].tokenExpiration;
+          const publicKeyStripe = GLOBAL_CONSTANTS.PUBLIC_KEY_STRIPE;
           const payload = {
             name: email,
             idSystemUser: idUser,
+            publicKeyStripe,
           };
           const token = jwt.sign(
             payload,
@@ -40,7 +42,11 @@ const executeLoginUser = async (params, res, ip, userAgent) => {
             }
           );
 
-          res.status(200).send({ response: { idSystemUser: idUser, token } });
+          res
+            .status(200)
+            .send({
+              response: { idSystemUser: idUser, token, publicKeyStripe },
+            });
         }
       }
     });
