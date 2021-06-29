@@ -298,6 +298,7 @@ const ControllerTest = {
     const payment = req.body;
     const headers = req.headers;
     console.log("Se ejecuto la dispersión");
+    console.log('headers scheduleTaskDispersion',headers);
     if (headers["key_connect"] === GLOBAL_CONSTANTS.SECRET_KEY_ENCRYPT) {
       try {
         executeGetDispersionOrder({}, res);
