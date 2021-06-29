@@ -104,7 +104,6 @@ const executeValidatePaymentSchedule = async (params, res) => {
       .input("p_chrOffset", sql.Char, offset)
       .execute("customerSch.USPvalidatePaymentSchedule");
     const resultRecordset = result.recordset;
-    console.log('resultRecordset',resultRecordset);
     for (const element of resultRecordset) {
       if (element.canSendEmail === true) {
         const configEmailServer = JSON.parse(element.jsonEmailServerConfig);
