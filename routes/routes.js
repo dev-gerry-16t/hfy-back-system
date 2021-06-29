@@ -20,7 +20,11 @@ router.post(
 );
 router.post("/connect/dispersionOrder", ControllerTest.dispersionOrder);
 router.post("/connect/collection", ControllerTest.collection);
-router.get("/connect/scheduleTask/payment", ControllerTest.scheduleTaskDispersion);
+router.get(
+  "/connect/scheduleTask/dispersion",
+  ControllerTest.scheduleTaskDispersion
+);
+router.get("/connect/scheduleTask/payment", ControllerTest.scheduleTaskPayment);
 router.get("/viewFile/:idDocument/:bucketSource", ControllerTest.viewFiles);
 router.get(
   "/viewFilesDocx/:idDocument/:bucketSource",

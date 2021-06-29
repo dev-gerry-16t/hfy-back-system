@@ -11,7 +11,10 @@ const {
   executeSetDispersionOrder,
   executeSetCollection,
 } = require("../actions/setDataSpeiCollect");
-const executeGetDispersionOrder = require("../actions/dispersionOrder");
+const {
+  executeGetDispersionOrder,
+  executeValidatePaymentSchedule,
+} = require("../actions/dispersionOrder");
 const endpointSecret = process.env.END_POINT_SECRET_KEY;
 
 const s3 = new AWS.S3({
@@ -297,6 +300,21 @@ const ControllerTest = {
       try {
         executeGetDispersionOrder({}, res);
         console.log("Se ejecuto correctamente la dispersión");
+        res.status(200).send({ message: "ok" });
+      } catch (error) {
+        res.status(500).send({ error: `${error}` });
+      }
+    } else {
+      res.status(401).send({ message: "Sin autorizacion" });
+    }
+  },
+  scheduleTaskPayment: async (req, res) => {
+    const payment = req.body;
+    const headers = req.headers;
+    if (headers["key_connect"] === GLOBAL_CONSTANTS.SECRET_KEY_ENCRYPT) {
+      try {
+        executeValidatePaymentSchedule({}, res);
+        console.log("Se ejecuto correctamente los recordatorios");
         res.status(200).send({ message: "ok" });
       } catch (error) {
         res.status(500).send({ error: `${error}` });

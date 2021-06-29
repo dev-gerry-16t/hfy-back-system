@@ -1,6 +1,7 @@
 const sql = require("mssql");
 const GLOBAL_CONSTANTS = require("../constants/constants");
 const CryptoHandler = require("./cryptoHandler");
+const executeMailTo = require("./sendInformationUser");
 const { executeSetDispersionOrder } = require("./setDataSpeiCollect");
 
 const executeGetDispersionOrder = async (params, res) => {
@@ -81,4 +82,41 @@ const executeGetDispersionOrder = async (params, res) => {
   }
 };
 
-module.exports = executeGetDispersionOrder;
+const executeValidatePaymentSchedule = async (params, res) => {
+  const {
+    idCustomer = null,
+    idCustomerTenant = null,
+    idContract = null,
+    idSystemUser = null,
+    idLoginHistory = null,
+    offset = process.env.OFFSET,
+  } = params;
+  try {
+    //Batch
+    const pool = await sql.connect();
+    const result = await pool
+      .request()
+      .input("p_nvcIdCustomer", sql.NVarChar, idCustomer)
+      .input("p_nvcIdCustomerTenant", sql.NVarChar, idCustomerTenant)
+      .input("p_nvcIdContract", sql.NVarChar, idContract)
+      .input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser)
+      .input("p_nvcIdLoginHistory", sql.NVarChar, idLoginHistory)
+      .input("p_chrOffset", sql.Char, offset)
+      .execute("customerSch.USPvalidatePaymentSchedule");
+    const resultRecordset = result.recordset;
+    console.log('resultRecordset',resultRecordset);
+    for (const element of resultRecordset) {
+      if (element.canSendEmail === true) {
+        const configEmailServer = JSON.parse(element.jsonEmailServerConfig);
+        await executeMailTo({
+          ...element,
+          ...configEmailServer,
+        });
+      }
+    }
+  } catch (err) {
+    throw err;
+  }
+};
+
+module.exports = { executeGetDispersionOrder, executeValidatePaymentSchedule };
