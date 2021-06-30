@@ -295,36 +295,21 @@ const ControllerTest = {
     } catch (error) {}
   },
   scheduleTaskDispersion: async (req, res) => {
-    const payment = req.body;
-    const headers = req.headers;
-    console.log("Se ejecuto la dispersión");
-    console.log('headers scheduleTaskDispersion',headers);
-    if (headers["key_connect"] === GLOBAL_CONSTANTS.SECRET_KEY_ENCRYPT) {
-      try {
-        executeGetDispersionOrder({}, res);
-        console.log("Se ejecuto correctamente la dispersión");
-        res.status(200).send({ message: "ok" });
-      } catch (error) {
-        res.status(500).send({ error: `${error}` });
-      }
-    } else {
-      res.status(401).send({ message: "Sin autorizacion" });
+    try {
+      executeGetDispersionOrder({}, res);
+      console.log("Se ejecuto correctamente la dispersión");
+      res.status(200).send({ message: "ok" });
+    } catch (error) {
+      res.status(500).send({ error: `${error}` });
     }
   },
   scheduleTaskPayment: async (req, res) => {
-    const payment = req.body;
-    const headers = req.headers;
-    console.log("Se ejecuto los recordatorios");
-    if (headers["key_connect"] === GLOBAL_CONSTANTS.SECRET_KEY_ENCRYPT) {
-      try {
-        executeValidatePaymentSchedule({}, res);
-        console.log("Se ejecuto correctamente los recordatorios");
-        res.status(200).send({ message: "ok" });
-      } catch (error) {
-        res.status(500).send({ error: `${error}` });
-      }
-    } else {
-      res.status(401).send({ message: "Sin autorizacion" });
+    try {
+      executeValidatePaymentSchedule({}, res);
+      console.log("Se ejecuto correctamente los recordatorios");
+      res.status(200).send({ message: "ok" });
+    } catch (error) {
+      res.status(500).send({ error: `${error}` });
     }
   },
 };
