@@ -2002,6 +2002,34 @@ const executeUpdateProspectInvitation = async (params, res, url) => {
   }
 };
 
+const executeGetTransactions = async (params, res) => {
+  const {
+    idSystemUser,
+    idLoginHistory,
+    topIndex,
+    offset = GLOBAL_CONSTANTS.OFFSET,
+  } = params;
+  try {
+    const pool = await sql.connect();
+    const result = await pool
+      .request()
+      .input("p_uidIdSystemUser", sql.NVarChar, idSystemUser)
+      .input("p_uidIdLoginHistory", sql.NVarChar, idLoginHistory)
+      .input("p_intTopIndex", sql.Int, topIndex)
+      .input("p_chrOffset", sql.Char, offset)
+      .execute("stpSch.USPgetTransactions");
+    const resultRecordset = result.recordset;
+    res.status(200).send({
+      response: resultRecordset,
+    });
+  } catch (err) {
+    res.status(500).send({
+      response: { message: "Error en los parametros", messageType: `${err}` },
+    });
+    // ... error checks
+  }
+};
+
 const ControllerAdmin = {
   getContractStats: (req, res) => {
     const params = req.body;
@@ -2115,6 +2143,10 @@ const ControllerAdmin = {
     const params = req.body;
     const url = req.params; //idProspect
     executeUpdateProspectInvitation(params, res, url);
+  },
+  getTransactions: (req, res) => {
+    const params = req.body;
+    executeGetTransactions(params, res);
   },
 };
 
