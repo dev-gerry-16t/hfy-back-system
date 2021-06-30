@@ -26,7 +26,11 @@ const storage = multer.memoryStorage({
 const upload = multer(storage).single("file");
 
 app.use(bodyParser.urlencoded({ extended: false }));
-app.use(bodyParser.json());
+app.use(
+  bodyParser.json({
+    strict: false,
+  })
+);
 app.use(cors());
 app.use(upload);
 
