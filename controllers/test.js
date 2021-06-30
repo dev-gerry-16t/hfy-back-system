@@ -263,7 +263,7 @@ const ControllerTest = {
   },
   dispersionOrder: async (req, res) => {
     const payment = req.body;
-    console.log("payment dispersion", payment);
+    console.log("payment dispersion");
     try {
       if (isEmpty(payment) === false) {
         await executeSetDispersionOrder({
@@ -278,6 +278,7 @@ const ControllerTest = {
   },
   collection: async (req, res) => {
     const payment = req.body;
+    console.log("payment abono");
     try {
       if (isEmpty(payment) === false) {
         const response = await executeSetCollection({

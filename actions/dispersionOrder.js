@@ -61,7 +61,7 @@ const executeGetDispersionOrder = async (params, res) => {
         null
       );
       const orderPay = { ...bodyRequest, firma: crypto.getSign() };
-      //console.log("orderPay", JSON.stringify(orderPay, null, 2));
+      console.log("orderPay", JSON.stringify(orderPay, null, 2));
       const response = await rp({
         url,
         method: "PUT",
