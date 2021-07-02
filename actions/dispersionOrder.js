@@ -85,26 +85,14 @@ const executeGetDispersionOrder = async (params, res) => {
 };
 
 const executeValidatePaymentSchedule = async (params, res) => {
-  const {
-    idCustomer = null,
-    idCustomerTenant = null,
-    idContract = null,
-    idSystemUser = null,
-    idLoginHistory = null,
-    offset = process.env.OFFSET,
-  } = params;
+  const { offset = process.env.OFFSET } = params;
   try {
     //Batch
     const pool = await sql.connect();
     const result = await pool
       .request()
-      .input("p_nvcIdCustomer", sql.NVarChar, idCustomer)
-      .input("p_nvcIdCustomerTenant", sql.NVarChar, idCustomerTenant)
-      .input("p_nvcIdContract", sql.NVarChar, idContract)
-      .input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser)
-      .input("p_nvcIdLoginHistory", sql.NVarChar, idLoginHistory)
       .input("p_chrOffset", sql.Char, offset)
-      .execute("customerSch.USPvalidatePaymentSchedule");
+      .execute("comSch.USPsentNotifications");
     const resultRecordset = result.recordset;
     for (const element of resultRecordset) {
       if (element.canSendEmail === true) {
