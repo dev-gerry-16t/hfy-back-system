@@ -2,6 +2,7 @@ const sql = require("mssql");
 const XLSX = require("xlsx");
 const isEmpty = require("lodash/isEmpty");
 const isNil = require("lodash/isNil");
+const rp = require("request-promise");
 const accountSid = process.env.TWILIO_ACCOUNT_SID;
 const authToken = process.env.TWILIO_AUTH_TOKEN;
 const client = require("twilio")(accountSid, authToken);
@@ -199,47 +200,32 @@ const executeBulkPotentialAgent = async (params, res, file) => {
           },
         });
       } else {
-        const secondResult = await Promise.all(
-          resultRecordset.map(async (element) => {
-            if (element.canSendMessage === true) {
-              const message = await client.messages.create({
-                from: "whatsapp:+14155238886",
+        for (const element of resultRecordset) {
+          if (element.canSendMessage === true) {
+            const url = `https://api.chat-api.com/instance${element.instanceId}/message?token=${element.token}`;
+            const response = await rp({
+              url,
+              method: "POST",
+              headers: {
+                encoding: "UTF-8",
+                "Content-Type": "application/json",
+              },
+              json: true,
+              body: {
+                phone: element.phoneNumber,
                 body: element.content,
-                statusCallback: "https://apitest.homify.ai/api/whatsapp",
-                to: `whatsapp:${element.phoneNumber}`,
-              });
-              const {
-                sid,
-                accountSid,
-                messagingServiceSid,
-                status,
-                dateSent,
-              } = message;
-              return {
-                idSystemUser,
-                idLoginHistory,
-                idShortMessageService: element.idShortMessageService,
-                serviceSID: sid,
-                serviceAccountSID: accountSid,
-                serviceChatSID: messagingServiceSid,
-                status,
-                sentAt: dateSent,
-                jsonServiceResponse: JSON.stringify(message),
-              };
-            }
-          })
-        );
-
-        if (isEmpty(secondResult) === false) {
-          secondResult.forEach(async (element) => {
-            try {
-              if (isEmpty(element) === false) {
-                await executeUpdateShortMessageService(element);
-              }
-            } catch (error) {
-              throw error;
-            }
-          });
+              },
+              rejectUnauthorized: false,
+            });
+            const { id } = response;
+            await executeUpdateShortMessageService({
+              idShortMessageService: element.idShortMessageService,
+              idService: id,
+              jsonServiceResponse: JSON.stringify(response),
+              idSystemUser,
+              idLoginHistory,
+            });
+          }
         }
 
         res.status(200).send({

@@ -1,5 +1,7 @@
 const sql = require("mssql");
+const rp = require("request-promise");
 const isEmpty = require("lodash/isEmpty");
+const isNil = require("lodash/isNil");
 //const imageThumbnail = require("image-thumbnail");
 const AWS = require("aws-sdk");
 const GLOBAL_CONSTANTS = require("../constants/constants");
@@ -15,6 +17,7 @@ const {
   executeGetDispersionOrder,
   executeValidatePaymentSchedule,
 } = require("../actions/dispersionOrder");
+const executeSetWAMessage = require("../actions/setWAMMessage");
 const endpointSecret = process.env.END_POINT_SECRET_KEY;
 
 const s3 = new AWS.S3({
@@ -34,21 +37,62 @@ const ControllerTest = {
       .status(200)
       .send(`Bienvenido al Backend homify :) ${GLOBAL_CONSTANTS.VERSION}`);
   },
+  sendWhatsapp: async (req, res) => {
+    const params = req.body;
+    const token = "ks92j20frl42bwxi";
+    const instanceId = "299354";
+    const url = `https://api.chat-api.com/instance${instanceId}/message?token=${token}`;
+    const data = params;
+    const response = await rp({
+      url,
+      method: "POST",
+      headers: {
+        encoding: "UTF-8",
+        "Content-Type": "application/json",
+      },
+      json: true,
+      body: data,
+      rejectUnauthorized: false,
+    });
+
+    res.status(200).send({ message: "ok" });
+  },
   whatsapp: async (req, res) => {
     const params = req.body;
-    const { SmsSid, SmsStatus, AccountSid, MessageSid } = params;
-    await executeUpdateShortMessageService({
-      idSystemUser: null,
-      idLoginHistory: null,
-      idShortMessageService: null,
-      serviceSID: SmsSid,
-      serviceAccountSID: AccountSid,
-      serviceChatSID: null,
-      status: SmsStatus,
-      sentAt: null,
-      jsonServiceResponse: JSON.stringify(params),
-    });
-    res.status(200).send(`ok`);
+    if (isNil(params.ack) === false && isEmpty(params.ack) === false) {
+      for (const element of params.ack) {
+        await executeSetWAMessage({
+          idShortMessageService: null,
+          idService: element.id,
+          idChat: element.chatId,
+          jsonACKResponse: JSON.stringify(params),
+          jsonMessageResponse: null,
+          jsonServiceResponse: null,
+        });
+      }
+    }
+    if (
+      isNil(params.messages) === false &&
+      isEmpty(params.messages) === false
+    ) {
+      for (const element of params.messages) {
+        if (
+          element.fromMe === false &&
+          (element.chatId === "5215611278220@c.us" ||
+            element.chatId === "5215571946460@c.us")
+        ) {
+          await executeSetWAMessage({
+            idShortMessageService: null,
+            idService: element.id,
+            idChat: element.chatId,
+            jsonACKResponse: null,
+            jsonMessageResponse: JSON.stringify(params),
+            jsonServiceResponse: null,
+          });
+        }
+      }
+    }
+    res.status(200).send({ message: "ok" });
   },
   upload: (req, res) => {
     const fileName = req.file.originalname.split(".");
@@ -263,7 +307,6 @@ const ControllerTest = {
   },
   dispersionOrder: async (req, res) => {
     const payment = req.body;
-    console.log("payment dispersion");
     try {
       if (isEmpty(payment) === false) {
         await executeSetDispersionOrder({
@@ -278,7 +321,6 @@ const ControllerTest = {
   },
   collection: async (req, res) => {
     const payment = req.body;
-    console.log("payment abono");
     try {
       if (isEmpty(payment) === false) {
         const response = await executeSetCollection({
