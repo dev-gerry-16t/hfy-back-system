@@ -7,6 +7,7 @@ const ControllerRecover = require("../controllers/recoverPass");
 const ControllerTest = require("../controllers/test");
 const ControllerLeads = require("../controllers/leads");
 const ControllerCatalogs = require("../controllers/catalogs");
+const ControllerCustomer = require("../controllers/customerInformation");
 const router = express.Router();
 
 router.get("/", ControllerTest.test);
@@ -26,6 +27,10 @@ router.get(
   ControllerTest.scheduleTaskDispersion
 );
 router.get("/connect/scheduleTask/payment", ControllerTest.scheduleTaskPayment);
+router.get(
+  "/customer/getConfigForCollAndDisp",
+  ControllerCustomer.getConfigForCollAndDisp
+);
 router.get("/viewFile/:idDocument/:bucketSource", ControllerTest.viewFiles);
 router.get(
   "/viewFilesDocx/:idDocument/:bucketSource",
