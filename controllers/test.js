@@ -3,7 +3,10 @@ const sql = require("mssql");
 const AWS = require("aws-sdk");
 const GLOBAL_CONSTANTS = require("../constants/constants");
 const executeUpdateShortMessageService = require("../actions/updateShortMessageService");
-
+const {
+  executeSetDispersionOrder,
+  executeSetCollection,
+} = require("../actions/setDataSpeiCollect");
 const s3 = new AWS.S3({
   accessKeyId: GLOBAL_CONSTANTS.ACCESS_KEY_ID,
   secretAccessKey: GLOBAL_CONSTANTS.SECRET_ACCESS_KEY,
@@ -36,6 +39,57 @@ const ControllerTest = {
       jsonServiceResponse: JSON.stringify(params),
     });
     res.status(200).send(`ok`);
+  },
+  dispersionOrder: async (req, res) => {
+    const payment = req.body;
+    const ip = req.header("x-forwarded-for") || req.connection.remoteAddress;
+    let ipPublic = "";
+    if (ip) {
+      ipPublic = ip.split(",")[0];
+    }
+    try {
+      if (isEmpty(payment) === false) {
+        const response = await executeSetDispersionOrder({
+          idDispersionOrder: null,
+          jsonServiceResponse: JSON.stringify(payment),
+          ipAddress: ipPublic,
+        });
+        const { stateCode, message } = response;
+        if (stateCode === 200) {
+          res.status(stateCode).send({ mensaje: message });
+        } else {
+          res.status(stateCode).send({ message });
+        }
+      } else {
+        res.status(400).send({ mensaje: "Error en los parámetros de entrada" });
+      }
+    } catch (error) {}
+  },
+  collection: async (req, res) => {
+    const payment = req.body;
+    const ip = req.header("x-forwarded-for") || req.connection.remoteAddress;
+    let ipPublic = "";
+    if (ip) {
+      ipPublic = ip.split(",")[0];
+    }
+    try {
+      if (isEmpty(payment) === false) {
+        const response = await executeSetCollection({
+          jsonServiceResponse: JSON.stringify(payment),
+          ipAddress: ipPublic,
+        });
+        const { id, stateCode, message } = response;
+        if (stateCode === 200) {
+          res.status(stateCode).send({ mensaje: message });
+        } else if (stateCode === 500) {
+          res.status(stateCode).send({ id });
+        } else {
+          res.status(stateCode).send({ message });
+        }
+      } else {
+        res.status(400).send({ mensaje: "Error en los parámetros de entrada" });
+      }
+    } catch (error) {}
   },
   upload: (req, res) => {
     const fileName = req.file.originalname.split(".");
