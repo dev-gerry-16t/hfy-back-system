@@ -349,7 +349,7 @@ const ControllerTest = {
         } else if (stateCode === 500) {
           res.status(stateCode).send({ id });
         } else {
-          res.status(stateCode).send({ messages });
+          res.status(stateCode).send({ message });
         }
       } else {
         res.status(400).send({ mensaje: "Error en los parámetros de entrada" });
