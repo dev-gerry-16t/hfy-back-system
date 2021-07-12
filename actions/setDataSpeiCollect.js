@@ -5,6 +5,7 @@ const executeSetDispersionOrder = async (params) => {
   const {
     idDispersionOrder = null,
     jsonServiceResponse = null,
+    ipAddress = null,
     offset = process.env.OFFSET,
   } = params;
   try {
@@ -15,6 +16,7 @@ const executeSetDispersionOrder = async (params) => {
       .input("p_uidIdDispersionOrder", sql.NVarChar, idDispersionOrder)
       .input("p_nvcJsonServiceResponse", sql.NVarChar, jsonServiceResponse)
       .input("p_chrOffset", sql.Char, offset)
+      .input("p_nvcIpAddress", sql.NVarChar, ipAddress)
       .execute("stpSch.USPsetDispersionOrder");
     const resultRecordset = result.recordset;
     for (const element of resultRecordset) {
@@ -26,20 +28,26 @@ const executeSetDispersionOrder = async (params) => {
         });
       }
     }
-    return resultRecordset;
+    const { stateCode, message } = resultRecordset[0];
+    return { stateCode, message };
   } catch (error) {
     throw error;
   }
 };
 
 const executeSetCollection = async (params) => {
-  const { jsonServiceResponse = null, offset = process.env.OFFSET } = params;
+  const {
+    jsonServiceResponse = null,
+    ipAddress = null,
+    offset = process.env.OFFSET,
+  } = params;
   try {
     const pool = await sql.connect();
     const result = await pool
       .request()
       .input("p_nvcJsonServiceResponse", sql.NVarChar, jsonServiceResponse)
       .input("p_chrOffset", sql.Char, offset)
+      .input("p_nvcIpAddress", sql.NVarChar, ipAddress)
       .execute("stpSch.USPsetCollection");
     const resultRecordset = result.recordset;
     for (const element of resultRecordset) {
@@ -51,8 +59,8 @@ const executeSetCollection = async (params) => {
         });
       }
     }
-    const { causaDevolucion, id, stateCode } = resultRecordset[0];
-    return { id: causaDevolucion, stateCode };
+    const { causaDevolucion, id, stateCode, message } = resultRecordset[0];
+    return { id: causaDevolucion, stateCode, message };
   } catch (error) {
     throw error;
   }

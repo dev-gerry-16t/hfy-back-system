@@ -5,13 +5,19 @@ const CryptoHandler = require("./cryptoHandler");
 const executeMailTo = require("./sendInformationUser");
 const { executeSetDispersionOrder } = require("./setDataSpeiCollect");
 
-const executeGetDispersionOrder = async (params, res) => {
+const executeGetDispersionOrder = async (req, res) => {
   const offset = process.env.OFFSET;
+  const ip = req.header("x-forwarded-for") || req.connection.remoteAddress;
+  let ipPublic = "";
+  if (ip) {
+    ipPublic = ip.split(",")[0];
+  }
   try {
     const pool = await sql.connect();
     const result = await pool
       .request()
       .input("p_chrOffset", sql.Char, offset)
+      .input("p_nvcIpAddress", sql.NVarChar, ipPublic)
       .execute("stpSch.USPgetDispersionOrder");
     const resultRecordset = result.recordset;
     for (const element of resultRecordset) {
@@ -77,6 +83,7 @@ const executeGetDispersionOrder = async (params, res) => {
       await executeSetDispersionOrder({
         idDispersionOrder,
         jsonServiceResponse: JSON.stringify(response),
+        ipAddress: ipPublic,
       });
     }
   } catch (err) {

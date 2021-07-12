@@ -307,13 +307,24 @@ const ControllerTest = {
   },
   dispersionOrder: async (req, res) => {
     const payment = req.body;
+    const ip = req.header("x-forwarded-for") || req.connection.remoteAddress;
+    let ipPublic = "";
+    if (ip) {
+      ipPublic = ip.split(",")[0];
+    }
     try {
       if (isEmpty(payment) === false) {
-        await executeSetDispersionOrder({
+        const response = await executeSetDispersionOrder({
           idDispersionOrder: null,
           jsonServiceResponse: JSON.stringify(payment),
+          ipAddress: ipPublic,
         });
-        res.status(200).send({ mensaje: "recibido" });
+        const { stateCode, message } = response;
+        if (stateCode === 200) {
+          res.status(stateCode).send({ mensaje: message });
+        } else {
+          res.status(stateCode).send({ message });
+        }
       } else {
         res.status(400).send({ mensaje: "Error en los parámetros de entrada" });
       }
@@ -321,16 +332,24 @@ const ControllerTest = {
   },
   collection: async (req, res) => {
     const payment = req.body;
+    const ip = req.header("x-forwarded-for") || req.connection.remoteAddress;
+    let ipPublic = "";
+    if (ip) {
+      ipPublic = ip.split(",")[0];
+    }
     try {
       if (isEmpty(payment) === false) {
         const response = await executeSetCollection({
           jsonServiceResponse: JSON.stringify(payment),
+          ipAddress: ipPublic,
         });
-        const { id, stateCode } = response;
+        const { id, stateCode, message } = response;
         if (stateCode === 200) {
-          res.status(stateCode).send({ mensaje: "recibido" });
+          res.status(stateCode).send({ mensaje: message });
         } else if (stateCode === 500) {
           res.status(stateCode).send({ id });
+        } else {
+          res.status(stateCode).send({ messages });
         }
       } else {
         res.status(400).send({ mensaje: "Error en los parámetros de entrada" });
@@ -339,7 +358,7 @@ const ControllerTest = {
   },
   scheduleTaskDispersion: async (req, res) => {
     try {
-      executeGetDispersionOrder({}, res);
+      executeGetDispersionOrder(req, res);
       console.log("Se ejecuto correctamente la dispersión");
       res.status(200).send({ message: "ok" });
     } catch (error) {
