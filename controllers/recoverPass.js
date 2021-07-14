@@ -2,7 +2,7 @@ const sql = require("mssql");
 const nodemailer = require("nodemailer");
 
 const executeMailTo = async (params, res) => {
-  const { receiver, content, user, pass, host, port, subject } = params;
+  const { receiver, content, user, pass, host, port, subject, sender } = params;
   const transporter = nodemailer.createTransport({
     auth: {
       user,
@@ -12,7 +12,7 @@ const executeMailTo = async (params, res) => {
     port,
   });
   const mailOptions = {
-    from: user,
+    from: sender,
     to: receiver,
     subject,
     html: content,
@@ -69,7 +69,11 @@ const executeRequestRecoveryPass = async (params, res) => {
 };
 
 const executeVerifyCodeRecoveryPass = async (param, res) => {
-  const { idRequestRecoveryPassword, code, offset = process.env.OFFSET } = param;
+  const {
+    idRequestRecoveryPassword,
+    code,
+    offset = process.env.OFFSET,
+  } = param;
   try {
     const request = new sql.Request();
     request.input(

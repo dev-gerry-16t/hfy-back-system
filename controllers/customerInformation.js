@@ -501,7 +501,7 @@ const executeRequestAdvance = async (params, res) => {
 };
 
 const executeMailTo = async (params) => {
-  const { receiver, content, user, pass, host, port, subject } = params;
+  const { receiver, content, user, pass, host, port, subject, sender } = params;
   const transporter = nodemailer.createTransport({
     auth: {
       user,
@@ -511,7 +511,7 @@ const executeMailTo = async (params) => {
     port,
   });
   const mailOptions = {
-    from: user,
+    from: sender,
     to: receiver,
     subject,
     html: content,
