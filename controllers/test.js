@@ -1,4 +1,5 @@
 const sql = require("mssql");
+const isEmpty = require("lodash/isEmpty");
 //const imageThumbnail = require("image-thumbnail");
 const AWS = require("aws-sdk");
 const GLOBAL_CONSTANTS = require("../constants/constants");
@@ -51,6 +52,7 @@ const ControllerTest = {
     if (ip) {
       ipPublic = ip.split(",")[0];
     }
+    console.log('payment',payment);
     try {
       if (isEmpty(payment) === false) {
         const response = await executeSetDispersionOrder({
@@ -67,7 +69,9 @@ const ControllerTest = {
       } else {
         res.status(400).send({ mensaje: "Error en los parámetros de entrada" });
       }
-    } catch (error) {}
+    } catch (error) {
+      console.log('error',error);
+    }
   },
   collection: async (req, res) => {
     const payment = req.body;
