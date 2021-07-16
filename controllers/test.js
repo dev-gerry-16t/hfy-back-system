@@ -69,7 +69,7 @@ const ControllerTest = {
         res.status(400).send({ mensaje: "Error en los parámetros de entrada" });
       }
     } catch (error) {
-      console.log('error',error);
+      res.status(400).send({ mensaje: "Error de servidor" });
     }
   },
   collection: async (req, res) => {
