@@ -1,4 +1,5 @@
 const sql = require("mssql");
+const isEmpty = require("lodash/isEmpty");
 //const imageThumbnail = require("image-thumbnail");
 const AWS = require("aws-sdk");
 const GLOBAL_CONSTANTS = require("../constants/constants");
@@ -67,7 +68,9 @@ const ControllerTest = {
       } else {
         res.status(400).send({ mensaje: "Error en los parámetros de entrada" });
       }
-    } catch (error) {}
+    } catch (error) {
+      res.status(400).send({ mensaje: "Error de servidor" });
+    }
   },
   collection: async (req, res) => {
     const payment = req.body;
