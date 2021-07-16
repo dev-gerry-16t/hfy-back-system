@@ -52,7 +52,6 @@ const ControllerTest = {
     if (ip) {
       ipPublic = ip.split(",")[0];
     }
-    console.log('payment',payment);
     try {
       if (isEmpty(payment) === false) {
         const response = await executeSetDispersionOrder({
