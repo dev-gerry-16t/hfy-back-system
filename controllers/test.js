@@ -27,17 +27,17 @@ const s3 = new AWS.S3({
 
 const ControllerTest = {
   test: (req, res) => {
-    res
-      .status(200)
-      .send({
-        message: `Bienvenido al Backend homify :) ${GLOBAL_CONSTANTS.VERSION}`,
-      });
+    res.status(200).send({
+      message: `Bienvenido al Backend homify :) ${GLOBAL_CONSTANTS.VERSION}`,
+    });
   },
   testPath: (req, res) => {
     console.log("Welcome to backend test, conection is successfully", sql);
     res
       .status(200)
-      .send(`Bienvenido al Backend homify :) ${GLOBAL_CONSTANTS.VERSION}`);
+      .send({
+        message: `Bienvenido al Backend homify :) ${GLOBAL_CONSTANTS.VERSION}`,
+      });
   },
   sendWhatsapp: async (req, res) => {
     const params = req.body;
