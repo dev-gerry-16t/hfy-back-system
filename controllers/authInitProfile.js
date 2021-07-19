@@ -82,6 +82,33 @@ const executeSetUserProfile = async (params, res, url) => {
   }
 };
 
+const executeSetUserProfileTheme = async (params, res, url) => {
+  const { themeConfig, idLoginHistory, offset = process.env.OFFSET } = params;
+  const { idSystemUser } = url;
+  try {
+    const pool = await sql.connect();
+    const result = await pool
+      .request()
+      .input("p_uidIdSystemUser", sql.NVarChar, idSystemUser)
+      .input("p_nvcThemeConfig", sql.NVarChar, themeConfig)
+      .input("p_uidIdLoginHistory", sql.NVarChar, idLoginHistory)
+      .input("p_chrOffset", sql.Char, offset)
+      .execute("authSch.USPupdateUserConfig");
+    const resultRecordset = result.recordset;
+    if (resultRecordset[0].stateCode !== 200) {
+      res
+        .status(resultRecordset[0].stateCode)
+        .send({ response: { message: resultRecordset[0].message } });
+    } else {
+      res.status(200).send({ response: { message: "Tema guardado" } });
+    }
+  } catch (err) {
+    res
+      .status(500)
+      .send({ response: { message: "Error en el sistema", typeError: err } });
+  }
+};
+
 const ControllerAuth = {
   userProfile: (req, res) => {
     const params = req.body;
@@ -95,6 +122,11 @@ const ControllerAuth = {
     const params = req.body;
     const url = req.params;
     executeSetUserProfile(params, res, url);
+  },
+  setUserProfileTheme: (req, res) => {
+    const params = req.body;
+    const url = req.params;
+    executeSetUserProfileTheme(params, res, url);
   },
 };
 

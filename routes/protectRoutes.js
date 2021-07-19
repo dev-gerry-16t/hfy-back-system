@@ -19,6 +19,10 @@ router.put(
   "/systemUser/setUserProfile/:idSystemUser",
   ControllerAuth.setUserProfile
 );
+router.put(
+  "/systemUser/setUserProfileTheme/:idSystemUser",
+  ControllerAuth.setUserProfileTheme
+);
 router.post("/customer/getCustomerById", ControllerCustomer.getCustomerById);
 router.post(
   "/customer/getTenantCoincidences",
