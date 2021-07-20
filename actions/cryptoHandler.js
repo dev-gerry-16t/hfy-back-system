@@ -2,8 +2,9 @@ const crypto = require("crypto");
 const fs = require("fs");
 
 class CryptoHandler {
-  constructor(ordenPagoWs, phrase, original) {
+  constructor(ordenPagoWs, phrase, original, environmentTest) {
     this.phrase = phrase;
+    this.environmentTest = environmentTest;
     this.cadenaOriginal = "";
     if (original) {
       this.cadenaOriginal = original;
@@ -30,7 +31,7 @@ class CryptoHandler {
     const sign = crypto.createSign("RSA-SHA256");
     sign.update(this.cadenaOriginal);
     sign.end();
-    const key = fs.readFileSync(__dirname + `/key.pem`);
+    const key = fs.readFileSync(__dirname + this.environmentTest);
     const signature_b64 = sign.sign({ key, passphrase: this.phrase }, "base64");
     return signature_b64;
   }

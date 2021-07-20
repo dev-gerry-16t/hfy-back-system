@@ -64,7 +64,8 @@ const executeGetDispersionOrder = async (req, res) => {
       const crypto = new CryptoHandler(
         bodyRequest,
         GLOBAL_CONSTANTS.SECRET_KEY_ENCRYPT,
-        null
+        null,
+        GLOBAL_CONSTANTS.ENVIRONMENT_TEST
       );
       const orderPay = { ...bodyRequest, firma: crypto.getSign() };
       //console.log("orderPay", JSON.stringify(orderPay, null, 2));

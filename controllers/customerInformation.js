@@ -1233,7 +1233,8 @@ const executeGetDispersionOrder = async (params, res) => {
       const crypto = new CryptoHandler(
         bodyRequest,
         GLOBAL_CONSTANTS.SECRET_KEY_ENCRYPT,
-        null
+        null,
+        GLOBAL_CONSTANTS.ENVIRONMENT_TEST
       );
       const orderPay = { ...bodyRequest, firma: crypto.getSign() };
       //console.log("orderPay", JSON.stringify(orderPay, null, 2));
@@ -1293,7 +1294,8 @@ const executeGetConfigForCollAndDisp = async (params, res) => {
     const crypto = new CryptoHandler(
       bodyRequest,
       GLOBAL_CONSTANTS.SECRET_KEY_ENCRYPT,
-      cadenaOriginal
+      cadenaOriginal,
+      GLOBAL_CONSTANTS.ENVIRONMENT_TEST
     );
     const orderPay = { ...bodyRequest, estado, firma: crypto.getSign() };
     //console.log("orderPay", orderPay);
