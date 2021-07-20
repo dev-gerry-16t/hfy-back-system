@@ -8,6 +8,10 @@ const {
   executeSetDispersionOrder,
   executeSetCollection,
 } = require("../actions/setDataSpeiCollect");
+const {
+  executeGetDispersionOrder,
+  executeValidatePaymentSchedule,
+} = require("../actions/dispersionOrder");
 const s3 = new AWS.S3({
   accessKeyId: GLOBAL_CONSTANTS.ACCESS_KEY_ID,
   secretAccessKey: GLOBAL_CONSTANTS.SECRET_ACCESS_KEY,
@@ -15,19 +19,15 @@ const s3 = new AWS.S3({
 
 const ControllerTest = {
   test: (req, res) => {
-    res
-      .status(200)
-      .send({
-        message: `Bienvenido al Backend homify :) ${GLOBAL_CONSTANTS.VERSION}`,
-      });
+    res.status(200).send({
+      message: `Bienvenido al Backend homify :) ${GLOBAL_CONSTANTS.VERSION}`,
+    });
   },
   testPath: (req, res) => {
     console.log("Welcome to backend test, conection is successfully", sql);
-    res
-      .status(200)
-      .send({
-        message: `Bienvenido al Backend homify :) ${GLOBAL_CONSTANTS.VERSION}`,
-      });
+    res.status(200).send({
+      message: `Bienvenido al Backend homify :) ${GLOBAL_CONSTANTS.VERSION}`,
+    });
   },
   whatsapp: async (req, res) => {
     const params = req.body;
@@ -196,6 +196,24 @@ const ControllerTest = {
         res.send(buff);
       }
     );
+  },
+  scheduleTaskDispersion: async (req, res) => {
+    try {
+      executeGetDispersionOrder(req, res);
+      console.log("Se ejecuto correctamente la dispersión");
+      res.status(200).send({ message: "ok" });
+    } catch (error) {
+      res.status(500).send({ error: `${error}` });
+    }
+  },
+  scheduleTaskPayment: async (req, res) => {
+    try {
+      executeValidatePaymentSchedule({}, res);
+      console.log("Se ejecuto correctamente los recordatorios");
+      res.status(200).send({ message: "ok" });
+    } catch (error) {
+      res.status(500).send({ error: `${error}` });
+    }
   },
 };
 
