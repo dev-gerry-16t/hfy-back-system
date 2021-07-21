@@ -9,7 +9,22 @@ const { executeSetDispersionOrder } = require("./setDataSpeiCollect");
 const executeGetDispersionOrder = async (req, res) => {
   const offset = process.env.OFFSET;
   const ip = req.header("x-forwarded-for") || req.connection.remoteAddress;
+  const headerAws = req.header("x-header-aws-key");
   let ipPublic = "";
+  executeMailToNotification({
+    subject: "Log",
+    content: `
+    <div>
+    <ul>
+    <li>fecha: ${new Date()}</li>
+    <li>ip: ${ip}</li>
+    <li>headers: ${JSON.stringify(req.headers, null, 2)}</li>
+    <li>headerAws: ${headerAws}</li>
+    <li>Action: stpSch.USPgetDispersionOrder</li>
+    </ul>
+    </div>
+    `,
+  });
   if (ip) {
     ipPublic = ip.split(",")[0];
   }
