@@ -34,6 +34,7 @@ const executeGetDispersionOrder = async (req, res) => {
       .request()
       .input("p_chrOffset", sql.Char, offset)
       .input("p_nvcIpAddress", sql.NVarChar, ipPublic)
+      .input("p_nvcXHeaderAWSKey", sql.NVarChar, headerAws)
       .execute("stpSch.USPgetDispersionOrder");
     const resultRecordset = result.recordset;
     for (const element of resultRecordset) {
@@ -101,6 +102,7 @@ const executeGetDispersionOrder = async (req, res) => {
         idDispersionOrder,
         jsonServiceResponse: JSON.stringify(response),
         ipAddress: ipPublic,
+        headerAws,
       });
     }
   } catch (err) {

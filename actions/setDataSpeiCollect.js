@@ -7,6 +7,7 @@ const executeSetDispersionOrder = async (params) => {
     jsonServiceResponse = null,
     ipAddress = null,
     offset = process.env.OFFSET,
+    headerAws = null,
   } = params;
   try {
     const pool = await sql.connect();
@@ -17,6 +18,7 @@ const executeSetDispersionOrder = async (params) => {
       .input("p_nvcJsonServiceResponse", sql.NVarChar, jsonServiceResponse)
       .input("p_chrOffset", sql.Char, offset)
       .input("p_nvcIpAddress", sql.NVarChar, ipAddress)
+      .input("p_nvcXHeaderAWSKey", sql.NVarChar, headerAws)
       .execute("stpSch.USPsetDispersionOrder");
     const resultRecordset = result.recordset;
     for (const element of resultRecordset) {
