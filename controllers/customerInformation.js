@@ -1,5 +1,11 @@
 const sql = require("mssql");
 const nodemailer = require("nodemailer");
+const isNil = require("lodash/isNil");
+const rp = require("request-promise");
+const CryptoHandler = require("../actions/cryptoHandler");
+const executeMailToNotification = require("../actions/sendInformationLog");
+const { executeValidateCollAndDisp } = require("../actions/setDataSpeiCollect");
+const GLOBAL_CONSTANTS = require("../constants/constants");
 
 const executeGetCustomerById = async (params, res) => {
   const {
@@ -378,7 +384,7 @@ const executeGetAllPaymentInContract = async (params, res) => {
     request.input("p_nvcIdIncidence", sql.NVarChar, idIncidence);
     request.input("p_intIdPaymentType", sql.Int, idPaymentType);
     request.input("p_datPaymentDate", sql.Date, paymentDate);
-    request.input("p_decAmount", sql.Decimal(19,2), amount);
+    request.input("p_decAmount", sql.Decimal(19, 2), amount);
     request.input("p_intAdvancingRents", sql.Int, advancingRents);
     request.input("p_nvcDocuments", sql.NVarChar, documents);
     request.input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser);
@@ -658,6 +664,73 @@ const executeGetAgentCommissionChart = async (params, res) => {
   }
 };
 
+const executeGetConfigForCollAndDisp = async (params, res) => {
+  const offset = process.env.OFFSET;
+  try {
+    const pool = await sql.connect();
+    const result = await pool
+      .request()
+      .input("p_chrOffset", sql.Char, offset)
+      .execute("stpSch.USPgetConfigForCollAndDisp");
+    const resultRecordset = result.recordset;
+
+    const { empresa, fechaOperacion, estado, url } = resultRecordset[0];
+    let bodyRequest = {};
+    let cadenaOriginal = "";
+    if (isNil(fechaOperacion) === false) {
+      bodyRequest = {
+        empresa,
+        fechaOperacion,
+      };
+      cadenaOriginal = `|||${empresa}|${fechaOperacion}|||||||||||||||||||||||||||||||||`;
+    } else {
+      bodyRequest = { empresa };
+      cadenaOriginal = `|||${empresa}||||||||||||||||||||||||||||||||||`;
+    }
+    const crypto = new CryptoHandler(
+      bodyRequest,
+      GLOBAL_CONSTANTS.SECRET_KEY_ENCRYPT,
+      cadenaOriginal,
+      GLOBAL_CONSTANTS.ENVIRONMENT_TEST
+    );
+    const orderPay = { ...bodyRequest, estado, firma: crypto.getSign() };
+    //console.log("orderPay", orderPay);
+    const response = await rp({
+      url,
+      method: "POST",
+      headers: {
+        encoding: "UTF-8",
+        "Content-Type": "application/json",
+      },
+      json: true,
+      body: orderPay,
+      rejectUnauthorized: false,
+    });
+    await executeValidateCollAndDisp({
+      jsonServiceResponse: JSON.stringify(response),
+    });
+
+    res.status(200).send({ response: "Ok" });
+  } catch (err) {
+    console.log("err", err);
+    executeMailToNotification({
+      subject: "Catch",
+      content: `
+      <div>
+        ${err}
+      Action: stpSch.USPgetConfigForCollAndDisp
+      </div>
+      `,
+    });
+    res.status(500).send({
+      response: {
+        message: "No se pudo procesar tu solicitud",
+        messageType: `${err}`,
+      },
+    });
+  }
+};
+
 const ControllerCustomer = {
   getCustomerById: (req, res) => {
     const params = req.body;
@@ -729,6 +802,10 @@ const ControllerCustomer = {
   getAgentCommissionChart: (req, res) => {
     const params = req.body;
     executeGetAgentCommissionChart(params, res);
+  },
+  getConfigForCollAndDisp: (req, res) => {
+    const params = req.body;
+    executeGetConfigForCollAndDisp(params, res);
   },
 };
 
