@@ -75,6 +75,8 @@ const ControllerTest = {
   collection: async (req, res) => {
     const payment = req.body;
     const ip = req.header("x-forwarded-for") || req.connection.remoteAddress;
+    console.log('ip',ip);
+    console.log('Headers',req.headers);
     let ipPublic = "";
     if (ip) {
       ipPublic = ip.split(",")[0];
