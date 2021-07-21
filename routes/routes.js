@@ -7,12 +7,17 @@ const ControllerRecover = require("../controllers/recoverPass");
 const ControllerTest = require("../controllers/test");
 const ControllerLeads = require("../controllers/leads");
 const ControllerCatalogs = require("../controllers/catalogs");
+const ControllerCustomer = require("../controllers/customerInformation");
 
 const router = express.Router();
 
 router.get("/", ControllerTest.test);
 router.get("/test", ControllerTest.testPath);
 router.post("/whatsapp", ControllerTest.whatsapp);
+router.get(
+  "/customer/getConfigForCollAndDisp",
+  ControllerCustomer.getConfigForCollAndDisp
+);
 router.post("/connect/dispersionOrder", ControllerTest.dispersionOrder);
 router.post("/connect/collection", ControllerTest.collection);
 router.get(
