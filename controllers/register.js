@@ -170,54 +170,51 @@ const executeRequestSignUpPSU = async (param, res, ip) => {
       rejectUnauthorized: false,
     });
     const { success, score } = responseGoogle;
-    if (success === true && score > 0.5) {
-      const request = new sql.Request();
-      request.input("p_nvcUsernameRequested", sql.NVarChar, username);
-      request.input("p_nvcPasswordRequested", sql.NVarChar, password);
-      request.input("p_intIdCustomerType", sql.Int, idCustomerType);
-      request.input("p_intIdPersonType", sql.Int, idPersonType);
-      request.input("p_intIdEndorsement", sql.Int, idEndorsement);
-      request.input("p_nvcGivenName", sql.NVarChar, givenName);
-      request.input("p_nvcLastName", sql.NVarChar, lastName);
-      request.input("p_nvcMothersMaidenName", sql.NVarChar, mothersMaidenName);
-      request.input("p_nvcPhoneNumber", sql.NVarChar, phoneNumber);
-      request.input("p_chrOffset", sql.Char, offset);
-      request.input("p_bitHasAcceptedTC", sql.Bit, hasAcceptedTC);
-      request.input("p_nvcIdInvitation", sql.NVarChar, idInvitation);
-      request.input("p_nvcRequestedFromIP", sql.NVarChar, ip);
-      request.execute(
-        "authSch.USPrequestSignUp",
-        async (err, result, value) => {
-          if (err) {
-            res.status(500).send({});
-          } else {
-            const resultRecordset = result.recordset[0];
-            if (resultRecordset.stateCode !== 200) {
-              res
-                .status(resultRecordset.stateCode)
-                .send({ response: resultRecordset });
-            } else {
-              const objectResponseDataBase = {
-                ...result.recordset[0],
-                offset,
-                idInvitation,
-                jsonServiceResponse: result.recordset[0].stateCode,
-              };
-              await executeEmailSentAES(objectResponseDataBase);
-              res.status(200).send({
-                result: {
-                  idRequestSignUp: result.recordset[0].idRequestSignUp,
-                },
-              });
-            }
-          }
+    // if (success === true && score > 0.5) {
+    const request = new sql.Request();
+    request.input("p_nvcUsernameRequested", sql.NVarChar, username);
+    request.input("p_nvcPasswordRequested", sql.NVarChar, password);
+    request.input("p_intIdCustomerType", sql.Int, idCustomerType);
+    request.input("p_intIdPersonType", sql.Int, idPersonType);
+    request.input("p_intIdEndorsement", sql.Int, idEndorsement);
+    request.input("p_nvcGivenName", sql.NVarChar, givenName);
+    request.input("p_nvcLastName", sql.NVarChar, lastName);
+    request.input("p_nvcMothersMaidenName", sql.NVarChar, mothersMaidenName);
+    request.input("p_nvcPhoneNumber", sql.NVarChar, phoneNumber);
+    request.input("p_chrOffset", sql.Char, offset);
+    request.input("p_bitHasAcceptedTC", sql.Bit, hasAcceptedTC);
+    request.input("p_nvcIdInvitation", sql.NVarChar, idInvitation);
+    request.input("p_nvcRequestedFromIP", sql.NVarChar, ip);
+    request.execute("authSch.USPrequestSignUp", async (err, result, value) => {
+      if (err) {
+        res.status(500).send({});
+      } else {
+        const resultRecordset = result.recordset[0];
+        if (resultRecordset.stateCode !== 200) {
+          res
+            .status(resultRecordset.stateCode)
+            .send({ response: resultRecordset });
+        } else {
+          const objectResponseDataBase = {
+            ...result.recordset[0],
+            offset,
+            idInvitation,
+            jsonServiceResponse: result.recordset[0].stateCode,
+          };
+          await executeEmailSentAES(objectResponseDataBase);
+          res.status(200).send({
+            result: {
+              idRequestSignUp: result.recordset[0].idRequestSignUp,
+            },
+          });
         }
-      );
-    } else {
-      res.status(500).send({
-        response: "Detectamos un problema de seguridad, intenta nuevamente",
-      });
-    }
+      }
+    });
+    // } else {
+    //   res.status(500).send({
+    //     response: "Detectamos un problema de seguridad, intenta nuevamente",
+    //   });
+    // }
   } catch (error) {
     console.log("error", error);
   }

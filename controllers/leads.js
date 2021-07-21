@@ -37,51 +37,49 @@ const executeAddLandingProspect = async (params, res) => {
       rejectUnauthorized: false,
     });
     const { success, score } = responseGoogle;
-    if (success === true && score > 0.5) {
-      const request = new sql.Request();
-      request.input("p_intIdProspectType", sql.Int, idProspectType);
-      request.input("p_nvcGivenName", sql.NVarChar, givenName);
-      request.input("p_nvcLastName", sql.NVarChar, lastName);
-      request.input("p_nvcMothersMaidenName", sql.NVarChar, mothersMaidenName);
-      request.input("p_nvcPhoneNumber", sql.NVarChar, phoneNumber);
-      request.input("p_nvcEmailAddress", sql.NVarChar, emailAddress);
-      request.input("p_chrOffset", sql.Char, offset);
-      request.input("p_decBudgeAmount", sql.Decimal(19, 2), budgeAmount);
-      request.input("p_nvcIdPolicy", sql.NVarChar, idPolicy);
-      request.input("p_nvcRealEstate", sql.NVarChar, realState);
-      request.execute("landingSch.USPaddLandingProspect", (err, result) => {
-        if (err) {
-          res.status(500).send({ response: "Error en los parametros" });
+    // if (success === true && score > 0.5) {
+    const request = new sql.Request();
+    request.input("p_intIdProspectType", sql.Int, idProspectType);
+    request.input("p_nvcGivenName", sql.NVarChar, givenName);
+    request.input("p_nvcLastName", sql.NVarChar, lastName);
+    request.input("p_nvcMothersMaidenName", sql.NVarChar, mothersMaidenName);
+    request.input("p_nvcPhoneNumber", sql.NVarChar, phoneNumber);
+    request.input("p_nvcEmailAddress", sql.NVarChar, emailAddress);
+    request.input("p_chrOffset", sql.Char, offset);
+    request.input("p_decBudgeAmount", sql.Decimal(19, 2), budgeAmount);
+    request.input("p_nvcIdPolicy", sql.NVarChar, idPolicy);
+    request.input("p_nvcRealEstate", sql.NVarChar, realState);
+    request.execute("landingSch.USPaddLandingProspect", (err, result) => {
+      if (err) {
+        res.status(500).send({ response: "Error en los parametros" });
+      } else {
+        const resultRecordset = result.recordset;
+        if (resultRecordset[0].stateCode !== 200) {
+          res.status(resultRecordset[0].stateCode).send({
+            response: resultRecordset[0],
+          });
         } else {
-          const resultRecordset = result.recordset;
-          if (resultRecordset[0].stateCode !== 200) {
-            res.status(resultRecordset[0].stateCode).send({
-              response: resultRecordset[0],
+          result.recordset.forEach((element) => {
+            const configEmailServer = JSON.parse(element.jsonEmailServerConfig);
+            executeMailTo({
+              ...element,
+              ...configEmailServer,
             });
-          } else {
-            result.recordset.forEach((element) => {
-              const configEmailServer = JSON.parse(
-                element.jsonEmailServerConfig
-              );
-              executeMailTo({
-                ...element,
-                ...configEmailServer,
-              });
-            });
-            res.status(200).send({
-              response: {
-                stateCode: resultRecordset[0].stateCode,
-                message: resultRecordset[0].message,
-              },
-            });
-          }
+          });
+          res.status(200).send({
+            response: {
+              stateCode: resultRecordset[0].stateCode,
+              message: resultRecordset[0].message,
+            },
+          });
         }
-      });
-    } else {
-      res.status(500).send({
-        response: "Detectamos un problema de seguridad, intenta nuevamente",
-      });
-    }
+      }
+    });
+    // } else {
+    //   res.status(500).send({
+    //     response: "Detectamos un problema de seguridad, intenta nuevamente",
+    //   });
+    // }
   } catch (err) {
     console.log("ERROR", err);
     // ... error checks
