@@ -712,7 +712,6 @@ const executeGetConfigForCollAndDisp = async (params, res) => {
 
     res.status(200).send({ response: "Ok" });
   } catch (err) {
-    console.log("err", err);
     executeMailToNotification({
       subject: "Catch",
       content: `
