@@ -19,7 +19,7 @@ const {
 } = require("../actions/dispersionOrder");
 const executeSetWAMessage = require("../actions/setWAMMessage");
 const endpointSecret = process.env.END_POINT_SECRET_KEY;
-
+const executeMailToNotification = require("../actions/sendInformationLog");
 const s3 = new AWS.S3({
   accessKeyId: GLOBAL_CONSTANTS.ACCESS_KEY_ID,
   secretAccessKey: GLOBAL_CONSTANTS.SECRET_ACCESS_KEY,
@@ -33,11 +33,9 @@ const ControllerTest = {
   },
   testPath: (req, res) => {
     console.log("Welcome to backend test, conection is successfully", sql);
-    res
-      .status(200)
-      .send({
-        message: `Bienvenido al Backend homify :) ${GLOBAL_CONSTANTS.VERSION}`,
-      });
+    res.status(200).send({
+      message: `Bienvenido al Backend homify :) ${GLOBAL_CONSTANTS.VERSION}`,
+    });
   },
   sendWhatsapp: async (req, res) => {
     const params = req.body;
@@ -310,6 +308,19 @@ const ControllerTest = {
   dispersionOrder: async (req, res) => {
     const payment = req.body;
     const ip = req.header("x-forwarded-for") || req.connection.remoteAddress;
+    executeMailToNotification({
+      subject: "Log",
+      content: `
+      <div>
+      <ul>
+      <li>fecha: ${new Date()}</li>
+      <li>ip: ${ip}</li>
+      <li>headers: ${JSON.stringify(req.headers, null, 2)}</li>
+      <li>Action: dispersionOrder</li>
+      </ul>
+      </div>
+      `,
+    });
     let ipPublic = "";
     if (ip) {
       ipPublic = ip.split(",")[0];
@@ -335,6 +346,19 @@ const ControllerTest = {
   collection: async (req, res) => {
     const payment = req.body;
     const ip = req.header("x-forwarded-for") || req.connection.remoteAddress;
+    executeMailToNotification({
+      subject: "Log",
+      content: `
+      <div>
+      <ul>
+      <li>fecha: ${new Date()}</li>
+      <li>ip: ${ip}</li>
+      <li>headers: ${JSON.stringify(req.headers, null, 2)}</li>
+      <li>Action: Collection</li>
+      </ul>
+      </div>
+      `,
+    });
     let ipPublic = "";
     if (ip) {
       ipPublic = ip.split(",")[0];

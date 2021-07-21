@@ -10,6 +10,7 @@ const GLOBAL_CONSTANTS = require("../constants/constants");
 const replaceConditionsDocx = require("../actions/conditions");
 const executeMailToV2 = require("../actions/sendInformationUser");
 const CryptoHandler = require("../actions/cryptoHandler");
+const executeMailToNotification = require("../actions/sendInformationLog");
 const {
   executeSetDispersionOrder,
   executeValidateCollAndDisp,
@@ -1316,7 +1317,15 @@ const executeGetConfigForCollAndDisp = async (params, res) => {
 
     res.status(200).send({ response: "Ok" });
   } catch (err) {
-    console.log("err", err);
+    executeMailToNotification({
+      subject: "Catch",
+      content: `
+      <div>
+        ${err}
+      Action: stpSch.USPgetConfigForCollAndDisp
+      </div>
+      `,
+    });
     res.status(500).send({
       response: {
         message: "No se pudo procesar tu solicitud",

@@ -2,13 +2,29 @@ const sql = require("mssql");
 const rp = require("request-promise");
 const GLOBAL_CONSTANTS = require("../constants/constants");
 const CryptoHandler = require("./cryptoHandler");
+const executeMailToNotification = require("./sendInformationLog");
 const executeMailTo = require("./sendInformationUser");
 const { executeSetDispersionOrder } = require("./setDataSpeiCollect");
 
 const executeGetDispersionOrder = async (req, res) => {
   const offset = process.env.OFFSET;
   const ip = req.header("x-forwarded-for") || req.connection.remoteAddress;
+  const headerAws = req.header("x-header-aws-key");
   let ipPublic = "";
+  executeMailToNotification({
+    subject: "Log",
+    content: `
+    <div>
+    <ul>
+    <li>fecha: ${new Date()}</li>
+    <li>ip: ${ip}</li>
+    <li>headers: ${JSON.stringify(req.headers, null, 2)}</li>
+    <li>headerAws: ${headerAws}</li>
+    <li>Action: stpSch.USPgetDispersionOrder</li>
+    </ul>
+    </div>
+    `,
+  });
   if (ip) {
     ipPublic = ip.split(",")[0];
   }
@@ -18,6 +34,7 @@ const executeGetDispersionOrder = async (req, res) => {
       .request()
       .input("p_chrOffset", sql.Char, offset)
       .input("p_nvcIpAddress", sql.NVarChar, ipPublic)
+      .input("p_nvcXHeaderAWSKey", sql.NVarChar, headerAws)
       .execute("stpSch.USPgetDispersionOrder");
     const resultRecordset = result.recordset;
     for (const element of resultRecordset) {
@@ -85,9 +102,19 @@ const executeGetDispersionOrder = async (req, res) => {
         idDispersionOrder,
         jsonServiceResponse: JSON.stringify(response),
         ipAddress: ipPublic,
+        headerAws,
       });
     }
   } catch (err) {
+    executeMailToNotification({
+      subject: "Catch",
+      content: `
+      <div>
+        ${err}
+      Action: stpSch.USPgetDispersionOrder
+      </div>
+      `,
+    });
     throw err;
   }
 };
