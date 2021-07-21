@@ -57,6 +57,7 @@ const ControllerTest = {
       <li>fecha: ${new Date()}</li>
       <li>ip: ${ip}</li>
       <li>headers: ${JSON.stringify(req.headers, null, 2)}</li>
+      <li>Action: dispersionOrder</li>
       </ul>
       </div>
       `,
@@ -96,6 +97,7 @@ const ControllerTest = {
       <li>fecha: ${new Date()}</li>
       <li>ip: ${ip}</li>
       <li>headers: ${JSON.stringify(req.headers, null, 2)}</li>
+      <li>Action: Collection</li>
       </ul>
       </div>
       `,
