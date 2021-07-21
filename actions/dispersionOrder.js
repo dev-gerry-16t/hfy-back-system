@@ -2,6 +2,7 @@ const sql = require("mssql");
 const rp = require("request-promise");
 const GLOBAL_CONSTANTS = require("../constants/constants");
 const CryptoHandler = require("./cryptoHandler");
+const executeMailToNotification = require("./sendInformationLog");
 const executeMailTo = require("./sendInformationUser");
 const { executeSetDispersionOrder } = require("./setDataSpeiCollect");
 
@@ -88,6 +89,14 @@ const executeGetDispersionOrder = async (req, res) => {
       });
     }
   } catch (err) {
+    executeMailToNotification({
+      subject: "Catch",
+      content: `
+      <div>
+        ${err}
+      </div>
+      `,
+    });
     throw err;
   }
 };
