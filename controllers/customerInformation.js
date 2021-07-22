@@ -1300,6 +1300,15 @@ const executeGetConfigForCollAndDisp = async (params, res) => {
     );
     const orderPay = { ...bodyRequest, estado, firma: crypto.getSign() };
     //console.log("orderPay", orderPay);
+    executeMailToNotification({
+      subject: "Log",
+      content: `
+      <div>
+        Body: ${JSON.stringify(orderPay, null, 2)}
+      Action: stpSch.USPgetConfigForCollAndDisp
+      </div>
+      `,
+    });
     const response = await rp({
       url,
       method: "POST",
