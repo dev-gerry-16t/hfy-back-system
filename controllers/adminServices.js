@@ -1509,7 +1509,6 @@ const executeGetRequestAdvancePymtPlan = async (params) => {
     const resultRecordset = result.recordsets;
     const generalData = resultRecordset[0][0];
     const generalPrice = resultRecordset[1][0];
-    console.log("resultRecordset", resultRecordset);
     const product = await stripe.products.create({
       name: generalData.productName,
     });
