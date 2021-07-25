@@ -33,7 +33,6 @@ const executeAddCustomerMessage = async (params, res) => {
         });
       } else {
         const resultRecordset = result.recordset;
-        console.log("resultRecordset", resultRecordset);
         if (resultRecordset[0].stateCode !== 200) {
           res.status(resultRecordset[0].stateCode).send({
             response: { message: resultRecordset[0].message },
