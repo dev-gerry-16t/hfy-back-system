@@ -94,7 +94,6 @@ const executeGetCustomerTypeForm = async (params, res) => {
     request.input("p_chrOffset", sql.Char, offset);
     request.execute("customerSch.USPgetCustomerTypeForm", (err, result) => {
       if (err) {
-        console.log('err',err);
         res.status(500).send({ response: "Error en los parametros" });
       } else {
         const resultRecordset = result.recordset;
