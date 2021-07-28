@@ -289,6 +289,7 @@ const executeSetTypeForm = async (params, res) => {
     endorsementTaxId = null,
     isCCAccepted = null,
     ccDigitalSignature = null,
+    idInvPymtMethod = null,
   } = params;
 
   try {
@@ -533,6 +534,7 @@ const executeSetTypeForm = async (params, res) => {
     request.input("p_nvcEndorsementTaxId", sql.NVarChar, endorsementTaxId);
     request.input("p_bitIsCCAccepted", sql.Bit, isCCAccepted);
     request.input("p_vchCCDigitalSignature", sql.VarChar, ccDigitalSignature);
+    request.input("p_intIdInvPymtMethod", sql.Int, idInvPymtMethod);
     request.execute("customerSch.USPsetTypeForm", (err, result) => {
       if (err) {
         res.status(500).send({ response: "Error en los parametros" });
