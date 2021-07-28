@@ -267,6 +267,10 @@ router.post(
   "/catalogs/getAllRequestAdvancePymtStatus",
   ControllerCatalogs.getAllRequestAdvancePymtStatus
 );
+router.post(
+  "/catalogs/getAllInvPymtMethods",
+  ControllerCatalogs.getAllInvPymtMethods
+);
 //Catalogos//
 
 //Admin//

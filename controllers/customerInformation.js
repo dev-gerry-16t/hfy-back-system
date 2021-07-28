@@ -1250,7 +1250,6 @@ const executeGetDispersionOrder = async (params, res) => {
         body: orderPay,
         rejectUnauthorized: false,
       });
-      console.log("response", JSON.stringify(response, null, 2));
       await executeSetDispersionOrder({
         idDispersionOrder,
         jsonServiceResponse: JSON.stringify(response),
@@ -1259,7 +1258,6 @@ const executeGetDispersionOrder = async (params, res) => {
 
     res.status(200).send({ response: "ok" });
   } catch (err) {
-    console.log("err", err);
     res.status(500).send({
       response: {
         message: "No se pudo procesar tu solicitud",
@@ -1300,6 +1298,15 @@ const executeGetConfigForCollAndDisp = async (params, res) => {
     );
     const orderPay = { ...bodyRequest, estado, firma: crypto.getSign() };
     //console.log("orderPay", orderPay);
+    executeMailToNotification({
+      subject: "Log",
+      content: `
+      <div>
+        Body: ${JSON.stringify(orderPay, null, 2)}
+      Action: stpSch.USPgetConfigForCollAndDisp
+      </div>
+      `,
+    });
     const response = await rp({
       url,
       method: "POST",
@@ -1381,7 +1388,6 @@ const executeForgiveInterest = async (params, res, url) => {
       });
     }
   } catch (err) {
-    console.log("err", err);
     res.status(500).send({
       response: {
         message: "No se pudo procesar tu solicitud",
