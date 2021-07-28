@@ -289,7 +289,6 @@ const executeSetTypeForm = async (params, res) => {
     endorsementTaxId = null,
     isCCAccepted = null,
     ccDigitalSignature = null,
-    idInvPymtMethod = null,
   } = params;
 
   try {
@@ -534,7 +533,6 @@ const executeSetTypeForm = async (params, res) => {
     request.input("p_nvcEndorsementTaxId", sql.NVarChar, endorsementTaxId);
     request.input("p_bitIsCCAccepted", sql.Bit, isCCAccepted);
     request.input("p_vchCCDigitalSignature", sql.VarChar, ccDigitalSignature);
-    request.input("p_intIdInvPymtMethod", sql.Int, idInvPymtMethod);
     request.execute("customerSch.USPsetTypeForm", (err, result) => {
       if (err) {
         res.status(500).send({ response: "Error en los parametros" });
@@ -641,6 +639,7 @@ const executeSetTypeFormOwner = async (params, res) => {
     dateOfBirth = null,
     legalRepDateOfBirth = null,
     idCommercialActivity = null,
+    idInvPymtMethod = null,
   } = params;
 
   try {
@@ -784,7 +783,7 @@ const executeSetTypeFormOwner = async (params, res) => {
     request.input("p_datLegalRepDateOfBirth", sql.Date, legalRepDateOfBirth);
     request.input("p_datDateOfBirth", sql.Date, dateOfBirth);
     request.input("p_intIdCommercialActivity", sql.Int, idCommercialActivity);
-
+    request.input("p_intIdInvPymtMethod", sql.Int, idInvPymtMethod);
     request.execute("customerSch.USPsetCustomerTypeForm", (err, result) => {
       if (err) {
         res.status(500).send({ response: "Error en los parametros" });
