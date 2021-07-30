@@ -191,9 +191,12 @@ const executeRequestSignUpPSU = async (param, res, ip) => {
       } else {
         const resultRecordset = result.recordset[0];
         if (resultRecordset.stateCode !== 200) {
-          res
-            .status(resultRecordset.stateCode)
-            .send({ response: resultRecordset });
+          res.status(resultRecordset.stateCode).send({
+            response: {
+              message: resultRecordset.message,
+              idRequestSignUp: resultRecordset.idRequestSignUp,
+            },
+          });
         } else {
           const objectResponseDataBase = {
             ...result.recordset[0],
@@ -242,7 +245,12 @@ const executeRequestSignUpVCFSU = async (param, res) => {
         if (resultRecordset.stateCode !== 200) {
           res
             .status(resultRecordset.stateCode)
-            .send({ response: resultRecordset });
+            .send({
+              response: {
+                message: resultRecordset.message,
+                idRequestSignUp: resultRecordset.idRequestSignUp,
+              },
+            });
         } else {
           result.recordset.forEach((element) => {
             if (element.canSendEmail === true) {

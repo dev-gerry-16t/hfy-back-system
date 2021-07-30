@@ -56,7 +56,10 @@ const executeAddLandingProspect = async (params, res) => {
         const resultRecordset = result.recordset;
         if (resultRecordset[0].stateCode !== 200) {
           res.status(resultRecordset[0].stateCode).send({
-            response: resultRecordset[0],
+            response: {
+              message: resultRecordset[0].message,
+              idLandingProspect: resultRecordset[0].idLandingProspect,
+            },
           });
         } else {
           result.recordset.forEach((element) => {
