@@ -609,9 +609,12 @@ const executeSendTenantInvitation = async (params, res) => {
         } else {
           const resultRecordset = result.recordset[0];
           if (resultRecordset.stateCode !== 200) {
-            res
-              .status(resultRecordset.stateCode)
-              .send({ response: resultRecordset });
+            res.status(resultRecordset.stateCode).send({
+              response: {
+                message: resultRecordset.message,
+                idInvitation: resultRecordset.idInvitation,
+              },
+            });
           } else {
             const objectResponseDataBase = {
               ...result.recordset[0],
@@ -620,7 +623,11 @@ const executeSendTenantInvitation = async (params, res) => {
             };
             await executeEmailSentAES(objectResponseDataBase);
             res.status(200).send({
-              result: resultRecordset,
+              result: {
+                idInvitation: resultRecordset.idInvitation,
+                idUserSender: resultRecordset.idUserSender,
+                message: resultRecordset.message,
+              },
             });
           }
         }
