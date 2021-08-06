@@ -46,25 +46,33 @@ const executeRequestRecoveryPass = async (params, res) => {
         res.status(500).send({ result: "Error en el sistema" });
       } else {
         const resultRecorset = result.recordset[0];
-        if (resultRecorset.canSendEmail === true) {
-          const configEmailServer = JSON.parse(
-            resultRecorset.jsonEmailServerConfig
-          );
-          executeMailTo(
-            {
-              ...resultRecorset,
-              ...configEmailServer,
-            },
-            res
-          );
-        } else if (resultRecorset.canSendEmail === false) {
-          res.status(200).send({
-            result: {
-              idRequestPasswordRecovery:
-                resultRecorset.idRequestPasswordRecovery,
+        if (resultRecorset.stateCode !== 200) {
+          res.status(resultRecorset.stateCode).send({
+            response: {
               message: resultRecorset.message,
             },
           });
+        } else {
+          if (resultRecorset.canSendEmail === true) {
+            const configEmailServer = JSON.parse(
+              resultRecorset.jsonEmailServerConfig
+            );
+            executeMailTo(
+              {
+                ...resultRecorset,
+                ...configEmailServer,
+              },
+              res
+            );
+          } else if (resultRecorset.canSendEmail === false) {
+            res.status(200).send({
+              result: {
+                idRequestPasswordRecovery:
+                  resultRecorset.idRequestPasswordRecovery,
+                message: resultRecorset.message,
+              },
+            });
+          }
         }
       }
     });
