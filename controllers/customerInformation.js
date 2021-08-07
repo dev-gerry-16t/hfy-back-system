@@ -1,6 +1,7 @@
 const sql = require("mssql");
 const AWS = require("aws-sdk");
 const Docxtemplater = require("docxtemplater");
+const ImageModule = require("docxtemplater-image-module");
 const PizZip = require("pizzip");
 const isEmpty = require("lodash/isEmpty");
 const isNil = require("lodash/isNil");
@@ -20,6 +21,36 @@ const s3 = new AWS.S3({
   accessKeyId: GLOBAL_CONSTANTS.ACCESS_KEY_ID,
   secretAccessKey: GLOBAL_CONSTANTS.SECRET_ACCESS_KEY,
 });
+
+const base64DataURLToArrayBuffer = (dataURL) => {
+  const base64Regex = /^data:image\/(png|jpg|svg|svg\+xml);base64,/;
+  if (!base64Regex.test(dataURL)) {
+    return false;
+  }
+  const stringBase64 = dataURL.replace(base64Regex, "");
+  let binaryString;
+  if (typeof window !== "undefined") {
+    binaryString = window.atob(stringBase64);
+  } else {
+    binaryString = Buffer.from(stringBase64, "base64").toString("binary");
+  }
+  const len = binaryString.length;
+  const bytes = new Uint8Array(len);
+  for (let i = 0; i < len; i++) {
+    const ascii = binaryString.charCodeAt(i);
+    bytes[i] = ascii;
+  }
+  return bytes.buffer;
+};
+
+const imageOpts = {
+  getImage(tag) {
+    return base64DataURLToArrayBuffer(tag);
+  },
+  getSize() {
+    return [300, 100];
+  },
+};
 
 const executeGetCustomerById = async (params, res) => {
   const {
@@ -1018,7 +1049,9 @@ const executeGetRequestAdvancePymtProperties = async (params, res) => {
     } else {
       const zip = new PizZip(buff);
       let doc;
+      const imageModule = new ImageModule(imageOpts);
       doc = await new Docxtemplater(zip, {
+        modules: [imageModule],
         parser: replaceConditionsDocx,
         nullGetter: () => {
           return "";
@@ -1140,7 +1173,9 @@ const executeGetCustomerLoanProperties = async (params, res) => {
     } else {
       const zip = new PizZip(buff);
       let doc;
+      const imageModule = new ImageModule(imageOpts);
       doc = await new Docxtemplater(zip, {
+        modules: [imageModule],
         parser: replaceConditionsDocx,
         nullGetter: () => {
           return "";
