@@ -2,6 +2,7 @@ const sql = require("mssql");
 const Stripe = require("stripe");
 const AWS = require("aws-sdk");
 const Docxtemplater = require("docxtemplater");
+const ImageModule = require("docxtemplater-image-module");
 const PizZip = require("pizzip");
 const GLOBAL_CONSTANTS = require("../constants/constants");
 const isNil = require("lodash/isNil");
@@ -9,7 +10,6 @@ const isEmpty = require("lodash/isEmpty");
 const executeMailTo = require("../actions/sendInformationUser");
 const replaceConditionsDocx = require("../actions/conditions");
 const { executeSetCustomerAccount } = require("../actions/setCustomerAccount");
-
 const s3 = new AWS.S3({
   accessKeyId: GLOBAL_CONSTANTS.ACCESS_KEY_ID,
   secretAccessKey: GLOBAL_CONSTANTS.SECRET_ACCESS_KEY,
@@ -26,6 +26,36 @@ const parseDateOfBorth = (date) => {
     day = date.getUTCDate();
   }
   return { year, month, day };
+};
+
+const base64DataURLToArrayBuffer = (dataURL) => {
+  const base64Regex = /^data:image\/(png|jpg|svg|svg\+xml);base64,/;
+  if (!base64Regex.test(dataURL)) {
+    return false;
+  }
+  const stringBase64 = dataURL.replace(base64Regex, "");
+  let binaryString;
+  if (typeof window !== "undefined") {
+    binaryString = window.atob(stringBase64);
+  } else {
+    binaryString = Buffer.from(stringBase64, "base64").toString("binary");
+  }
+  const len = binaryString.length;
+  const bytes = new Uint8Array(len);
+  for (let i = 0; i < len; i++) {
+    const ascii = binaryString.charCodeAt(i);
+    bytes[i] = ascii;
+  }
+  return bytes.buffer;
+};
+
+const imageOpts = {
+  getImage(tag) {
+    return base64DataURLToArrayBuffer(tag);
+  },
+  getSize() {
+    return [300, 100];
+  },
 };
 
 const getIdStripeDocument = async (array) => {
@@ -753,8 +783,10 @@ const executeAddDocument = async (resultGet, params, dataParams, file, res) => {
         } else {
           const zip = new PizZip(file);
           let doc;
+          const imageModule = new ImageModule(imageOpts);
           try {
             doc = new Docxtemplater(zip, {
+              modules: [imageModule],
               parser: replaceConditionsDocx,
               nullGetter: () => {
                 return "";
@@ -1152,7 +1184,9 @@ const executeGetContractV2 = async (params, res) => {
           //Procesamiento de Docxtemplater
           const zip = new PizZip(buff);
           let doc;
+          const imageModule = new ImageModule(imageOpts);
           doc = await new Docxtemplater(zip, {
+            modules: [imageModule],
             parser: replaceConditionsDocx,
             nullGetter: () => {
               return "";
@@ -1377,7 +1411,9 @@ const executeGetDocumentByIdContract = async (params, res, req) => {
           } else {
             const zip = new PizZip(buff);
             let doc;
+            const imageModule = new ImageModule(imageOpts);
             doc = await new Docxtemplater(zip, {
+              modules: [imageModule],
               parser: replaceConditionsDocx,
               nullGetter: () => {
                 return "";
