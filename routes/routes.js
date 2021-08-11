@@ -43,7 +43,17 @@ router.get(
 );
 router.post("/uploadBucket", ControllerTest.upload);
 router.get("/mailto", ControllerRegister.mailto);
+//Login
 router.post("/systemUser/validateLogin", ControllerLogin.login);
+router.post(
+  "/systemUser/getRequestExternalDS",
+  ControllerLogin.getRequestExternalDS
+);
+router.put(
+  "/systemUser/setRequestExternalDS/:idExternalUserInDC",
+  ControllerLogin.setRequestExternalDS
+);
+//Login
 router.post("/registerUser", ControllerRegister.register);
 router.post("/customerType/getAllCustomer", ControllerRegister.customerType);
 router.post("/personType/getAllPerson", ControllerRegister.personType);
