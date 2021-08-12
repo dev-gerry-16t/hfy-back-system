@@ -1439,6 +1439,30 @@ const executeForgiveInterest = async (params, res, url) => {
   }
 };
 
+const executeGetTransactionsByUser = async (params, res) => {
+  const { idSystemUser, idLoginHistory, offset = process.env.OFFSET } = params;
+  try {
+    const pool = await sql.connect();
+    const result = await pool
+      .request()
+      .input("p_uidIdSystemUser", sql.NVarChar, idSystemUser)
+      .input("p_uidIdLoginHistory", sql.NVarChar, idLoginHistory)
+      .input("p_chrOffset", sql.Char, offset)
+      .execute("paymentSch.USPgetTransactionsByUser");
+    const resultRecordset = result.recordset;
+    res.status(200).send({
+      response: resultRecordset,
+    });
+  } catch (err) {
+    console.log("err", err);
+    res.status(500).send({
+      response: {
+        message: "No se pudo procesar tu solicitud",
+        messageType: `${err}`,
+      },
+    });
+  }
+};
 // setInterval(() => {
 //   hoy = new Date();
 //   hora = hoy.getHours();
@@ -1565,6 +1589,10 @@ const ControllerCustomer = {
     const params = req.body;
     const url = req.params;
     executeForgiveInterest(params, res, url);
+  },
+  getTransactionsByUser: (req, res) => {
+    const params = req.body;
+    executeGetTransactionsByUser(params, res);
   },
 };
 
