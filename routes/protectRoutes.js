@@ -107,7 +107,10 @@ router.put(
   "/customer/forgiveInterest/:idContract",
   ControllerCustomer.forgiveInterest
 );
-
+router.post(
+  "/customer/getTransactionsByUser",
+  ControllerCustomer.getTransactionsByUser
+);
 //Documents//
 router.post("/addDocument", ControllerDocuments.addDocument);
 router.post(
