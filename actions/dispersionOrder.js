@@ -11,20 +11,6 @@ const executeGetDispersionOrder = async (req, res) => {
   const ip = req.header("x-forwarded-for") || req.connection.remoteAddress;
   const headerAws = req.header("x-header-aws-key");
   let ipPublic = "";
-  executeMailToNotification({
-    subject: "Log",
-    content: `
-    <div>
-    <ul>
-    <li>fecha: ${new Date()}</li>
-    <li>ip: ${ip}</li>
-    <li>headers: ${JSON.stringify(req.headers, null, 2)}</li>
-    <li>headerAws: ${headerAws}</li>
-    <li>Action: stpSch.USPgetDispersionOrder</li>
-    </ul>
-    </div>
-    `,
-  });
   if (ip) {
     ipPublic = ip.split(",")[0];
   }
@@ -143,4 +129,33 @@ const executeValidatePaymentSchedule = async (params, res) => {
   }
 };
 
-module.exports = { executeGetDispersionOrder, executeValidatePaymentSchedule };
+const executeValidatePaymentScheduleV2 = async (params, res) => {
+  const { offset = process.env.OFFSET } = params;
+  try {
+    //Batch
+    const pool = await sql.connect();
+    const result = await pool
+      .request()
+      .input("p_chrOffset", sql.Char, offset)
+      .execute("comSch.USPsentNotificationsV2");
+    const resultRecordset = result.recordset;
+    for (const element of resultRecordset) {
+      if (element.canSendEmail === true) {
+        const configEmailServer = JSON.parse(element.jsonEmailServerConfig);
+        await executeMailTo({
+          ...element,
+          ...configEmailServer,
+        });
+      }
+    }
+  } catch (err) {
+    console.log("err", err);
+    throw err;
+  }
+};
+
+module.exports = {
+  executeGetDispersionOrder,
+  executeValidatePaymentSchedule,
+  executeValidatePaymentScheduleV2,
+};

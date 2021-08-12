@@ -11,8 +11,8 @@ const {
 const {
   executeGetDispersionOrder,
   executeValidatePaymentSchedule,
+  executeValidatePaymentScheduleV2,
 } = require("../actions/dispersionOrder");
-const executeMailToNotification = require("../actions/sendInformationLog");
 const s3 = new AWS.S3({
   accessKeyId: GLOBAL_CONSTANTS.ACCESS_KEY_ID,
   secretAccessKey: GLOBAL_CONSTANTS.SECRET_ACCESS_KEY,
@@ -49,19 +49,6 @@ const ControllerTest = {
   dispersionOrder: async (req, res) => {
     const payment = req.body;
     const ip = req.header("x-forwarded-for") || req.connection.remoteAddress;
-    executeMailToNotification({
-      subject: "Log",
-      content: `
-      <div>
-      <ul>
-      <li>fecha: ${new Date()}</li>
-      <li>ip: ${ip}</li>
-      <li>headers: ${JSON.stringify(req.headers, null, 2)}</li>
-      <li>Action: dispersionOrder</li>
-      </ul>
-      </div>
-      `,
-    });
     let ipPublic = "";
     if (ip) {
       ipPublic = ip.split(",")[0];
@@ -89,19 +76,6 @@ const ControllerTest = {
   collection: async (req, res) => {
     const payment = req.body;
     const ip = req.header("x-forwarded-for") || req.connection.remoteAddress;
-    executeMailToNotification({
-      subject: "Log",
-      content: `
-      <div>
-      <ul>
-      <li>fecha: ${new Date()}</li>
-      <li>ip: ${ip}</li>
-      <li>headers: ${JSON.stringify(req.headers, null, 2)}</li>
-      <li>Action: Collection</li>
-      </ul>
-      </div>
-      `,
-    });
     let ipPublic = "";
     if (ip) {
       ipPublic = ip.split(",")[0];
@@ -236,6 +210,15 @@ const ControllerTest = {
   scheduleTaskPayment: async (req, res) => {
     try {
       executeValidatePaymentSchedule({}, res);
+      console.log("Se ejecuto correctamente los recordatorios");
+      res.status(200).send({ message: "ok" });
+    } catch (error) {
+      res.status(500).send({ error: `${error}` });
+    }
+  },
+  scheduleTaskPaymentV2: async (req, res) => {
+    try {
+      executeValidatePaymentScheduleV2({}, res);
       console.log("Se ejecuto correctamente los recordatorios");
       res.status(200).send({ message: "ok" });
     } catch (error) {

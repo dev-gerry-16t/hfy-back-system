@@ -25,6 +25,7 @@ router.get(
   ControllerTest.scheduleTaskDispersion
 );
 router.get("/connect/scheduleTask/payment", ControllerTest.scheduleTaskPayment);
+router.get("/connect/scheduleTask/payment/v2", ControllerTest.scheduleTaskPaymentV2);
 router.get("/viewFile/:idDocument/:bucketSource", ControllerTest.viewFiles);
 router.get(
   "/viewFilesDocx/:idDocument/:bucketSource",
