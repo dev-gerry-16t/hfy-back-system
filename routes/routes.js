@@ -12,6 +12,7 @@ const router = express.Router();
 
 router.get("/", ControllerTest.test);
 router.get("/test", ControllerTest.testPath);
+router.get("/testMail/:idEmailTemplate", ControllerTest.testMail);
 router.post("/whatsapp", ControllerTest.whatsapp);
 router.post("/sendWhatsapp", ControllerTest.sendWhatsapp);
 router.post("/testStripe", ControllerTest.testStripe);

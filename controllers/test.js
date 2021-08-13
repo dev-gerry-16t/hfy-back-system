@@ -24,8 +24,12 @@ const s3 = new AWS.S3({
   accessKeyId: GLOBAL_CONSTANTS.ACCESS_KEY_ID,
   secretAccessKey: GLOBAL_CONSTANTS.SECRET_ACCESS_KEY,
 });
+const { getTestMail } = require("./audit");
 
 const ControllerTest = {
+  testMail: (req, res) => {
+    getTestMail(req, res);
+  },
   test: (req, res) => {
     res.status(200).send({
       message: `Bienvenido al Backend homify :) ${GLOBAL_CONSTANTS.VERSION}`,
