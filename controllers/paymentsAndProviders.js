@@ -936,6 +936,7 @@ const executeGetAmountForGWTransaction = async (params, res) => {
           description: resultRecordset.description,
           currency: resultRecordset.currency,
           confirm: true,
+          metadata: { idOrderPayment },
         });
         if (payment.status === "requires_action") {
           const paymentIntent = await stripe.paymentIntents.cancel(payment.id);
@@ -1026,6 +1027,32 @@ const executeGetAmountForGWTransaction = async (params, res) => {
       });
     }
   } catch (error) {
+    if (isNil(error.raw) === false) {
+      const payment = error.raw;
+      await executeAddGWTransaction({
+        idPaymentInContract: idPaymentInContract,
+        idOrderPayment: idOrderPayment,
+        serviceIdPI: payment.payment_intent.id,
+        serviceIdPC: payment.charge,
+        amount: payment.payment_intent.amount,
+        last4:
+          payment.payment_intent.charges.data[0].payment_method_details.card
+            .last4,
+        type: payment.payment_intent.charges.data[0].payment_method_details
+          .type,
+        status: payment.payment_intent.status,
+        funding:
+          payment.payment_intent.charges.data[0].payment_method_details.card
+            .funding,
+        network:
+          payment.payment_intent.charges.data[0].payment_method_details.card
+            .network,
+        created: payment.payment_intent.created,
+        jsonServiceResponse: JSON.stringify(payment),
+        idSystemUser,
+        idLoginHistory,
+      });
+    }
     res.status(500).send({
       response: {
         message: "Tu banco ha declinado la transacción",
