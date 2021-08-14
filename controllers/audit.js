@@ -1,4 +1,5 @@
 const sql = require("mssql");
+const executeMailTo = require("../actions/sendInformationUser");
 
 const executeGetAudit = async (params, res) => {
   const {
@@ -43,10 +44,43 @@ const executeGetAudit = async (params, res) => {
   }
 };
 
+const executeGetTestMail = async (params, res) => {
+  const { idEmailTemplate = null } = params;
+  try {
+    const pool = await sql.connect();
+    const result = await pool
+      .request()
+      .input("p_nvcIdEmailTemplate", sql.NVarChar, idEmailTemplate)
+      .execute("comSch.USPsentTestEA");
+    const resultRecordset = result.recordset;
+    for (const element of resultRecordset) {
+      if (element.canSendEmail === true) {
+        const configEmailServer = JSON.parse(element.jsonEmailServerConfig);
+        await executeMailTo({
+          ...element,
+          ...configEmailServer,
+        });
+      }
+    }
+    res.status(200).send({
+      response: "ok",
+    });
+  } catch (error) {
+    res.status(500).send({
+      response: { error: `${error}` },
+    });
+  }
+};
+
 const ControllerAudit = {
   getAudit: (req, res) => {
     const params = req.body;
     executeGetAudit(params, res);
+  },
+  getTestMail: (req, res) => {
+    const params = req.body;
+    const paramsUrl = req.params;
+    executeGetTestMail(paramsUrl, res);
   },
 };
 
