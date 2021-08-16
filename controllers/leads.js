@@ -50,7 +50,7 @@ const executeAddLandingProspect = async (params, res, ip) => {
     request.input("p_nvcIdPolicy", sql.NVarChar, idPolicy);
     request.input("p_nvcRealEstate", sql.NVarChar, realState);
     request.input("p_nvcIpAddress", sql.NVarChar, ip);
-    request.input("p_decScore", sql.Decimal, score);
+    request.input("p_decScore", sql.Decimal(5, 2), score);
     request.execute("landingSch.USPaddLandingProspect", (err, result) => {
       if (err) {
         res.status(500).send({ response: "Error en los parametros" });
