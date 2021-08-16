@@ -10,7 +10,7 @@ const executeMailTo = require("../actions/sendInformationUser");
 const executeUpdateShortMessageService = require("../actions/updateShortMessageService");
 const GLOBAL_CONSTANTS = require("../constants/constants");
 
-const executeAddLandingProspect = async (params, res) => {
+const executeAddLandingProspect = async (params, res, ip) => {
   const {
     idProspectType = null,
     givenName = null,
@@ -49,6 +49,8 @@ const executeAddLandingProspect = async (params, res) => {
     request.input("p_decBudgeAmount", sql.Decimal(19, 2), budgeAmount);
     request.input("p_nvcIdPolicy", sql.NVarChar, idPolicy);
     request.input("p_nvcRealEstate", sql.NVarChar, realState);
+    request.input("p_nvcIpAddress", sql.NVarChar, ip);
+    request.input("p_decScore", sql.Decimal(5, 2), score);
     request.execute("landingSch.USPaddLandingProspect", (err, result) => {
       if (err) {
         res.status(500).send({ response: "Error en los parametros" });
@@ -296,7 +298,12 @@ const executeGetPotentialAgentCoincidences = async (params, res) => {
 const ControllerLeads = {
   addLandingProspect: (req, res) => {
     const params = req.body;
-    executeAddLandingProspect(params, res);
+    const ip = req.header("x-forwarded-for") || req.connection.remoteAddress;
+    let ipPublic = "";
+    if (ip) {
+      ipPublic = ip.split(",")[0];
+    }
+    executeAddLandingProspect(params, res, ipPublic);
   },
   getLandingProspectCoincidences: (req, res) => {
     const params = req.body;
