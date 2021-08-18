@@ -18,6 +18,7 @@ const executeAddGWTransaction = async (params) => {
     idSystemUser = null,
     idLoginHistory = null,
     offset = process.env.OFFSET,
+    count = 0,
   } = params;
   try {
     const pool = await sql.connect();
@@ -38,6 +39,7 @@ const executeAddGWTransaction = async (params) => {
       .input("p_nvcJsonServiceResponse", sql.NVarChar, jsonServiceResponse)
       .input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser)
       .input("p_nvcIdLoginHistory", sql.NVarChar, idLoginHistory)
+      .input("p_intCount", sql.Int, count)
       .input("p_chrOffset", sql.Char, offset)
       .execute("pymtGwSch.USPaddGWTransaction");
     const resultRecordset = result.recordset;

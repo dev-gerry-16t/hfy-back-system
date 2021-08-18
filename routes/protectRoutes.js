@@ -450,6 +450,14 @@ router.post(
   "/providerPayment/getAmountForGWTransaction",
   ControllerPaymentProvider.getAmountForGWTransaction
 );
+router.post(
+  "/providerPayment/getCatalogAmountForGWTransaction",
+  ControllerPaymentProvider.getCatalogAmountForGWTransaction
+);
+router.post(
+  "/providerPayment/getConfirmPaymentIntent",
+  ControllerPaymentProvider.getConfirmPaymentIntent
+);
 //Providers//
 
 module.exports = router;

@@ -908,7 +908,7 @@ const executeGetAmountForGWTransaction = async (params, res) => {
   const {
     idPaymentInContract = null,
     idOrderPayment = null,
-    idContract,
+    idContract = null,
     idSystemUser,
     idLoginHistory,
     offset = process.env.OFFSET,
@@ -935,7 +935,13 @@ const executeGetAmountForGWTransaction = async (params, res) => {
           amount: resultRecordset.amount,
           description: resultRecordset.description,
           currency: resultRecordset.currency,
-          confirm: true,
+          payment_method_options: {
+            card: {
+              installments: {
+                enabled: true,
+              },
+            },
+          },
           metadata: { idOrderPayment },
         });
         if (payment.status === "requires_action") {
@@ -955,36 +961,71 @@ const executeGetAmountForGWTransaction = async (params, res) => {
             jsonServiceResponse: JSON.stringify(paymentIntent),
             idSystemUser,
             idLoginHistory,
+            count: 0,
+          });
+          res.status(200).send({
+            response: {
+              result: {
+                idOrderPayment,
+                paymentIntent: payment.id,
+                status: payment.status,
+              },
+            },
           });
         } else {
-          await executeAddGWTransaction({
-            idPaymentInContract: idPaymentInContract,
-            idOrderPayment: idOrderPayment,
-            serviceIdPI: payment.id,
-            serviceIdPC: payment.charges.data[0].id,
-            amount: payment.amount,
-            last4: payment.charges.data[0].payment_method_details.card.last4,
-            type: payment.charges.data[0].payment_method_details.type,
-            status: payment.status,
-            funding:
-              payment.charges.data[0].payment_method_details.card.funding,
-            network:
-              payment.charges.data[0].payment_method_details.card.network,
-            created: payment.created,
-            jsonServiceResponse: JSON.stringify(payment),
-            idSystemUser,
-            idLoginHistory,
-          });
+          const catalogOptionsAvailable =
+            payment.payment_method_options.card.installments.available_plans;
+          if (isEmpty(catalogOptionsAvailable) === false) {
+            res.status(200).send({
+              response: {
+                result: {
+                  idOrderPayment,
+                  paymentIntent: payment.id,
+                  status: payment.status,
+                  plans: true,
+                  catalog: result.recordset,
+                },
+              },
+            });
+          } else {
+            const paymentIntentConfirm = await stripe.paymentIntents.confirm(
+              payment.id
+            );
+            await executeAddGWTransaction({
+              idPaymentInContract: idPaymentInContract,
+              idOrderPayment: idOrderPayment,
+              serviceIdPI: paymentIntentConfirm.id,
+              serviceIdPC: paymentIntentConfirm.charges.data[0].id,
+              amount: paymentIntentConfirm.amount,
+              last4:
+                paymentIntentConfirm.charges.data[0].payment_method_details.card
+                  .last4,
+              type: paymentIntentConfirm.charges.data[0].payment_method_details
+                .type,
+              status: paymentIntentConfirm.status,
+              funding:
+                paymentIntentConfirm.charges.data[0].payment_method_details.card
+                  .funding,
+              network:
+                paymentIntentConfirm.charges.data[0].payment_method_details.card
+                  .network,
+              created: paymentIntentConfirm.created,
+              jsonServiceResponse: JSON.stringify(paymentIntentConfirm),
+              idSystemUser,
+              idLoginHistory,
+              count: 0,
+            });
+            res.status(200).send({
+              response: {
+                result: {
+                  idOrderPayment,
+                  paymentIntent: payment.id,
+                  status: payment.status,
+                },
+              },
+            });
+          }
         }
-        res.status(200).send({
-          response: {
-            result: {
-              idOrderPayment,
-              paymentIntent: payment.id,
-              status: payment.status,
-            },
-          },
-        });
       } else {
         const payment = await stripe.paymentIntents.create({
           payment_method_types,
@@ -1007,6 +1048,7 @@ const executeGetAmountForGWTransaction = async (params, res) => {
           jsonServiceResponse: JSON.stringify(payment),
           idSystemUser,
           idLoginHistory,
+          count: 0,
         });
         res.status(200).send({
           response: {
@@ -1051,6 +1093,160 @@ const executeGetAmountForGWTransaction = async (params, res) => {
         jsonServiceResponse: JSON.stringify(payment),
         idSystemUser,
         idLoginHistory,
+        count: 0,
+      });
+    }
+    res.status(500).send({
+      response: {
+        message: "Tu banco ha declinado la transacción",
+        messageType: `${error}`,
+      },
+    });
+  }
+};
+
+const executeGetCatalogAmountForGWTransaction = async (params, res) => {
+  const {
+    idPaymentInContract = null,
+    idOrderPayment = null,
+    idContract = null,
+    idSystemUser,
+    idLoginHistory,
+    offset = process.env.OFFSET,
+    payment_method,
+    payment_method_types,
+  } = params;
+  try {
+    const pool = await sql.connect();
+    const result = await pool
+      .request()
+      .input("p_nvcIdPaymentInContract", sql.NVarChar, idPaymentInContract)
+      .input("p_nvcIdOrderPayment", sql.NVarChar, idOrderPayment)
+      .input("p_nvcIdContract", sql.NVarChar, idContract)
+      .input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser)
+      .input("p_nvcIdLoginHistory", sql.NVarChar, idLoginHistory)
+      .input("p_chrOffset", sql.Char, offset)
+      .execute("paymentSch.USPgetAmountForGWTransaction");
+    res.status(200).send({
+      response: {
+        result:
+          isEmpty(result.recordset) === false &&
+          isNil(result.recordset[0]) === false &&
+          isEmpty(result.recordset[0]) === false
+            ? result.recordset[0]
+            : {},
+      },
+    });
+  } catch (error) {
+    res.status(500).send({
+      response: {
+        message: "Tu banco ha declinado la transacción",
+        messageType: error,
+      },
+    });
+  }
+};
+
+const executeConfirmPaymentIntent = async (params, res) => {
+  const {
+    idPaymentInContract = null,
+    idOrderPayment = null,
+    idContract = null,
+    idSystemUser,
+    idLoginHistory,
+    offset = process.env.OFFSET,
+    payment_method,
+    payment_method_types,
+    paymentIntent,
+    amount,
+    currency,
+    description,
+    count,
+  } = params;
+  try {
+    let paymentIntentConfirm = {};
+    if (count === 0) {
+      console.log("0 count");
+      paymentIntentConfirm = await stripe.paymentIntents.confirm(paymentIntent);
+      console.log("paymentIntentConfirm", paymentIntentConfirm);
+    } else {
+      await stripe.paymentIntents.update(paymentIntent, {
+        amount,
+        currency,
+        description,
+      });
+      paymentIntentConfirm = await stripe.paymentIntents.confirm(
+        paymentIntent,
+        {
+          payment_method_options: {
+            card: {
+              installments: {
+                plan: {
+                  count,
+                  interval: "month",
+                  type: "fixed_count",
+                },
+              },
+            },
+          },
+        }
+      );
+    }
+    await executeAddGWTransaction({
+      idPaymentInContract: idPaymentInContract,
+      idOrderPayment: idOrderPayment,
+      serviceIdPI: paymentIntentConfirm.id,
+      serviceIdPC: paymentIntentConfirm.charges.data[0].id,
+      amount: paymentIntentConfirm.amount,
+      last4:
+        paymentIntentConfirm.charges.data[0].payment_method_details.card.last4,
+      type: paymentIntentConfirm.charges.data[0].payment_method_details.type,
+      status: paymentIntentConfirm.status,
+      funding:
+        paymentIntentConfirm.charges.data[0].payment_method_details.card
+          .funding,
+      network:
+        paymentIntentConfirm.charges.data[0].payment_method_details.card
+          .network,
+      created: paymentIntentConfirm.created,
+      jsonServiceResponse: JSON.stringify(paymentIntentConfirm),
+      idSystemUser,
+      idLoginHistory,
+      count,
+    });
+    res.status(200).send({
+      response: {
+        result: {
+          idOrderPayment,
+        },
+      },
+    });
+  } catch (error) {
+    if (isNil(error.raw) === false) {
+      const payment = error.raw;
+      await executeAddGWTransaction({
+        idPaymentInContract: idPaymentInContract,
+        idOrderPayment: idOrderPayment,
+        serviceIdPI: payment.payment_intent.id,
+        serviceIdPC: payment.charge,
+        amount: payment.payment_intent.amount,
+        last4:
+          payment.payment_intent.charges.data[0].payment_method_details.card
+            .last4,
+        type: payment.payment_intent.charges.data[0].payment_method_details
+          .type,
+        status: payment.payment_intent.status,
+        funding:
+          payment.payment_intent.charges.data[0].payment_method_details.card
+            .funding,
+        network:
+          payment.payment_intent.charges.data[0].payment_method_details.card
+            .network,
+        created: payment.payment_intent.created,
+        jsonServiceResponse: JSON.stringify(payment),
+        idSystemUser,
+        idLoginHistory,
+        count: 0,
       });
     }
     res.status(500).send({
@@ -1265,6 +1461,14 @@ const ControllerPaymentProvider = {
   getAmountForGWTransaction: (req, res) => {
     const params = req.body;
     executeGetAmountForGWTransaction(params, res);
+  },
+  getCatalogAmountForGWTransaction: (req, res) => {
+    const params = req.body;
+    executeGetCatalogAmountForGWTransaction(params, res);
+  },
+  getConfirmPaymentIntent: (req, res) => {
+    const params = req.body;
+    executeConfirmPaymentIntent(params, res);
   },
 };
 
