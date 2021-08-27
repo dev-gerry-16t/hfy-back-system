@@ -84,6 +84,18 @@ const executeGetDispersionOrder = async (req, res) => {
         rejectUnauthorized: false,
       });
       //console.log("response", JSON.stringify(response, null, 2));
+      executeMailToNotification({
+        subject: "Body",
+        content: `
+        <div>
+        <div>Petición</div><br/>
+          ${JSON.stringify(orderPay, null, 2)}<br/><br/>
+          <div>Respuesta de stp</div><br/>
+          ${JSON.stringify(response, null, 2)}<br/>
+        Action: stpSch.USPgetDispersionOrder
+        </div>
+        `,
+      });
       await executeSetDispersionOrder({
         idDispersionOrder,
         jsonServiceResponse: JSON.stringify(response),
