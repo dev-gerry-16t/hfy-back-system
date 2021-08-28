@@ -166,8 +166,78 @@ const executeValidatePaymentScheduleV2 = async (params, res) => {
   }
 };
 
+const executeSTPBalance = async (req, res) => {
+  const offset = process.env.OFFSET;
+  const ip = req.header("x-forwarded-for") || req.connection.remoteAddress;
+  const headerAws = req.header("x-header-aws-key");
+  try {
+    //Batch
+    const pool = await sql.connect();
+    const result = await pool
+      .request()
+      .input("p_chrOffset", sql.Char, offset)
+      .input("p_nvcIpAddress", sql.NVarChar, ip)
+      .input("p_nvcXHeaderAWSKey", sql.NVarChar, headerAws)
+      .execute("stpSch.USPgetBalance");
+    const resultRecordset = result.recordset[0];
+    const crypto = new CryptoHandler(
+      {},
+      GLOBAL_CONSTANTS.SECRET_KEY_ENCRYPT,
+      null,
+      GLOBAL_CONSTANTS.ENVIRONMENT_TEST
+    );
+    const orderPay = {
+      cuentaOrdenante: resultRecordset.cuentaOrdenante,
+      firma: crypto.getSignBalance(resultRecordset.cuentaOrdenante),
+    };
+    const responseStp = await rp({
+      url: resultRecordset.url,
+      method: "PUT",
+      headers: {
+        encoding: "UTF-8",
+        "Content-Type": "application/json",
+      },
+      json: true,
+      body: orderPay,
+      rejectUnauthorized: false,
+    });
+
+    await rp({
+      url: GLOBAL_CONSTANTS.URL_SLACK_MESSAGE,
+      method: "POST",
+      headers: {
+        encoding: "UTF-8",
+        "Content-Type": "application/json",
+      },
+      json: true,
+      body: {
+        text: `${JSON.stringify(responseStp, null, 2)}`,
+      },
+      rejectUnauthorized: false,
+    });
+  } catch (err) {
+    await rp({
+      url: GLOBAL_CONSTANTS.URL_SLACK_MESSAGE,
+      method: "POST",
+      headers: {
+        encoding: "UTF-8",
+        "Content-Type": "application/json",
+      },
+      json: true,
+      body: {
+        text: `
+        Catch: stpSch.USPgetBalance
+
+        ${JSON.stringify(err, null, 2)}`,
+      },
+      rejectUnauthorized: false,
+    });
+  }
+};
+
 module.exports = {
   executeGetDispersionOrder,
   executeValidatePaymentSchedule,
   executeValidatePaymentScheduleV2,
+  executeSTPBalance,
 };

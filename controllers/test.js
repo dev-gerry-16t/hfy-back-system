@@ -12,6 +12,7 @@ const {
   executeGetDispersionOrder,
   executeValidatePaymentSchedule,
   executeValidatePaymentScheduleV2,
+  executeSTPBalance,
 } = require("../actions/dispersionOrder");
 const s3 = new AWS.S3({
   accessKeyId: GLOBAL_CONSTANTS.ACCESS_KEY_ID,
@@ -201,7 +202,6 @@ const ControllerTest = {
   scheduleTaskDispersion: async (req, res) => {
     try {
       executeGetDispersionOrder(req, res);
-      console.log("Se ejecuto correctamente la dispersión");
       res.status(200).send({ message: "ok" });
     } catch (error) {
       res.status(500).send({ error: `${error}` });
@@ -210,7 +210,6 @@ const ControllerTest = {
   scheduleTaskPayment: async (req, res) => {
     try {
       executeValidatePaymentSchedule({}, res);
-      console.log("Se ejecuto correctamente los recordatorios");
       res.status(200).send({ message: "ok" });
     } catch (error) {
       res.status(500).send({ error: `${error}` });
@@ -219,7 +218,14 @@ const ControllerTest = {
   scheduleTaskPaymentV2: async (req, res) => {
     try {
       executeValidatePaymentScheduleV2({}, res);
-      console.log("Se ejecuto correctamente los recordatorios");
+      res.status(200).send({ message: "ok" });
+    } catch (error) {
+      res.status(500).send({ error: `${error}` });
+    }
+  },
+  getSTPBalance: async (req, res) => {
+    try {
+      executeSTPBalance(req, res);
       res.status(200).send({ message: "ok" });
     } catch (error) {
       res.status(500).send({ error: `${error}` });

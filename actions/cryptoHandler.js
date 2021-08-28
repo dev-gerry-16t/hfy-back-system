@@ -35,6 +35,15 @@ class CryptoHandler {
     const signature_b64 = sign.sign({ key, passphrase: this.phrase }, "base64");
     return signature_b64;
   }
+
+  getSignBalance(account) {
+    const sign = crypto.createSign("RSA-SHA256");
+    sign.update(`||${account}||`);
+    sign.end();
+    const key = fs.readFileSync(__dirname + this.environmentTest);
+    const signature_b64 = sign.sign({ key, passphrase: this.phrase }, "base64");
+    return signature_b64;
+  }
 }
 
 module.exports = CryptoHandler;
