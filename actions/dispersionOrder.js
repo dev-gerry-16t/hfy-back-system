@@ -192,7 +192,7 @@ const executeSTPBalance = async (req, res) => {
     };
     const responseStp = await rp({
       url: resultRecordset.url,
-      method: "PUT",
+      method: "POST",
       headers: {
         encoding: "UTF-8",
         "Content-Type": "application/json",
