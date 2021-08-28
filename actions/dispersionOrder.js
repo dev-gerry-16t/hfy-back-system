@@ -188,7 +188,7 @@ const executeSTPBalance = async (req, res) => {
     );
     const orderPay = {
       cuentaOrdenante: resultRecordset.cuentaOrdenante,
-      firma: crypto.getSignBalance(resultRecordset.cuentaOrdenante),
+      firma: crypto.getSignBalance(`|||||||||||||${resultRecordset.cuentaOrdenante}||||||||||||||||||||||||`),
     };
     const responseStp = await rp({
       url: resultRecordset.url,
