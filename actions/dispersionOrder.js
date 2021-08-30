@@ -186,7 +186,7 @@ const executeSTPBalance = async (req, res) => {
       null,
       GLOBAL_CONSTANTS.ENVIRONMENT_TEST
     );
-    const cadenaPipes = `||||||||||||${resultRecordset.cuentaOrdenante}|||||||||||||||||||||||||`;
+    const cadenaPipes = `${resultRecordset.cuentaOrdenante}`;
     const orderPay = {
       cuentaOrdenante: resultRecordset.cuentaOrdenante,
       firma: crypto.getSignBalance(cadenaPipes),
