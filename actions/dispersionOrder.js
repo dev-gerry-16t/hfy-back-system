@@ -186,9 +186,10 @@ const executeSTPBalance = async (req, res) => {
       null,
       GLOBAL_CONSTANTS.ENVIRONMENT_TEST
     );
+    const cadenaPipes = `||||||||||||${resultRecordset.cuentaOrdenante}|||||||||||||||||||||||||`;
     const orderPay = {
       cuentaOrdenante: resultRecordset.cuentaOrdenante,
-      firma: crypto.getSignBalance(`||||||||||||${resultRecordset.cuentaOrdenante}|||||||||||||||||||||||||`),
+      firma: crypto.getSignBalance(cadenaPipes),
     };
     const responseStp = await rp({
       url: resultRecordset.url,
@@ -211,7 +212,11 @@ const executeSTPBalance = async (req, res) => {
       },
       json: true,
       body: {
-        text: `${JSON.stringify(responseStp, null, 2)}`,
+        text: `${JSON.stringify(responseStp, null, 2)}
+        
+        ${cadenaPipes}
+        ${orderPay}
+        `,
       },
       rejectUnauthorized: false,
     });
