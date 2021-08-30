@@ -213,9 +213,9 @@ const executeSTPBalance = async (req, res) => {
       json: true,
       body: {
         text: `${JSON.stringify(responseStp, null, 2)}
-        
+
         ${cadenaPipes}
-        ${orderPay}
+        ${JSON.stringify(orderPay, null, 2)}
         `,
       },
       rejectUnauthorized: false,
