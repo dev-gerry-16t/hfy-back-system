@@ -16,6 +16,7 @@ router.get("/testMail/:idEmailTemplate", ControllerTest.testMail);
 router.post("/whatsapp", ControllerTest.whatsapp);
 router.post("/sendWhatsapp", ControllerTest.sendWhatsapp);
 router.post("/testStripe", ControllerTest.testStripe);
+router.post("/connect/matiWebhookHomify", ControllerTest.matiWebhookHomify);
 router.post("/testStripeWebhook", ControllerTest.testStripeWebhook);
 router.post(
   "/testStripeWebhookConnect",

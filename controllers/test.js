@@ -404,6 +404,14 @@ const ControllerTest = {
       res.status(500).send({ error: `${error}` });
     }
   },
+  matiWebhookHomify: async (req, res) => {
+    try {
+      console.log("req", JSON.stringify(req.body, null, 2));
+      res.status(200).send({ message: "ok" });
+    } catch (error) {
+      res.status(500).send({ error: `${error}` });
+    }
+  },
 };
 
 module.exports = ControllerTest;
