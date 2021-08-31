@@ -41,7 +41,7 @@ const imageOpts = {
     return base64DataURLToArrayBuffer(tag);
   },
   getSize() {
-    return [300, 100];
+    return [180, 60];
   },
 };
 
