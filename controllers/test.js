@@ -8,7 +8,7 @@ const GLOBAL_CONSTANTS = require("../constants/constants");
 const executeUpdateShortMessageService = require("../actions/updateShortMessageService");
 const Stripe = require("stripe");
 const executeAddGWTransaction = require("../actions/addGWTransaction");
-const { executesetConnectAccountWH } = require("../actions/setCustomerAccount");
+const { executesetConnectAccountWH, executeMatiWebHook } = require("../actions/setCustomerAccount");
 const {
   executeSetDispersionOrder,
   executeSetCollection,
@@ -406,19 +406,20 @@ const ControllerTest = {
   },
   matiWebhookHomify: async (req, res) => {
     try {
-      await rp({
-        url: GLOBAL_CONSTANTS.URL_SLACK_MESSAGE,
-        method: "POST",
-        headers: {
-          encoding: "UTF-8",
-          "Content-Type": "application/json",
-        },
-        json: true,
-        body: {
-          text: `${JSON.stringify(req.body, null, 2)}`,
-        },
-        rejectUnauthorized: false,
-      });
+      // await rp({
+      //   url: GLOBAL_CONSTANTS.URL_SLACK_MESSAGE,
+      //   method: "POST",
+      //   headers: {
+      //     encoding: "UTF-8",
+      //     "Content-Type": "application/json",
+      //   },
+      //   json: true,
+      //   body: {
+      //     text: `${JSON.stringify(req.body, null, 2)}`,
+      //   },
+      //   rejectUnauthorized: false,
+      // });
+      await executeMatiWebHook(req, res);
       res.status(200).send({ message: "ok" });
     } catch (error) {
       res.status(500).send({ error: `${error}` });
