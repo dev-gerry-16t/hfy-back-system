@@ -15,6 +15,7 @@ router.get("/test", ControllerTest.testPath);
 router.get("/testMail/:idEmailTemplate", ControllerTest.testMail);
 router.post("/whatsapp", ControllerTest.whatsapp);
 router.post("/sendWhatsapp", ControllerTest.sendWhatsapp);
+router.get("/sendWhatsappTwilio", ControllerTest.sendWhatsappTwilio);
 router.post("/testStripe", ControllerTest.testStripe);
 router.post("/connect/matiWebhookHomify", ControllerTest.matiWebhookHomify);
 router.post("/testStripeWebhook", ControllerTest.testStripeWebhook);
@@ -81,5 +82,10 @@ router.get(
   ControllerCatalogs.getAllProspectTypes
 );
 router.post("/leads/addLandingProspect", ControllerLeads.addLandingProspect);
+router.post(
+  "/leads/generateVerificationCode",
+  ControllerLeads.generateVerificationCode
+);
+router.post("/leads/catalog/getAllCountries", ControllerLeads.getAllCountries);
 
 module.exports = router;

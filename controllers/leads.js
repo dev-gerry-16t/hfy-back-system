@@ -23,6 +23,10 @@ const executeAddLandingProspect = async (params, res, ip) => {
     idPolicy = null,
     realState = null,
     captchaToken,
+    code = null,
+    requiresCall = null,
+    scheduleAt = null,
+    comment = null,
   } = params;
   try {
     const responseGoogle = await rp({
@@ -51,8 +55,13 @@ const executeAddLandingProspect = async (params, res, ip) => {
     request.input("p_nvcRealEstate", sql.NVarChar, realState);
     request.input("p_nvcIpAddress", sql.NVarChar, ip);
     request.input("p_decScore", sql.Decimal(5, 2), score);
+    request.input("p_vchCode", sql.VarChar, code);
+    request.input("p_bitRequiresCall", sql.Bit, requiresCall);
+    request.input("p_dtmScheduleAt", sql.DateTime, scheduleAt);
+    request.input("p_nvcComment", sql.NVarChar, comment);
     request.execute("landingSch.USPaddLandingProspect", (err, result) => {
       if (err) {
+        console.log("err", err);
         res.status(500).send({ response: "Error en los parametros" });
       } else {
         const resultRecordset = result.recordset;
@@ -88,6 +97,75 @@ const executeAddLandingProspect = async (params, res, ip) => {
   } catch (err) {
     console.log("ERROR", err);
     // ... error checks
+  }
+};
+
+const executeGenerateVerificationCode = async (params, res) => {
+  const {
+    phoneNumber,
+    idCountry,
+    latitude = 0,
+    longitude = 0,
+    uRLGMaps = null,
+    offset = process.env.OFFSET,
+  } = params;
+  try {
+    const pool = await sql.connect();
+    const result = await pool
+      .request()
+      .input("p_nvcPhoneNumber", sql.NVarChar, phoneNumber)
+      .input("p_intIdCountry", sql.Int, idCountry)
+      .input("p_nvcLatitude", sql.NVarChar, `${latitude}`)
+      .input("p_nvcLongitude", sql.NVarChar, `${longitude}`)
+      .input("p_nvcURLGMaps", sql.NVarChar, uRLGMaps)
+      .input("p_chrOffset", sql.Char, offset)
+      .execute("landingSch.USPgenerateVerificationCode");
+    const resultRecordset = result.recordset[0];
+    if (resultRecordset.stateCode !== 200) {
+      res.status(resultRecordset.stateCode).send({
+        response: {
+          message: resultRecordset.message,
+          idPhoneVerification: resultRecordset.idPhoneVerification,
+        },
+      });
+    } else {
+      await client.messages.create({
+        to: `${resultRecordset.countryCode}${resultRecordset.phoneNumber}`,
+        from: resultRecordset.from,
+        body: resultRecordset.content,
+      });
+      res.status(200).send({
+        response: {
+          message: resultRecordset.message,
+          idPhoneVerification: resultRecordset.idPhoneVerification,
+        },
+      });
+    }
+  } catch (error) {
+    res
+      .status(500)
+      .send({ response: { message: "Error de sistema", messageType: error } });
+  }
+};
+
+const executeGetAllCountries = async (params, res) => {
+  const { idSystemUser = null, idLoginHistory = null, type = null } = params;
+  try {
+    const pool = await sql.connect();
+    const result = await pool
+      .request()
+      .input("p_uidIdSystemUser", sql.NVarChar, idSystemUser)
+      .input("p_uidIdLoginHistory", sql.NVarChar, idLoginHistory)
+      .input("p_intType", sql.Int, type)
+      .execute("addressSch.USPgetAllCountries");
+    const resultRecordset = result.recordset;
+    res.status(200).send({
+      response: resultRecordset,
+    });
+  } catch (error) {
+    res
+      .status(500)
+      .send({ response: { message: "Error de sistema", messageType: error } });
   }
 };
 
@@ -326,6 +404,14 @@ const ControllerLeads = {
   getPotentialAgentCoincidences: (req, res) => {
     const params = req.body;
     executeGetPotentialAgentCoincidences(params, res);
+  },
+  generateVerificationCode: (req, res) => {
+    const params = req.body;
+    executeGenerateVerificationCode(params, res);
+  },
+  getAllCountries: (req, res) => {
+    const params = req.body;
+    executeGetAllCountries(params, res);
   },
 };
 
