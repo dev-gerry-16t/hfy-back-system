@@ -207,6 +207,17 @@ const executeUpdateLandingProspect = async (params, res, url) => {
     idSystemUser,
     idLoginHistory,
     offset = process.env.OFFSET,
+    givenName = null,
+    lastName = null,
+    mothersMaidenName = null,
+    emailAddress = null,
+    budgeAmount = null,
+    idPolicy = null,
+    realEstate = null,
+    additionalComment = null,
+    scheduleAt = null,
+    comment = null,
+    assignedToUser = null,
   } = params;
   const { idLandingProspect } = url;
   try {
@@ -216,6 +227,17 @@ const executeUpdateLandingProspect = async (params, res, url) => {
     request.input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser);
     request.input("p_nvcIdLoginHistory", sql.NVarChar, idLoginHistory);
     request.input("p_chrOffset", sql.Char, offset);
+    request.input("p_nvcGivenName", sql.NVarChar, givenName);
+    request.input("p_nvcLastName", sql.NVarChar, lastName);
+    request.input("p_nvcMothersMaidenName", sql.NVarChar, mothersMaidenName);
+    request.input("p_nvcEmailAddress", sql.NVarChar, emailAddress);
+    request.input("p_decBudgeAmount", sql.Decimal(19, 2), budgeAmount);
+    request.input("p_uidIdPolicy", sql.NVarChar, idPolicy);
+    request.input("p_nvcRealEstate", sql.NVarChar, realEstate);
+    request.input("p_nvcAdditionalComment", sql.NVarChar, additionalComment);
+    request.input("p_dtmScheduleAt", sql.DateTime, scheduleAt);
+    request.input("p_nvcComment", sql.NVarChar, comment);
+    request.input("p_uidAssignedToUser", sql.NVarChar, assignedToUser);
     request.execute("landingSch.USPupdateLandingProspect", (err, result) => {
       if (err) {
         res.status(500).send({ response: "Error en los parametros" });
@@ -226,6 +248,17 @@ const executeUpdateLandingProspect = async (params, res, url) => {
             response: { message: resultRecordset[0].message },
           });
         } else {
+          for (const element of resultRecordset) {
+            if (element.canSendEmail === true) {
+              const configEmailServer = JSON.parse(
+                element.jsonEmailServerConfig
+              );
+              await executeMailTo({
+                ...element,
+                ...configEmailServer,
+              });
+            }
+          }
           res.status(200).send({
             response: "Solicitud procesada exitosamente",
           });
@@ -373,6 +406,33 @@ const executeGetPotentialAgentCoincidences = async (params, res) => {
   }
 };
 
+const executeGetLandingProspectById = async (params, res) => {
+  const {
+    idLandingProspect,
+    idSystemUser,
+    idLoginHistory,
+    offset = process.env.OFFSET,
+  } = params;
+  try {
+    const pool = await sql.connect();
+    const result = await pool
+      .request()
+      .input("p_uidIdLandingProspect", sql.NVarChar, idLandingProspect)
+      .input("p_uidIdSystemUser", sql.NVarChar, idSystemUser)
+      .input("p_uidIdLoginHistory", sql.NVarChar, idLoginHistory)
+      .input("p_chrOffset", sql.Char, offset)
+      .execute("landingSch.USPgetLandingProspectById");
+    const resultRecordset = result.recordsets;
+    res.status(200).send({
+      response: resultRecordset,
+    });
+  } catch (error) {
+    res
+      .status(500)
+      .send({ response: { message: "Error de sistema", messageType: error } });
+  }
+};
+
 const ControllerLeads = {
   addLandingProspect: (req, res) => {
     const params = req.body;
@@ -412,6 +472,10 @@ const ControllerLeads = {
   getAllCountries: (req, res) => {
     const params = req.body;
     executeGetAllCountries(params, res);
+  },
+  getLandingProspectById: (req, res) => {
+    const params = req.body;
+    executeGetLandingProspectById(params, res);
   },
 };
 

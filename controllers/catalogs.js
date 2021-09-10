@@ -772,6 +772,27 @@ const executeGetAllInvPymtMethods = async (params, res) => {
   } catch (error) {}
 };
 
+const executeGetUsersForAssignment = async (params, res) => {
+  const { idSystemUser, idLoginHistory, idLandingProspect, type } = params;
+  try {
+    const request = new sql.Request();
+    request.input("p_uidIdSystemUser", sql.NVarChar, idSystemUser);
+    request.input("p_uidIdLoginHistory", sql.NVarChar, idLoginHistory);
+    request.input("p_uidIdLandingProspect", sql.NVarChar, idLandingProspect);
+    request.input("p_intType", sql.Int, type);
+    request.execute("catLandingSch.USPgetUsersForAssignment", (err, result) => {
+      if (err) {
+        res.status(500).send({ response: "Error en los parametros" });
+      } else {
+        const resultRecordset = result.recordset;
+        res.status(200).send({
+          response: resultRecordset,
+        });
+      }
+    });
+  } catch (error) {}
+};
+
 const ControllerCatalogs = {
   getAllMaritalStatus: (req, res) => {
     const params = req.body;
@@ -893,6 +914,10 @@ const ControllerCatalogs = {
   getAllInvPymtMethods: (req, res) => {
     const params = req.body;
     executeGetAllInvPymtMethods(params, res);
+  },
+  getUsersForAssignment: (req, res) => {
+    const params = req.body;
+    executeGetUsersForAssignment(params, res);
   },
 };
 
