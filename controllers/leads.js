@@ -238,33 +238,36 @@ const executeUpdateLandingProspect = async (params, res, url) => {
     request.input("p_dtmScheduleAt", sql.DateTime, scheduleAt);
     request.input("p_nvcComment", sql.NVarChar, comment);
     request.input("p_uidAssignedToUser", sql.NVarChar, assignedToUser);
-    request.execute("landingSch.USPupdateLandingProspect", (err, result) => {
-      if (err) {
-        res.status(500).send({ response: "Error en los parametros" });
-      } else {
-        const resultRecordset = result.recordset;
-        if (resultRecordset[0].stateCode !== 200) {
-          res.status(resultRecordset[0].stateCode).send({
-            response: { message: resultRecordset[0].message },
-          });
+    request.execute(
+      "landingSch.USPupdateLandingProspect",
+      async (err, result) => {
+        if (err) {
+          res.status(500).send({ response: "Error en los parametros" });
         } else {
-          for (const element of resultRecordset) {
-            if (element.canSendEmail === true) {
-              const configEmailServer = JSON.parse(
-                element.jsonEmailServerConfig
-              );
-              await executeMailTo({
-                ...element,
-                ...configEmailServer,
-              });
+          const resultRecordset = result.recordset;
+          if (resultRecordset[0].stateCode !== 200) {
+            res.status(resultRecordset[0].stateCode).send({
+              response: { message: resultRecordset[0].message },
+            });
+          } else {
+            for (const element of resultRecordset) {
+              if (element.canSendEmail === true) {
+                const configEmailServer = JSON.parse(
+                  element.jsonEmailServerConfig
+                );
+                await executeMailTo({
+                  ...element,
+                  ...configEmailServer,
+                });
+              }
             }
+            res.status(200).send({
+              response: "Solicitud procesada exitosamente",
+            });
           }
-          res.status(200).send({
-            response: "Solicitud procesada exitosamente",
-          });
         }
       }
-    });
+    );
   } catch (err) {
     console.log("ERROR", err);
     // ... error checks
