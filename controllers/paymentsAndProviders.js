@@ -1166,9 +1166,7 @@ const executeConfirmPaymentIntent = async (params, res) => {
   try {
     let paymentIntentConfirm = {};
     if (count === 0) {
-      console.log("0 count");
       paymentIntentConfirm = await stripe.paymentIntents.confirm(paymentIntent);
-      console.log("paymentIntentConfirm", paymentIntentConfirm);
     } else {
       await stripe.paymentIntents.update(paymentIntent, {
         amount,

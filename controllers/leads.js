@@ -23,6 +23,10 @@ const executeAddLandingProspect = async (params, res, ip) => {
     idPolicy = null,
     realState = null,
     captchaToken,
+    code = null,
+    requiresCall = null,
+    scheduleAt = null,
+    comment = null,
   } = params;
   try {
     const responseGoogle = await rp({
@@ -51,8 +55,13 @@ const executeAddLandingProspect = async (params, res, ip) => {
     request.input("p_nvcRealEstate", sql.NVarChar, realState);
     request.input("p_nvcIpAddress", sql.NVarChar, ip);
     request.input("p_decScore", sql.Decimal(5, 2), score);
+    request.input("p_vchCode", sql.VarChar, code);
+    request.input("p_bitRequiresCall", sql.Bit, requiresCall);
+    request.input("p_dtmScheduleAt", sql.DateTime, scheduleAt);
+    request.input("p_nvcComment", sql.NVarChar, comment);
     request.execute("landingSch.USPaddLandingProspect", (err, result) => {
       if (err) {
+        console.log("err", err);
         res.status(500).send({ response: "Error en los parametros" });
       } else {
         const resultRecordset = result.recordset;
@@ -88,6 +97,75 @@ const executeAddLandingProspect = async (params, res, ip) => {
   } catch (err) {
     console.log("ERROR", err);
     // ... error checks
+  }
+};
+
+const executeGenerateVerificationCode = async (params, res) => {
+  const {
+    phoneNumber,
+    idCountry,
+    latitude = 0,
+    longitude = 0,
+    uRLGMaps = null,
+    offset = process.env.OFFSET,
+  } = params;
+  try {
+    const pool = await sql.connect();
+    const result = await pool
+      .request()
+      .input("p_nvcPhoneNumber", sql.NVarChar, phoneNumber)
+      .input("p_intIdCountry", sql.Int, idCountry)
+      .input("p_nvcLatitude", sql.NVarChar, `${latitude}`)
+      .input("p_nvcLongitude", sql.NVarChar, `${longitude}`)
+      .input("p_nvcURLGMaps", sql.NVarChar, uRLGMaps)
+      .input("p_chrOffset", sql.Char, offset)
+      .execute("landingSch.USPgenerateVerificationCode");
+    const resultRecordset = result.recordset[0];
+    if (resultRecordset.stateCode !== 200) {
+      res.status(resultRecordset.stateCode).send({
+        response: {
+          message: resultRecordset.message,
+          idPhoneVerification: resultRecordset.idPhoneVerification,
+        },
+      });
+    } else {
+      await client.messages.create({
+        to: `${resultRecordset.countryCode}${resultRecordset.phoneNumber}`,
+        from: resultRecordset.from,
+        body: resultRecordset.content,
+      });
+      res.status(200).send({
+        response: {
+          message: resultRecordset.message,
+          idPhoneVerification: resultRecordset.idPhoneVerification,
+        },
+      });
+    }
+  } catch (error) {
+    res
+      .status(500)
+      .send({ response: { message: "Error de sistema", messageType: error } });
+  }
+};
+
+const executeGetAllCountries = async (params, res) => {
+  const { idSystemUser = null, idLoginHistory = null, type = null } = params;
+  try {
+    const pool = await sql.connect();
+    const result = await pool
+      .request()
+      .input("p_uidIdSystemUser", sql.NVarChar, idSystemUser)
+      .input("p_uidIdLoginHistory", sql.NVarChar, idLoginHistory)
+      .input("p_intType", sql.Int, type)
+      .execute("addressSch.USPgetAllCountries");
+    const resultRecordset = result.recordset;
+    res.status(200).send({
+      response: resultRecordset,
+    });
+  } catch (error) {
+    res
+      .status(500)
+      .send({ response: { message: "Error de sistema", messageType: error } });
   }
 };
 
@@ -129,6 +207,17 @@ const executeUpdateLandingProspect = async (params, res, url) => {
     idSystemUser,
     idLoginHistory,
     offset = process.env.OFFSET,
+    givenName = null,
+    lastName = null,
+    mothersMaidenName = null,
+    emailAddress = null,
+    budgeAmount = null,
+    idPolicy = null,
+    realEstate = null,
+    additionalComment = null,
+    scheduleAt = null,
+    comment = null,
+    assignedToUser = null,
   } = params;
   const { idLandingProspect } = url;
   try {
@@ -138,22 +227,47 @@ const executeUpdateLandingProspect = async (params, res, url) => {
     request.input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser);
     request.input("p_nvcIdLoginHistory", sql.NVarChar, idLoginHistory);
     request.input("p_chrOffset", sql.Char, offset);
-    request.execute("landingSch.USPupdateLandingProspect", (err, result) => {
-      if (err) {
-        res.status(500).send({ response: "Error en los parametros" });
-      } else {
-        const resultRecordset = result.recordset;
-        if (resultRecordset[0].stateCode !== 200) {
-          res.status(resultRecordset[0].stateCode).send({
-            response: { message: resultRecordset[0].message },
-          });
+    request.input("p_nvcGivenName", sql.NVarChar, givenName);
+    request.input("p_nvcLastName", sql.NVarChar, lastName);
+    request.input("p_nvcMothersMaidenName", sql.NVarChar, mothersMaidenName);
+    request.input("p_nvcEmailAddress", sql.NVarChar, emailAddress);
+    request.input("p_decBudgeAmount", sql.Decimal(19, 2), budgeAmount);
+    request.input("p_uidIdPolicy", sql.NVarChar, idPolicy);
+    request.input("p_nvcRealEstate", sql.NVarChar, realEstate);
+    request.input("p_nvcAdditionalComment", sql.NVarChar, additionalComment);
+    request.input("p_dtmScheduleAt", sql.DateTime, scheduleAt);
+    request.input("p_nvcComment", sql.NVarChar, comment);
+    request.input("p_uidAssignedToUser", sql.NVarChar, assignedToUser);
+    request.execute(
+      "landingSch.USPupdateLandingProspect",
+      async (err, result) => {
+        if (err) {
+          res.status(500).send({ response: "Error en los parametros" });
         } else {
-          res.status(200).send({
-            response: "Solicitud procesada exitosamente",
-          });
+          const resultRecordset = result.recordset;
+          if (resultRecordset[0].stateCode !== 200) {
+            res.status(resultRecordset[0].stateCode).send({
+              response: { message: resultRecordset[0].message },
+            });
+          } else {
+            for (const element of resultRecordset) {
+              if (element.canSendEmail === true) {
+                const configEmailServer = JSON.parse(
+                  element.jsonEmailServerConfig
+                );
+                await executeMailTo({
+                  ...element,
+                  ...configEmailServer,
+                });
+              }
+            }
+            res.status(200).send({
+              response: "Solicitud procesada exitosamente",
+            });
+          }
         }
       }
-    });
+    );
   } catch (err) {
     console.log("ERROR", err);
     // ... error checks
@@ -295,6 +409,33 @@ const executeGetPotentialAgentCoincidences = async (params, res) => {
   }
 };
 
+const executeGetLandingProspectById = async (params, res) => {
+  const {
+    idLandingProspect,
+    idSystemUser,
+    idLoginHistory,
+    offset = process.env.OFFSET,
+  } = params;
+  try {
+    const pool = await sql.connect();
+    const result = await pool
+      .request()
+      .input("p_uidIdLandingProspect", sql.NVarChar, idLandingProspect)
+      .input("p_uidIdSystemUser", sql.NVarChar, idSystemUser)
+      .input("p_uidIdLoginHistory", sql.NVarChar, idLoginHistory)
+      .input("p_chrOffset", sql.Char, offset)
+      .execute("landingSch.USPgetLandingProspectById");
+    const resultRecordset = result.recordsets;
+    res.status(200).send({
+      response: resultRecordset,
+    });
+  } catch (error) {
+    res
+      .status(500)
+      .send({ response: { message: "Error de sistema", messageType: error } });
+  }
+};
+
 const ControllerLeads = {
   addLandingProspect: (req, res) => {
     const params = req.body;
@@ -326,6 +467,18 @@ const ControllerLeads = {
   getPotentialAgentCoincidences: (req, res) => {
     const params = req.body;
     executeGetPotentialAgentCoincidences(params, res);
+  },
+  generateVerificationCode: (req, res) => {
+    const params = req.body;
+    executeGenerateVerificationCode(params, res);
+  },
+  getAllCountries: (req, res) => {
+    const params = req.body;
+    executeGetAllCountries(params, res);
+  },
+  getLandingProspectById: (req, res) => {
+    const params = req.body;
+    executeGetLandingProspectById(params, res);
   },
 };
 

@@ -1582,7 +1582,6 @@ const executeGetRequestAdvancePymtPlan = async (params) => {
         stripeAccount: generalData.idConnectAccount,
       }
     );
-    console.log("subscription", subscription);
   } catch (err) {
     res.status(500).send({
       response: { message: "Error en los parametros", messageType: err },

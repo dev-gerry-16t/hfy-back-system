@@ -24,6 +24,9 @@ const s3 = new AWS.S3({
   accessKeyId: GLOBAL_CONSTANTS.ACCESS_KEY_ID,
   secretAccessKey: GLOBAL_CONSTANTS.SECRET_ACCESS_KEY,
 });
+const accountSid = GLOBAL_CONSTANTS.TWILIO_ACCOUNT_SID;
+const authToken = GLOBAL_CONSTANTS.TWILIO_AUTH_TOKEN;
+const client = require("twilio")(accountSid, authToken);
 const { getTestMail } = require("./audit");
 
 const ControllerTest = {
@@ -40,6 +43,15 @@ const ControllerTest = {
     res.status(200).send({
       message: `Bienvenido al Backend homify :) ${GLOBAL_CONSTANTS.VERSION}`,
     });
+  },
+  sendWhatsappTwilio: async (req, res) => {
+    const params = req.body;
+    const message = await client.messages.create({
+      to: "525562100512",
+      from: "12244083019",
+      body: "Tu codigo de verificación es el: 358545",
+    });
+    res.status(200).send({ message: message.sid });
   },
   sendWhatsapp: async (req, res) => {
     const params = req.body;
