@@ -3,12 +3,12 @@ const XLSX = require("xlsx");
 const isEmpty = require("lodash/isEmpty");
 const isNil = require("lodash/isNil");
 const rp = require("request-promise");
-const accountSid = GLOBAL_CONSTANTS.TWILIO_ACCOUNT_SID;
-const authToken = GLOBAL_CONSTANTS.TWILIO_AUTH_TOKEN;
-const client = require("twilio")(accountSid, authToken);
 const executeMailTo = require("../actions/sendInformationUser");
 const executeUpdateShortMessageService = require("../actions/updateShortMessageService");
 const GLOBAL_CONSTANTS = require("../constants/constants");
+const accountSid = GLOBAL_CONSTANTS.TWILIO_ACCOUNT_SID;
+const authToken = GLOBAL_CONSTANTS.TWILIO_AUTH_TOKEN;
+const client = require("twilio")(accountSid, authToken);
 
 const executeAddLandingProspect = async (params, res, ip) => {
   const {
