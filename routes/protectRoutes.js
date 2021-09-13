@@ -274,6 +274,10 @@ router.post(
   "/catalogs/getAllInvPymtMethods",
   ControllerCatalogs.getAllInvPymtMethods
 );
+router.post(
+  "/catalogs/getUsersForAssignment",
+  ControllerCatalogs.getUsersForAssignment
+);
 //Catalogos//
 
 //Admin//
@@ -374,6 +378,10 @@ router.post("/leads/bulkPotentialAgent", ControllerLeads.bulkPotentialAgent);
 router.post(
   "/leads/getPotentialAgentCoincidences",
   ControllerLeads.getPotentialAgentCoincidences
+);
+router.post(
+  "/leads/getLandingProspectById",
+  ControllerLeads.getLandingProspectById
 );
 // Lead//
 
