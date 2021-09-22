@@ -115,6 +115,8 @@ const executeMatiWebHook = async (req, res) => {
   const offset = process.env.OFFSET;
   const jsonServiceResponse = JSON.stringify(req.body);
   const xHeaderAWSKey = "szeePVZO157pgeFML92!|=|";
+  let jsonVerificationData = null;
+
   // console.log("req.headers", req.headers);
 
   // // Mati hashes your webhook payload
@@ -144,10 +146,44 @@ const executeMatiWebHook = async (req, res) => {
   //   rejectUnauthorized: false,
   // });
   try {
+    if (
+      req.body.eventName === "verification_updated" ||
+      req.body.eventName === "verification_inputs_completed"
+    ) {
+      const response = await rp({
+        url: "https://api.getmati.com/oauth",
+        method: "POST",
+        headers: {
+          encoding: "UTF-8",
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+        auth: {
+          user: "612d17a8ebca36001b36d7ab",
+          pass: "R28HQ91X87T5GQ8D4DMGBG5GXNMTGX6W",
+        },
+        json: true,
+        body: "grant_type=client_credentials",
+        rejectUnauthorized: false,
+      });
+      const responseResource = await rp({
+        url: req.body.resource,
+        method: "GET",
+        headers: {
+          encoding: "UTF-8",
+        },
+        auth: {
+          bearer: response.access_token,
+        },
+        json: true,
+        rejectUnauthorized: false,
+      });
+      jsonVerificationData = JSON.stringify(responseResource);
+    }
     const pool = await sql.connect();
     const result = await pool
       .request()
       .input("p_nvcJsonServiceResponse", sql.NVarChar, jsonServiceResponse)
+      .input("p_nvcJsonVerificationData", sql.NVarChar, jsonVerificationData)
       .input("p_nvcXHeaderAWSKey", sql.NVarChar, xHeaderAWSKey)
       .input("p_chrOffset", sql.Char, offset)
       .execute("matiSch.USPsetMatiWebHook");
