@@ -210,17 +210,15 @@ const executeMatiWebHook = async (req, res) => {
     const resultRecordset = result.recordset;
     const resultRecordset1 =
       isNil(result.recordsets[1]) === false ? result.recordsets[1] : [];
-    console.log("resultRecordset", resultRecordset);
-    console.log("resultRecordset1", resultRecordset1);
-    // for (const element of resultRecordset) {
-    //   if (element.canSendEmail === true) {
-    //     const configEmailServer = JSON.parse(element.jsonEmailServerConfig);
-    //     await executeMailTo({
-    //       ...element,
-    //       ...configEmailServer,
-    //     });
-    //   }
-    // }
+    for (const element of resultRecordset) {
+      if (element.canSendEmail === true) {
+        const configEmailServer = JSON.parse(element.jsonEmailServerConfig);
+        await executeMailTo({
+          ...element,
+          ...configEmailServer,
+        });
+      }
+    }
   } catch (err) {
     console.log("err", err);
     throw err;
