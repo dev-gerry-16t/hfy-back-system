@@ -278,6 +278,7 @@ router.post(
   "/catalogs/getUsersForAssignment",
   ControllerCatalogs.getUsersForAssignment
 );
+router.post("/catalogs/getAllPhoneTypes", ControllerCatalogs.getAllPhoneTypes);
 //Catalogos//
 
 //Admin//

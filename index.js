@@ -16,6 +16,7 @@ sql.connect(CONFIG, (err, res) => {
 });
 const projectRoutes = require("./routes/routes");
 const protectRoutes = require("./routes/protectRoutes");
+const customerRoutes = require("./routes/customerRoutes");
 
 const port = process.env.PORT || GLOBAL_CONSTANTS.PORT;
 const storage = multer.memoryStorage({
@@ -41,6 +42,7 @@ app.get("/", (req, res) => {
 });
 app.use("/api", projectRoutes);
 app.use("/apiAccess", verifyToken, protectRoutes);
+app.use("/customer", verifyToken, customerRoutes);
 
 app.listen(port, () => {
   console.log(

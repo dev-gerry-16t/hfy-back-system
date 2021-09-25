@@ -793,6 +793,27 @@ const executeGetUsersForAssignment = async (params, res) => {
   } catch (error) {}
 };
 
+const executeGetAllPhoneTypes = async (params, res) => {
+  const { idCustomer, idSystemUser, idLoginHistory, type } = params;
+  try {
+    const request = new sql.Request();
+    request.input("p_uidIdCustomer", sql.NVarChar, idCustomer);
+    request.input("p_intType", sql.Int, type);
+    request.input("p_uidIdSystemUser", sql.NVarChar, idSystemUser);
+    request.input("p_uidIdLoginHistory", sql.NVarChar, idLoginHistory);
+    request.execute("catComSch.USPgetAllPhoneTypes", (err, result) => {
+      if (err) {
+        res.status(500).send({ response: "Error en los parametros" });
+      } else {
+        const resultRecordset = result.recordset;
+        res.status(200).send({
+          response: resultRecordset,
+        });
+      }
+    });
+  } catch (error) {}
+};
+
 const ControllerCatalogs = {
   getAllMaritalStatus: (req, res) => {
     const params = req.body;
@@ -918,6 +939,10 @@ const ControllerCatalogs = {
   getUsersForAssignment: (req, res) => {
     const params = req.body;
     executeGetUsersForAssignment(params, res);
+  },
+  getAllPhoneTypes: (req, res) => {
+    const params = req.body;
+    executeGetAllPhoneTypes(params, res);
   },
 };
 

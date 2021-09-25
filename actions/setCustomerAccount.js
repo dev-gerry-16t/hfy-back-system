@@ -3,6 +3,8 @@ const rp = require("request-promise");
 const crypto = require("crypto");
 const executeMailTo = require("./sendInformationUser");
 const GLOBAL_CONSTANTS = require("../constants/constants");
+const isNil = require("lodash/isNil");
+const isEmpty = require("lodash/isEmpty");
 
 const executeSetCustomerAccount = async (params) => {
   const {
@@ -116,7 +118,6 @@ const executeMatiWebHook = async (req, res) => {
   const jsonServiceResponse = JSON.stringify(req.body);
   const xHeaderAWSKey = "szeePVZO157pgeFML92!|=|";
   let jsonVerificationData = null;
-
   // console.log("req.headers", req.headers);
 
   // // Mati hashes your webhook payload
@@ -148,7 +149,7 @@ const executeMatiWebHook = async (req, res) => {
   try {
     if (
       req.body.eventName === "verification_updated" ||
-      req.body.eventName === "verification_inputs_completed"
+      req.body.eventName === "verification_completed"
     ) {
       const response = await rp({
         url: "https://api.getmati.com/oauth",
@@ -179,6 +180,25 @@ const executeMatiWebHook = async (req, res) => {
       });
       jsonVerificationData = JSON.stringify(responseResource);
     }
+    // await rp({
+    //   url: GLOBAL_CONSTANTS.URL_SLACK_MESSAGE,
+    //   method: "POST",
+    //   headers: {
+    //     encoding: "UTF-8",
+    //     "Content-Type": "application/json",
+    //   },
+    //   json: true,
+    //   body: {
+    //     text: `
+    //   p_nvcJsonServiceResponse:
+    //   ${jsonServiceResponse}
+
+    //   p_nvcJsonVerificationData:
+    //   ${jsonVerificationData}
+    //   `,
+    //   },
+    //   rejectUnauthorized: false,
+    // });
     const pool = await sql.connect();
     const result = await pool
       .request()
@@ -188,16 +208,21 @@ const executeMatiWebHook = async (req, res) => {
       .input("p_chrOffset", sql.Char, offset)
       .execute("matiSch.USPsetMatiWebHook");
     const resultRecordset = result.recordset;
-    for (const element of resultRecordset) {
-      if (element.canSendEmail === true) {
-        const configEmailServer = JSON.parse(element.jsonEmailServerConfig);
-        await executeMailTo({
-          ...element,
-          ...configEmailServer,
-        });
-      }
-    }
+    const resultRecordset1 =
+      isNil(result.recordsets[1]) === false ? result.recordsets[1] : [];
+    console.log("resultRecordset", resultRecordset);
+    console.log("resultRecordset1", resultRecordset1);
+    // for (const element of resultRecordset) {
+    //   if (element.canSendEmail === true) {
+    //     const configEmailServer = JSON.parse(element.jsonEmailServerConfig);
+    //     await executeMailTo({
+    //       ...element,
+    //       ...configEmailServer,
+    //     });
+    //   }
+    // }
   } catch (err) {
+    console.log("err", err);
     throw err;
   }
 };
