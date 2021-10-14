@@ -279,6 +279,14 @@ router.post(
   ControllerCatalogs.getUsersForAssignment
 );
 router.post("/catalogs/getAllPhoneTypes", ControllerCatalogs.getAllPhoneTypes);
+router.post(
+  "/catalogs/getAllVerificationIdentityStatus",
+  ControllerCatalogs.getAllVerificationIdentityStatus
+);
+router.post(
+  "/catalogs/getAllPropertyStates",
+  ControllerCatalogs.getAllPropertyStates
+);
 //Catalogos//
 
 //Admin//

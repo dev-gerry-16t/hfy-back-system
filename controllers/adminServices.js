@@ -1941,6 +1941,7 @@ const executeSetPersonalReferenceForm = async (params, res, url) => {
     idSystemUser,
     idLoginHistory,
     offset = GLOBAL_CONSTANTS.OFFSET,
+    idInvestigationProcess,
   } = params;
   const { idPersonalReference } = url;
   try {
@@ -1964,6 +1965,11 @@ const executeSetPersonalReferenceForm = async (params, res, url) => {
     request.input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser);
     request.input("p_nvcIdLoginHistory", sql.NVarChar, idLoginHistory);
     request.input("p_chrOffset", sql.Char, offset);
+    request.input(
+      "p_uidIdInvestigationProcess",
+      sql.NVarChar,
+      idInvestigationProcess
+    );
     request.execute(
       "customerSch.USPsetPersonalReferenceForm",
       (err, result) => {

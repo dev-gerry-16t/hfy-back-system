@@ -1,10 +1,15 @@
 const sql = require("mssql");
+const AWS = require("aws-sdk");
 const rp = require("request-promise");
 const crypto = require("crypto");
 const executeMailTo = require("./sendInformationUser");
 const GLOBAL_CONSTANTS = require("../constants/constants");
 const isNil = require("lodash/isNil");
 const isEmpty = require("lodash/isEmpty");
+const s3 = new AWS.S3({
+  accessKeyId: GLOBAL_CONSTANTS.ACCESS_KEY_ID,
+  secretAccessKey: GLOBAL_CONSTANTS.SECRET_ACCESS_KEY,
+});
 
 const executeSetCustomerAccount = async (params) => {
   const {
@@ -113,6 +118,149 @@ const verify = (signature, secret, payloadBody) => {
   return hash === signature;
 };
 
+const executeAddCustomerDocument = async (params) => {
+  const {
+    idCustomer,
+    idDocument,
+    type,
+    idSystemUser,
+    idLoginHistory,
+    offset,
+    idVerificationProcess,
+  } = params;
+
+  try {
+    const pool = await sql.connect();
+    const result = await pool
+      .request()
+      .input("p_uidIdCustomer", sql.NVarChar, idCustomer)
+      .input("p_uidIdDocument", sql.NVarChar, idDocument)
+      .input("p_intType", sql.Int, type)
+      .input("p_uidIdSystemUser", sql.NVarChar, idSystemUser)
+      .input("p_uidIdLoginHistory", sql.NVarChar, idLoginHistory)
+      .input("p_chrOffset", sql.Char, offset)
+      .input("p_uidIdVerificationProcess", sql.NVarChar, idVerificationProcess)
+      .execute("customerSch.USPaddCustomerDocument");
+    const resultRecordset = result.recordset[0];
+    if (resultRecordset.stateCode !== 200) {
+      throw resultRecordset.errorMessage;
+    }
+    return true;
+  } catch (err) {
+    await rp({
+      url: GLOBAL_CONSTANTS.URL_SLACK_MESSAGE,
+      method: "POST",
+      headers: {
+        encoding: "UTF-8",
+        "Content-Type": "application/json",
+      },
+      json: true,
+      body: {
+        text: `
+        customerSch.USPaddCustomerDocument:
+      ${err}
+      `,
+      },
+      rejectUnauthorized: false,
+    });
+    return false;
+  }
+};
+
+const executeAddDocument = async (params) => {
+  const {
+    idCustomer,
+    idSystemUser,
+    idLoginHistory = null,
+    offset,
+    documentName = null,
+    preview = null,
+    thumbnail = null,
+    idDocumentType,
+    type,
+    resource,
+    idVerificationProcess,
+  } = params;
+
+  try {
+    const response = await rp({
+      url: resource,
+      method: "GET",
+      encoding: null,
+      resolveWithFullResponse: true,
+    });
+    const stringWord = response.headers["content-type"];
+    const separate =
+      isNil(stringWord) === false && isEmpty(stringWord) === false
+        ? stringWord.split("/")
+        : "";
+    const extension =
+      isNil(separate) === false &&
+      isNil(separate) === false &&
+      isNil(separate[1]) === false
+        ? separate[1]
+        : "";
+    const pool = await sql.connect();
+    const result = await pool
+      .request()
+      .input("p_nvcIdCustomer", sql.NVarChar, idCustomer)
+      .input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser)
+      .input("p_nvcIdLoginHistory", sql.NVarChar, idLoginHistory)
+      .input("p_nvcDocumentName", sql.NVarChar, documentName)
+      .input("p_nvcExtension", sql.NVarChar, extension)
+      .input("p_nvcPreview", sql.NVarChar, preview)
+      .input("p_nvcThumbnail", sql.NVarChar, thumbnail)
+      .input("p_chrOffset", sql.Char, offset)
+      .input("p_intIdDocumentType", sql.Int, idDocumentType)
+      .execute("documentSch.USPaddDocument");
+
+    const resultRecordset = result.recordset[0];
+    if (resultRecordset.stateCode !== 200) {
+      throw resultRecordset.errorMessage;
+    } else {
+      const bucketSource =
+        isNil(resultRecordset.bucketSource) === false
+          ? resultRecordset.bucketSource.toLowerCase()
+          : "";
+      const bufferFile = Buffer.from(response.body, "utf8");
+      const paramsFileAws = {
+        Bucket: bucketSource,
+        Key: resultRecordset.idDocument,
+        Body: bufferFile,
+      };
+      await s3.upload(paramsFileAws).promise();
+      await executeAddCustomerDocument({
+        idCustomer,
+        idDocument: resultRecordset.idDocument,
+        type,
+        idSystemUser,
+        idLoginHistory,
+        idVerificationProcess,
+        offset,
+      });
+      return true;
+    }
+  } catch (err) {
+    await rp({
+      url: GLOBAL_CONSTANTS.URL_SLACK_MESSAGE,
+      method: "POST",
+      headers: {
+        encoding: "UTF-8",
+        "Content-Type": "application/json",
+      },
+      json: true,
+      body: {
+        text: `
+        documentSch.USPaddDocument:
+      ${err}
+      `,
+      },
+      rejectUnauthorized: false,
+    });
+    return false;
+  }
+};
+
 const executeMatiWebHook = async (req, res) => {
   const offset = process.env.OFFSET;
   const jsonServiceResponse = JSON.stringify(req.body);
@@ -159,8 +307,8 @@ const executeMatiWebHook = async (req, res) => {
           "Content-Type": "application/x-www-form-urlencoded",
         },
         auth: {
-          user: "612d17a8ebca36001b36d7ab",
-          pass: "R28HQ91X87T5GQ8D4DMGBG5GXNMTGX6W",
+          user: GLOBAL_CONSTANTS.USER_GET_MATI,
+          pass: GLOBAL_CONSTANTS.PASS_GET_MATI,
         },
         json: true,
         body: "grant_type=client_credentials",
@@ -208,20 +356,57 @@ const executeMatiWebHook = async (req, res) => {
       .input("p_chrOffset", sql.Char, offset)
       .execute("matiSch.USPsetMatiWebHook");
     const resultRecordset = result.recordset;
-    const resultRecordset1 =
-      isNil(result.recordsets[1]) === false ? result.recordsets[1] : [];
-    for (const element of resultRecordset) {
-      if (element.canSendEmail === true) {
-        const configEmailServer = JSON.parse(element.jsonEmailServerConfig);
-        await executeMailTo({
-          ...element,
-          ...configEmailServer,
-        });
+    if (resultRecordset[0].stateCode !== 200) {
+      throw resultRecordset[0].errorMessage;
+    } else {
+      const resultRecordset1 =
+        isNil(result.recordsets[1]) === false ? result.recordsets[1] : [];
+      let uploadMedia;
+      for (const element of resultRecordset) {
+        if (element.canSendEmail === true) {
+          const configEmailServer = JSON.parse(element.jsonEmailServerConfig);
+          await executeMailTo({
+            ...element,
+            ...configEmailServer,
+          });
+        }
+        uploadMedia = element.canUploadMedia;
+      }
+      if (uploadMedia === true) {
+        for (const element of resultRecordset1) {
+          await executeAddDocument({
+            idCustomer: element.idCustomer,
+            idSystemUser: element.idSystemUser,
+            idLoginHistory: null,
+            offset: GLOBAL_CONSTANTS.OFFSET,
+            documentName: null,
+            preview: null,
+            thumbnail: null,
+            idDocumentType: element.idDocumentType,
+            type: element.type,
+            resource: element.resource,
+            idVerificationProcess: element.idVerificationProcess,
+          });
+        }
       }
     }
   } catch (err) {
-    console.log("err", err);
-    throw err;
+    await rp({
+      url: GLOBAL_CONSTANTS.URL_SLACK_MESSAGE,
+      method: "POST",
+      headers: {
+        encoding: "UTF-8",
+        "Content-Type": "application/json",
+      },
+      json: true,
+      body: {
+        text: `
+        matiSch.USPsetMatiWebHook:
+      ${err}
+      `,
+      },
+      rejectUnauthorized: false,
+    });
   }
 };
 

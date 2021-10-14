@@ -8,7 +8,10 @@ const GLOBAL_CONSTANTS = require("../constants/constants");
 const executeUpdateShortMessageService = require("../actions/updateShortMessageService");
 const Stripe = require("stripe");
 const executeAddGWTransaction = require("../actions/addGWTransaction");
-const { executesetConnectAccountWH, executeMatiWebHook } = require("../actions/setCustomerAccount");
+const {
+  executesetConnectAccountWH,
+  executeMatiWebHook,
+} = require("../actions/setCustomerAccount");
 const {
   executeSetDispersionOrder,
   executeSetCollection,
@@ -431,7 +434,7 @@ const ControllerTest = {
       //   },
       //   rejectUnauthorized: false,
       // });
-      await executeMatiWebHook(req, res);
+      executeMatiWebHook(req, res);
       res.status(200).send({ message: "ok" });
     } catch (error) {
       res.status(500).send({ error: `${error}` });

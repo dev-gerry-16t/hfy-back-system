@@ -12,6 +12,7 @@ const executeGetCustomerTimeLine = async (params, res) => {
     idApartment = null,
     idSystemUser,
     idLoginHistory,
+    offset = null,
   } = params;
   const storeProcedure = "customerSch.USPgetCustomerTimeLine";
   try {
@@ -34,6 +35,7 @@ const executeGetCustomerTimeLine = async (params, res) => {
         .input("p_uidIdApartment", sql.NVarChar, idApartment)
         .input("p_uidIdSystemUser", sql.NVarChar, idSystemUser)
         .input("p_uidIdLoginHistory", sql.NVarChar, idLoginHistory)
+        .input("p_chrOffset", sql.Char, offset)
         .execute(storeProcedure);
       const resultRecordset = result.recordset;
       res.status(200).send({
@@ -129,6 +131,10 @@ const executeUpdateCustomerAccount = async (params, res, url) => {
     legalRepIdTypeNumber = null,
     legalRepDateOfBirth = null,
     isDataConfirmed = null,
+    boundSolidarityGivenName = null,
+    boundSolidarityEmailAddress = null,
+    deactivateBoundSolidarity = null,
+    sendReminderBoundSolidarity = null,
     idSystemUser,
     idLoginHistory,
     offset = GLOBAL_CONSTANTS.OFFSET,
@@ -227,6 +233,26 @@ const executeUpdateCustomerAccount = async (params, res, url) => {
         .input("p_nvcLegalRepIdTypeNumber", sql.NVarChar, legalRepIdTypeNumber)
         .input("p_datLegalRepDateOfBirth", sql.Date, legalRepDateOfBirth)
         .input("p_bitIsDataConfirmed", sql.Bit, isDataConfirmed)
+        .input(
+          "p_nvcBoundSolidarityGivenName",
+          sql.NVarChar,
+          boundSolidarityGivenName
+        )
+        .input(
+          "p_nvcBoundSolidarityEmailAddress",
+          sql.NVarChar,
+          boundSolidarityEmailAddress
+        )
+        .input(
+          "p_bitDeactivateBoundSolidarity",
+          sql.Bit,
+          deactivateBoundSolidarity
+        )
+        .input(
+          "p_bitSendReminderBoundSolidarity",
+          sql.Bit,
+          sendReminderBoundSolidarity
+        )
         .input("p_uidIdSystemUser", sql.NVarChar, idSystemUser)
         .input("p_uidIdLoginHistory", sql.NVarChar, idLoginHistory)
         .input("p_chrOffset", sql.Char, offset)
@@ -260,6 +286,8 @@ const executeUpdateCustomerAccount = async (params, res, url) => {
 const executeSetCustomerAddress = async (params, res, url) => {
   const {
     isOwn = null,
+    idPropertyState = null,
+    qtyDescription = null,
     lessorFullName = null,
     lessorPhoneNumber = null,
     currentTimeRange = null,
@@ -294,6 +322,8 @@ const executeSetCustomerAddress = async (params, res, url) => {
         .request()
         .input("p_uidIdCustomer", sql.NVarChar, idCustomer)
         .input("p_bitIsOwn", sql.Bit, isOwn)
+        .input("p_intIdPropertyState", sql.Int, idPropertyState)
+        .input("p_decQtyDescription", sql.Decimal(19, 2), qtyDescription)
         .input("p_nvcLessorFullName", sql.NVarChar, lessorFullName)
         .input("p_nvcLessorPhoneNumber", sql.NVarChar, lessorPhoneNumber)
         .input("p_chrCurrentTimeRange", sql.Char, currentTimeRange)
@@ -417,6 +447,7 @@ const executeSetCustomerWorkingInfo = async (params, res, url) => {
     nIV = null,
     isCCAccepted = null,
     cCDigitalSignature = null,
+    childrenNo = null,
     idSystemUser,
     idLoginHistory,
     offset = GLOBAL_CONSTANTS.OFFSET,
@@ -442,6 +473,7 @@ const executeSetCustomerWorkingInfo = async (params, res, url) => {
         .input("p_uidIdCustomer", sql.NVarChar, idCustomer)
         .input("p_intIdOccupationActivity", sql.Int, idOccupationActivity)
         .input("p_intEconomicDependents", sql.Int, economicDependents)
+        .input("p_intChildrenNo", sql.Int, childrenNo)
         .input("p_nvcCompanyName", sql.NVarChar, companyName)
         .input("p_decCurrentSalary", sql.Decimal(16, 2), currentSalary)
         .input("p_chrAntiquityTimeRange", sql.Char, antiquityTimeRange)
@@ -1041,6 +1073,326 @@ const executeGetCustomerTabById = async (params, res) => {
   }
 };
 
+const executeValidateIdentity = async (params, res, url) => {
+  const {
+    idVerificationIdentityStatus,
+    idRejectionReason = null,
+    rejectionReason = null,
+    idSystemUser,
+    idLoginHistory,
+    offset = GLOBAL_CONSTANTS.OFFSET,
+  } = params;
+  const { idVerificationIdentity } = url;
+  const storeProcedure = "customerSch.USPvalidateIdentity";
+  try {
+    if (
+      isNil(idVerificationIdentity) === true ||
+      isNil(idVerificationIdentityStatus) === true ||
+      isNil(idSystemUser) === true ||
+      isNil(idLoginHistory) === true ||
+      isNil(offset) === true
+    ) {
+      res.status(400).send({
+        response: {
+          message: "Error en los parametros de entrada",
+        },
+      });
+    } else {
+      const pool = await sql.connect();
+      const result = await pool
+        .request()
+        .input(
+          "p_uidIdVerificationIdentity",
+          sql.NVarChar,
+          idVerificationIdentity
+        )
+        .input(
+          "p_intIdVerificationIdentityStatus",
+          sql.Int,
+          idVerificationIdentityStatus
+        )
+        .input("p_intIdRejectionReason", sql.Int, idRejectionReason)
+        .input("p_nvcRejectionReason", sql.NVarChar, rejectionReason)
+        .input("p_uidIdSystemUser", sql.NVarChar, idSystemUser)
+        .input("p_uidIdLoginHistory", sql.NVarChar, idLoginHistory)
+        .input("p_chrOffset", sql.Char, offset)
+        .execute(storeProcedure);
+      const resultRecordset = result.recordset;
+      const resultRecordsetObject = result.recordset[0];
+      if (resultRecordsetObject.stateCode !== 200) {
+        executeSlackLogCatchBackend({
+          storeProcedure,
+          error: resultRecordsetObject.errorMessage,
+        });
+        res.status(resultRecordsetObject.stateCode).send({
+          response: { message: resultRecordsetObject.message },
+        });
+      } else {
+        for (const element of resultRecordset) {
+          if (element.canSendEmail === true) {
+            const configEmailServer = JSON.parse(element.jsonEmailServerConfig);
+            await executeMailTo({
+              ...element,
+              ...configEmailServer,
+            });
+          }
+        }
+        res.status(200).send({
+          response: { message: resultRecordsetObject.message },
+        });
+      }
+    }
+  } catch (err) {
+    executeSlackLogCatchBackend({
+      storeProcedure,
+      error: err,
+    });
+    res.status(500).send({
+      response: { message: "Error en el sistema" },
+    });
+  }
+};
+
+const executeGetVerificationIdentityCoincidences = async (params, res) => {
+  const {
+    idSystemUser,
+    idLoginHistory,
+    topIndex,
+    offset = GLOBAL_CONSTANTS.OFFSET,
+  } = params;
+  const storeProcedure = "customerSch.USPgetVerificationIdentityCoincidences";
+  try {
+    if (
+      isNil(idSystemUser) === true ||
+      isNil(idLoginHistory) === true ||
+      isNil(topIndex) === true ||
+      isNil(offset) === true
+    ) {
+      res.status(400).send({
+        response: {
+          message: "Error en los parametros de entrada",
+        },
+      });
+    } else {
+      const pool = await sql.connect();
+      const result = await pool
+        .request()
+        .input("p_uidIdSystemUser", sql.NVarChar, idSystemUser)
+        .input("p_uidIdLoginHistory", sql.NVarChar, idLoginHistory)
+        .input("p_intTopIndex", sql.Int, topIndex)
+        .input("p_chrOffset", sql.Char, offset)
+        .execute(storeProcedure);
+      const resultRecordset = result.recordset;
+      res.status(200).send({
+        response: resultRecordset,
+      });
+    }
+  } catch (err) {
+    executeSlackLogCatchBackend({
+      storeProcedure,
+      error: err,
+    });
+    res.status(500).send({
+      response: { message: "Error en el sistema" },
+    });
+  }
+};
+
+const executeGetVerificationIdentityById = async (params, res) => {
+  const {
+    idVerificationIdentity,
+    idSystemUser,
+    idLoginHistory,
+    offset = GLOBAL_CONSTANTS.OFFSET,
+  } = params;
+  const storeProcedure = "customerSch.USPgetVerificationIdentityById";
+  try {
+    if (
+      isNil(idVerificationIdentity) === true ||
+      isNil(idSystemUser) === true ||
+      isNil(idLoginHistory) === true ||
+      isNil(offset) === true
+    ) {
+      res.status(400).send({
+        response: {
+          message: "Error en los parametros de entrada",
+        },
+      });
+    } else {
+      const pool = await sql.connect();
+      const result = await pool
+        .request()
+        .input(
+          "p_uidIdVerificationIdentity",
+          sql.NVarChar,
+          idVerificationIdentity
+        )
+        .input("p_uidIdSystemUser", sql.NVarChar, idSystemUser)
+        .input("p_uidIdLoginHistory", sql.NVarChar, idLoginHistory)
+        .input("p_chrOffset", sql.Char, offset)
+        .execute(storeProcedure);
+      const resultRecordset = result.recordset;
+      res.status(200).send({
+        response: resultRecordset,
+      });
+    }
+  } catch (err) {
+    executeSlackLogCatchBackend({
+      storeProcedure,
+      error: err,
+    });
+    res.status(500).send({
+      response: { message: "Error en el sistema" },
+    });
+  }
+};
+
+const executeGetInvestigationProcessCoincidences = async (params, res) => {
+  const { idSystemUser, idLoginHistory, topIndex, offset } = params;
+  const storeProcedure = "customerSch.USPgetInvestigationProcessCoincidences";
+  try {
+    if (
+      isNil(idSystemUser) === true ||
+      isNil(idLoginHistory) === true ||
+      isNil(topIndex) === true ||
+      isNil(offset) === true
+    ) {
+      res.status(400).send({
+        response: {
+          message: "Error en los parametros de entrada",
+        },
+      });
+    } else {
+      const pool = await sql.connect();
+      const result = await pool
+        .request()
+        .input("p_uidIdSystemUser", sql.NVarChar, idSystemUser)
+        .input("p_uidIdLoginHistory", sql.NVarChar, idLoginHistory)
+        .input("p_intTopIndex", sql.Int, topIndex)
+        .input("p_chrOffset", sql.Char, offset)
+        .execute(storeProcedure);
+      const resultRecordset = result.recordset;
+      res.status(200).send({
+        response: resultRecordset,
+      });
+    }
+  } catch (err) {
+    executeSlackLogCatchBackend({
+      storeProcedure,
+      error: err,
+    });
+    res.status(500).send({
+      response: { message: "Error en el sistema" },
+    });
+  }
+};
+
+const executeGetInvestigationProcessById = async (params, res) => {
+  const {
+    idInvestigationProcess,
+    idSystemUser,
+    idLoginHistory,
+    topIndex,
+    offset,
+  } = params;
+  const storeProcedure = "customerSch.USPgetInvestigationProcessById";
+  try {
+    if (
+      isNil(idInvestigationProcess) === true ||
+      isNil(idSystemUser) === true ||
+      isNil(idLoginHistory) === true ||
+      isNil(topIndex) === true ||
+      isNil(offset) === true
+    ) {
+      res.status(400).send({
+        response: {
+          message: "Error en los parametros de entrada",
+        },
+      });
+    } else {
+      const pool = await sql.connect();
+      const result = await pool
+        .request()
+        .input(
+          "p_uidIdInvestigationProcess",
+          sql.NVarChar,
+          idInvestigationProcess
+        )
+        .input("p_uidIdSystemUser", sql.NVarChar, idSystemUser)
+        .input("p_uidIdLoginHistory", sql.NVarChar, idLoginHistory)
+        .input("p_intTopIndex", sql.Int, topIndex)
+        .input("p_chrOffset", sql.Char, offset)
+        .execute(storeProcedure);
+      const resultRecordset = result.recordset;
+      res.status(200).send({
+        response: resultRecordset,
+      });
+    }
+  } catch (err) {
+    executeSlackLogCatchBackend({
+      storeProcedure,
+      error: err,
+    });
+    res.status(500).send({
+      response: { message: "Error en el sistema" },
+    });
+  }
+};
+
+const executeGetCustomerDataByTab = async (params, res) => {
+  const {
+    idCustomer,
+    idInvestigationProcess = null,
+    identifier,
+    idSystemUser,
+    idLoginHistory,
+    offset,
+  } = params;
+  const storeProcedure = "customerSch.USPgetCustomerDataByTab";
+  try {
+    if (
+      isNil(idCustomer) === true ||
+      isNil(identifier) === true ||
+      isNil(idSystemUser) === true ||
+      isNil(idLoginHistory) === true ||
+      isNil(offset) === true
+    ) {
+      res.status(400).send({
+        response: {
+          message: "Error en los parametros de entrada",
+        },
+      });
+    } else {
+      const pool = await sql.connect();
+      const result = await pool
+        .request()
+        .input("p_uidIdCustomer", sql.NVarChar, idCustomer)
+        .input(
+          "p_uidIdInvestigationProcess",
+          sql.NVarChar,
+          idInvestigationProcess
+        )
+        .input("p_intIdentifier", sql.Int, identifier)
+        .input("p_uidIdSystemUser", sql.NVarChar, idSystemUser)
+        .input("p_uidIdLoginHistory", sql.NVarChar, idLoginHistory)
+        .input("p_chrOffset", sql.Char, offset)
+        .execute(storeProcedure);
+      const resultRecordset = result.recordset;
+      res.status(200).send({
+        response: resultRecordset,
+      });
+    }
+  } catch (err) {
+    executeSlackLogCatchBackend({
+      storeProcedure,
+      error: err,
+    });
+    res.status(500).send({
+      response: { message: "Error en el sistema" },
+    });
+  }
+};
+
 const ControllerCustomerSch = {
   getCustomerTimeLine: (req, res) => {
     const params = req.body;
@@ -1101,6 +1453,31 @@ const ControllerCustomerSch = {
   getCustomerTabById: (req, res) => {
     const params = req.body;
     executeGetCustomerTabById(params, res);
+  },
+  validateIdentity: (req, res) => {
+    const params = req.body;
+    const url = req.params; //idVerificationIdentity
+    executeValidateIdentity(params, res, url);
+  },
+  getVerificationIdentityCoincidences: (req, res) => {
+    const params = req.body;
+    executeGetVerificationIdentityCoincidences(params, res);
+  },
+  getVerificationIdentityById: (req, res) => {
+    const params = req.body;
+    executeGetVerificationIdentityById(params, res);
+  },
+  getInvestigationProcessCoincidences: (req, res) => {
+    const params = req.body;
+    executeGetInvestigationProcessCoincidences(params, res);
+  },
+  getInvestigationProcessById: (req, res) => {
+    const params = req.body;
+    executeGetInvestigationProcessById(params, res);
+  },
+  getCustomerDataByTab: (req, res) => {
+    const params = req.body;
+    executeGetCustomerDataByTab(params, res);
   },
 };
 

@@ -54,5 +54,29 @@ router.post(
   "/customer/getCustomerTabById",
   ControllerCustomerSch.getCustomerTabById
 );
+router.post(
+  "/verificationIdentity/getVerificationIdentityCoincidences",
+  ControllerCustomerSch.getVerificationIdentityCoincidences
+);
+router.post(
+  "/verificationIdentity/getVerificationIdentityById",
+  ControllerCustomerSch.getVerificationIdentityById
+);
+router.put(
+  "/verificationIdentity/validateIdentity/:idVerificationIdentity",
+  ControllerCustomerSch.validateIdentity
+);
+router.post(
+  "/investigation/getInvestigationProcessCoincidences",
+  ControllerCustomerSch.getInvestigationProcessCoincidences
+);
+router.post(
+  "/investigation/getInvestigationProcessById",
+  ControllerCustomerSch.getInvestigationProcessById
+);
+router.post(
+  "/investigation/getCustomerDataByTab",
+  ControllerCustomerSch.getCustomerDataByTab
+);
 
 module.exports = router;

@@ -9,7 +9,6 @@ const ControllerLeads = require("../controllers/leads");
 const ControllerCatalogs = require("../controllers/catalogs");
 const ControllerCustomer = require("../controllers/customerInformation");
 const router = express.Router();
-
 router.get("/", ControllerTest.test);
 router.get("/test", ControllerTest.testPath);
 router.get("/testMail/:idEmailTemplate", ControllerTest.testMail);
