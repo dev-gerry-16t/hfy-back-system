@@ -287,6 +287,10 @@ router.post(
   "/catalogs/getAllPropertyStates",
   ControllerCatalogs.getAllPropertyStates
 );
+router.post(
+  "/catalogs/getAllInvestigationStatus",
+  ControllerCatalogs.getAllInvestigationStatus
+);
 //Catalogos//
 
 //Admin//

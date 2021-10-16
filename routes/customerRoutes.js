@@ -78,5 +78,9 @@ router.post(
   "/investigation/getCustomerDataByTab",
   ControllerCustomerSch.getCustomerDataByTab
 );
+router.put(
+  "/customer/updateInvestigationProcess/:idInvestigationProcess",
+  ControllerCustomerSch.updateInvestigationProcess
+);
 
 module.exports = router;

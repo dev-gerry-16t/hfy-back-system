@@ -35,6 +35,10 @@ router.get(
 );
 router.get("/viewFile/:idDocument/:bucketSource", ControllerTest.viewFiles);
 router.get(
+  "/viewFile/:idDocument/:bucketSource/:type",
+  ControllerTest.viewFilesType
+);
+router.get(
   "/viewFilesDocx/:idDocument/:bucketSource",
   ControllerTest.viewFilesDocx
 );

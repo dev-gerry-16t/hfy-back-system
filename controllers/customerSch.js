@@ -1393,6 +1393,86 @@ const executeGetCustomerDataByTab = async (params, res) => {
   }
 };
 
+const executeUpdateInvestigationProcess = async (params, res, url) => {
+  const {
+    idCustomer,
+    idInvestigationStatus = null,
+    switchCustomer = null,
+    score = null,
+    isApproved = null,
+    idRejectionReason = null,
+    rejectionReason = null,
+    paymentCapacity = null,
+    policiesApproved = null,
+    comment = null,
+    idSystemUser,
+    idLoginHistory,
+    offset = GLOBAL_CONSTANTS.OFFSET,
+  } = params;
+  const { idInvestigationProcess } = url;
+  const storeProcedure = "customerSch.USPupdateInvestigationProcess";
+  try {
+    if (
+      isNil(idInvestigationProcess) === true ||
+      isNil(idCustomer) === true ||
+      isNil(idSystemUser) === true ||
+      isNil(idLoginHistory) === true ||
+      isNil(offset) === true
+    ) {
+      res.status(400).send({
+        response: {
+          message: "Error en los parametros de entrada",
+        },
+      });
+    } else {
+      const pool = await sql.connect();
+      const result = await pool
+        .request()
+        .input("p_uidIdCustomer", sql.NVarChar, idCustomer)
+        .input(
+          "p_uidIdInvestigationProcess",
+          sql.NVarChar,
+          idInvestigationProcess
+        )
+        .input("p_intIdInvestigationStatus", sql.Int, idInvestigationStatus)
+        .input("p_bitSwitchCustomer", sql.Bit, switchCustomer)
+        .input("p_decScore", sql.Decimal(5, 2), score)
+        .input("p_bitIsApproved", sql.Bit, isApproved)
+        .input("p_intIdRejectionReason", sql.Int, idRejectionReason)
+        .input("p_nvcRejectionReason", sql.NVarChar, rejectionReason)
+        .input("p_decPaymentCapacity", sql.Decimal(19), paymentCapacity)
+        .input("p_nvcPoliciesApproved", sql.NVarChar, policiesApproved)
+        .input("p_nvcComment", sql.NVarChar, comment)
+        .input("p_uidIdSystemUser", sql.NVarChar, idSystemUser)
+        .input("p_uidIdLoginHistory", sql.NVarChar, idLoginHistory)
+        .input("p_chrOffset", sql.Char, offset)
+        .execute(storeProcedure);
+      const resultRecordsetObject = result.recordset[0];
+      if (resultRecordsetObject.stateCode !== 200) {
+        executeSlackLogCatchBackend({
+          storeProcedure,
+          error: resultRecordsetObject.errorMessage,
+        });
+        res.status(resultRecordsetObject.stateCode).send({
+          response: { message: resultRecordsetObject.message },
+        });
+      } else {
+        res.status(200).send({
+          response: { message: resultRecordsetObject.message },
+        });
+      }
+    }
+  } catch (err) {
+    executeSlackLogCatchBackend({
+      storeProcedure,
+      error: err,
+    });
+    res.status(500).send({
+      response: { message: "Error en el sistema" },
+    });
+  }
+};
+
 const ControllerCustomerSch = {
   getCustomerTimeLine: (req, res) => {
     const params = req.body;
@@ -1478,6 +1558,11 @@ const ControllerCustomerSch = {
   getCustomerDataByTab: (req, res) => {
     const params = req.body;
     executeGetCustomerDataByTab(params, res);
+  },
+  updateInvestigationProcess: (req, res) => {
+    const params = req.body;
+    const url = req.params; //idInvestigationProcess
+    executeUpdateInvestigationProcess(params, res, url);
   },
 };
 
