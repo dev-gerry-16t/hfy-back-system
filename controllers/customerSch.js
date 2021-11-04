@@ -1473,6 +1473,321 @@ const executeUpdateInvestigationProcess = async (params, res, url) => {
   }
 };
 
+const executeGetPropertyCoincidencesV2 = async (params, res) => {
+  const {
+    idSystemUser,
+    jsonConditions = null,
+    pagination = null,
+    idLoginHistory,
+    offset,
+  } = params;
+  const storeProcedure = "customerSch.USPgetPropertyCoincidencesV2";
+  try {
+    if (
+      isNil(idSystemUser) === true ||
+      isNil(idLoginHistory) === true ||
+      isNil(offset) === true
+    ) {
+      res.status(400).send({
+        response: {
+          message: "Error en los parametros de entrada",
+        },
+      });
+    } else {
+      const pool = await sql.connect();
+      const result = await pool
+        .request()
+        .input("p_uidIdSystemUser", sql.NVarChar, idSystemUser)
+        .input("p_nvcJsonConditions", sql.NVarChar, jsonConditions)
+        .input("p_uidIdLoginHistory", sql.NVarChar, idLoginHistory)
+        .input("p_nvcPagination", sql.NVarChar, pagination)
+        .input("p_chrOffset", sql.Char, offset)
+        .execute(storeProcedure);
+      const resultRecordset = result.recordsets;
+      res.status(200).send({
+        response: resultRecordset,
+      });
+    }
+  } catch (err) {
+    executeSlackLogCatchBackend({
+      storeProcedure,
+      error: err,
+    });
+    res.status(500).send({
+      response: { message: "Error en el sistema" },
+    });
+  }
+};
+
+const executeAddPropertyV2 = async (params, res, url) => {
+  const {
+    idPropertyType,
+    idCommercialActivity = null,
+    currentRent,
+    idCurrency = null,
+    priceBasedBy,
+    totalBedrooms,
+    totalBathrooms,
+    totalHalfBathrooms,
+    totalParkingSpots,
+    totalSquareMetersBuilt = null,
+    totalSquareMetersLand = null,
+    totalFloors,
+    floorDescription,
+    maintenanceAmount,
+    isFurnished,
+    idCustomerOwner = null,
+    ownerEmailAddress = null,
+    ownerPhoneNumber = null,
+    ownerGivenName = null,
+    ownerLastName = null,
+    street,
+    streetNumber,
+    suite = null,
+    idZipCode,
+    neighborhood = null,
+    isExactLocation,
+    jsonCoordinates,
+    propertyAmenities,
+    propertyGeneralCharacteristics,
+    idSystemUser,
+    idLoginHistory,
+    offset = GLOBAL_CONSTANTS.OFFSET,
+  } = params;
+  const { idCustomer } = url;
+  const storeProcedure = "customerSch.USPaddPropertyV2";
+  try {
+    if (
+      isNil(idPropertyType) === true ||
+      isNil(currentRent) === true ||
+      isNil(priceBasedBy) === true ||
+      isNil(totalBedrooms) === true ||
+      isNil(totalBathrooms) === true ||
+      isNil(totalHalfBathrooms) === true ||
+      isNil(totalParkingSpots) === true ||
+      isNil(totalFloors) === true ||
+      isNil(floorDescription) === true ||
+      isNil(maintenanceAmount) === true ||
+      isNil(isFurnished) === true ||
+      isNil(street) === true ||
+      isNil(streetNumber) === true ||
+      isNil(idZipCode) === true ||
+      isNil(isExactLocation) === true ||
+      isNil(jsonCoordinates) === true ||
+      isNil(propertyAmenities) === true ||
+      isNil(propertyGeneralCharacteristics) === true ||
+      isNil(idCustomer) === true ||
+      isNil(idSystemUser) === true ||
+      isNil(idLoginHistory) === true ||
+      isNil(offset) === true
+    ) {
+      res.status(400).send({
+        response: {
+          message: "Error en los parametros de entrada",
+        },
+      });
+    } else {
+      const pool = await sql.connect();
+      const result = await pool
+        .request()
+        .input("p_uidIdCustomer", sql.NVarChar, idCustomer)
+        .input("p_intIdPropertyType", sql.Int, idPropertyType)
+        .input("p_intIdCommercialActivity", sql.Int, idCommercialActivity)
+        .input("p_decCurrentRent", sql.Decimal(19, 2), currentRent)
+        .input("p_uidIdCurrency", sql.NVarChar, idCurrency)
+        .input("p_tynPriceBasedBy", sql.TinyInt(3), priceBasedBy)
+        .input("p_intTotalBedrooms", sql.Int, totalBedrooms)
+        .input("p_intTotalBathrooms", sql.Int, totalBathrooms)
+        .input("p_intTotalHalfBathrooms", sql.Int, totalHalfBathrooms)
+        .input("p_intTotalParkingSpots", sql.Int, totalParkingSpots)
+        .input(
+          "p_decTotalSquareMetersBuilt",
+          sql.Decimal(19),
+          totalSquareMetersBuilt
+        )
+        .input(
+          "p_decTotalSquareMetersLand",
+          sql.Decimal(19),
+          totalSquareMetersLand
+        )
+        .input("p_vchTotalFloors", sql.VarChar, totalFloors)
+        .input("p_vchFloorDescription", sql.VarChar, floorDescription)
+        .input("p_decMaintenanceAmount", sql.Decimal(19, 2), maintenanceAmount)
+        .input("p_bitIsFurnished", sql.Bit, isFurnished)
+        .input("p_uidIdCustomerOwner", sql.NVarChar, idCustomerOwner)
+        .input("p_nvcOwnerEmailAddress", sql.NVarChar, ownerEmailAddress)
+        .input("p_nvcOwnerPhoneNumber", sql.NVarChar, ownerPhoneNumber)
+        .input("p_nvcOwnerGivenName", sql.NVarChar, ownerGivenName)
+        .input("p_nvcOwnerLastName", sql.NVarChar, ownerLastName)
+        .input("p_nvcStreet", sql.NVarChar, street)
+        .input("p_nvcStreetNumber", sql.NVarChar, streetNumber)
+        .input("p_nvcSuite", sql.NVarChar, suite)
+        .input("p_intIdZipCode", sql.Int, idZipCode)
+        .input("p_nvcNeighborhood", sql.NVarChar, neighborhood)
+        .input("p_bitIsExactLocation", sql.Bit, isExactLocation)
+        .input("p_nvcJsonCoordinates", sql.NVarChar, jsonCoordinates)
+        .input("p_nvcPropertyAmenities", sql.NVarChar, propertyAmenities)
+        .input(
+          "p_nvcPropertyGeneralCharacteristics",
+          sql.NVarChar,
+          propertyGeneralCharacteristics
+        )
+        .input("p_uidIdSystemUser", sql.NVarChar, idSystemUser)
+        .input("p_uidIdLoginHistory", sql.NVarChar, idLoginHistory)
+        .input("p_chrOffset", sql.Char, offset)
+        .execute(storeProcedure);
+      const resultRecordsetObject = result.recordset[0];
+      if (resultRecordsetObject.stateCode !== 200) {
+        executeSlackLogCatchBackend({
+          storeProcedure,
+          error: resultRecordsetObject.errorMessage,
+        });
+        res.status(resultRecordsetObject.stateCode).send({
+          response: { message: resultRecordsetObject.message },
+        });
+      } else {
+        res.status(200).send({
+          response: {
+            message: resultRecordsetObject.message,
+            idProperty: resultRecordsetObject.idProperty,
+            idApartment: resultRecordsetObject.idApartment,
+          },
+        });
+      }
+    }
+  } catch (err) {
+    executeSlackLogCatchBackend({
+      storeProcedure,
+      error: err,
+    });
+    res.status(500).send({
+      response: { message: "Error en el sistema" },
+    });
+  }
+};
+
+const executeSetPropertyDocument = async (params, res, url) => {
+  const {
+    jsonDocument,
+    isActive,
+    idApartment,
+    idSystemUser,
+    idLoginHistory,
+    offset = GLOBAL_CONSTANTS.OFFSET,
+  } = params;
+  const { idProperty } = url;
+  const storeProcedure = "customerSch.USPsetPropertyDocument";
+  try {
+    if (
+      isNil(idProperty) === true ||
+      isNil(idApartment) === true ||
+      isNil(jsonDocument) === true ||
+      isNil(isActive) === true ||
+      isNil(idSystemUser) === true ||
+      isNil(idLoginHistory) === true ||
+      isNil(offset) === true
+    ) {
+      res.status(400).send({
+        response: {
+          message: "Error en los parametros de entrada",
+        },
+      });
+    } else {
+      const pool = await sql.connect();
+      const result = await pool
+        .request()
+        .input("p_uidIdProperty", sql.NVarChar, idProperty)
+        .input("p_uidIdApartment", sql.NVarChar, idApartment)
+        .input("p_nvcJsonDocument", sql.NVarChar, jsonDocument)
+        .input("p_bitIsActive", sql.Bit, isActive)
+        .input("p_uidIdSystemUser", sql.NVarChar, idSystemUser)
+        .input("p_uidIdLoginHistory", sql.NVarChar, idLoginHistory)
+        .input("p_chrOffset", sql.Char, offset)
+        .execute(storeProcedure);
+      const resultRecordset = result.recordset;
+      const resultRecordsetObject = result.recordset[0];
+      if (resultRecordsetObject.stateCode !== 200) {
+        executeSlackLogCatchBackend({
+          storeProcedure,
+          error: resultRecordsetObject.errorMessage,
+        });
+        res.status(resultRecordsetObject.stateCode).send({
+          response: { message: resultRecordsetObject.message },
+        });
+      } else {
+        for (const element of resultRecordset) {
+          if (element.canSendEmail === true) {
+            const configEmailServer = JSON.parse(element.jsonEmailServerConfig);
+            await executeMailTo({
+              ...element,
+              ...configEmailServer,
+            });
+          }
+        }
+        res.status(200).send({
+          response: { message: resultRecordsetObject.message },
+        });
+      }
+    }
+  } catch (err) {
+    executeSlackLogCatchBackend({
+      storeProcedure,
+      error: err,
+    });
+    res.status(500).send({
+      response: { message: "Error en el sistema" },
+    });
+  }
+};
+
+const executeGetPropertyById = async (params, res) => {
+  const {
+    idProperty = null,
+    idApartment = null,
+    identifier = null,
+    idSystemUser,
+    idLoginHistory,
+    offset = GLOBAL_CONSTANTS.OFFSET,
+  } = params;
+  const storeProcedure = "customerSch.USPgetPropertyById";
+  try {
+    if (
+      isNil(idSystemUser) === true ||
+      isNil(idLoginHistory) === true ||
+      isNil(offset) === true
+    ) {
+      res.status(400).send({
+        response: {
+          message: "Error en los parametros de entrada",
+        },
+      });
+    } else {
+      const pool = await sql.connect();
+      const result = await pool
+        .request()
+        .input("p_uidIdProperty", sql.NVarChar, idProperty)
+        .input("p_uidIdApartment", sql.NVarChar, idApartment)
+        .input("p_vchIdentifier", sql.VarChar, identifier)
+        .input("p_uidIdSystemUser", sql.NVarChar, idSystemUser)
+        .input("p_uidIdLoginHistory", sql.NVarChar, idLoginHistory)
+        .input("p_chrOffset", sql.Char, offset)
+        .execute(storeProcedure);
+      const resultRecordset = result.recordsets;
+      res.status(200).send({
+        response: resultRecordset,
+      });
+    }
+  } catch (err) {
+    executeSlackLogCatchBackend({
+      storeProcedure,
+      error: err,
+    });
+    res.status(500).send({
+      response: { message: "Error en el sistema" },
+    });
+  }
+};
+
 const ControllerCustomerSch = {
   getCustomerTimeLine: (req, res) => {
     const params = req.body;
@@ -1563,6 +1878,24 @@ const ControllerCustomerSch = {
     const params = req.body;
     const url = req.params; //idInvestigationProcess
     executeUpdateInvestigationProcess(params, res, url);
+  },
+  getPropertyCoincidencesV2: (req, res) => {
+    const params = req.body;
+    executeGetPropertyCoincidencesV2(params, res);
+  },
+  addPropertyV2: (req, res) => {
+    const params = req.body;
+    const url = req.params; //idCustomer
+    executeAddPropertyV2(params, res, url);
+  },
+  setPropertyDocument: (req, res) => {
+    const params = req.body;
+    const url = req.params; //idProperty
+    executeSetPropertyDocument(params, res, url);
+  },
+  getPropertyById: (req, res) => {
+    const params = req.body;
+    executeGetPropertyById(params, res);
   },
 };
 

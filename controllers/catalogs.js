@@ -885,6 +885,52 @@ const executeGetAllInvestigationStatus = async (params, res) => {
   } catch (error) {}
 };
 
+const executeGetAllPropertyAmenities = async (params, res) => {
+  const { idSystemUser, idLoginHistory, type } = params;
+  try {
+    const request = new sql.Request();
+    request.input("p_uidIdSystemUser", sql.NVarChar, idSystemUser);
+    request.input("p_uidIdLoginHistory", sql.NVarChar, idLoginHistory);
+    request.input("p_intType", sql.Int, type);
+    request.execute(
+      "catCustomerSch.USPgetAllPropertyAmenities",
+      (err, result) => {
+        if (err) {
+          res.status(500).send({ response: "Error en los parametros" });
+        } else {
+          const resultRecordset = result.recordset;
+          res.status(200).send({
+            response: resultRecordset,
+          });
+        }
+      }
+    );
+  } catch (error) {}
+};
+
+const executeGetAllPropertyGeneralCharacteristics = async (params, res) => {
+  const { idSystemUser, idLoginHistory, type } = params;
+  try {
+    const request = new sql.Request();
+    request.input("p_uidIdSystemUser", sql.NVarChar, idSystemUser);
+    request.input("p_uidIdLoginHistory", sql.NVarChar, idLoginHistory);
+    request.input("p_intType", sql.Int, type);
+    request.execute(
+      "catCustomerSch.USPgetAllPropertyGeneralCharacteristics",
+      (err, result) => {
+        if (err) {
+          res.status(500).send({ response: "Error en los parametros" });
+        } else {
+          const resultRecordset = result.recordset;
+          res.status(200).send({
+            response: resultRecordset,
+          });
+        }
+      }
+    );
+  } catch (error) {}
+};
+
 const ControllerCatalogs = {
   getAllMaritalStatus: (req, res) => {
     const params = req.body;
@@ -1026,6 +1072,14 @@ const ControllerCatalogs = {
   getAllInvestigationStatus: (req, res) => {
     const params = req.body;
     executeGetAllInvestigationStatus(params, res);
+  },
+  getAllPropertyAmenities: (req, res) => {
+    const params = req.body;
+    executeGetAllPropertyAmenities(params, res);
+  },
+  getAllPropertyGeneralCharacteristics: (req, res) => {
+    const params = req.body;
+    executeGetAllPropertyGeneralCharacteristics(params, res);
   },
 };
 

@@ -82,5 +82,18 @@ router.put(
   "/customer/updateInvestigationProcess/:idInvestigationProcess",
   ControllerCustomerSch.updateInvestigationProcess
 );
+router.post(
+  "/property/getPropertyCoincidencesV2",
+  ControllerCustomerSch.getPropertyCoincidencesV2
+);
+router.put(
+  "/property/addPropertyV2/:idCustomer",
+  ControllerCustomerSch.addPropertyV2
+);
+router.put(
+  "/property/setPropertyDocument/:idProperty",
+  ControllerCustomerSch.setPropertyDocument
+);
+router.post("/property/getPropertyById", ControllerCustomerSch.getPropertyById);
 
 module.exports = router;
