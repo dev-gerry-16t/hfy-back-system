@@ -931,6 +931,29 @@ const executeGetAllPropertyGeneralCharacteristics = async (params, res) => {
   } catch (error) {}
 };
 
+const executeGetAllApplicationMethods = async (params, res) => {
+  const { idProperty, idApartment, idSystemUser, idLoginHistory, type } =
+    params;
+  try {
+    const request = new sql.Request();
+    request.input("p_uidIdProperty", sql.NVarChar, idProperty);
+    request.input("p_uidIdApartment", sql.NVarChar, idApartment);
+    request.input("p_intType", sql.Int, type);
+    request.input("p_uidIdSystemUser", sql.NVarChar, idSystemUser);
+    request.input("p_uidIdLoginHistory", sql.NVarChar, idLoginHistory);
+    request.execute("catComSch.USPgetAllApplicationMethods", (err, result) => {
+      if (err) {
+        res.status(500).send({ response: "Error en los parametros" });
+      } else {
+        const resultRecordset = result.recordset;
+        res.status(200).send({
+          response: resultRecordset,
+        });
+      }
+    });
+  } catch (error) {}
+};
+
 const ControllerCatalogs = {
   getAllMaritalStatus: (req, res) => {
     const params = req.body;
@@ -1080,6 +1103,10 @@ const ControllerCatalogs = {
   getAllPropertyGeneralCharacteristics: (req, res) => {
     const params = req.body;
     executeGetAllPropertyGeneralCharacteristics(params, res);
+  },
+  getAllApplicationMethods: (req, res) => {
+    const params = req.body;
+    executeGetAllApplicationMethods(params, res);
   },
 };
 

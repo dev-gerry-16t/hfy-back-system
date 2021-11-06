@@ -95,5 +95,9 @@ router.put(
   ControllerCustomerSch.setPropertyDocument
 );
 router.post("/property/getPropertyById", ControllerCustomerSch.getPropertyById);
+router.put(
+  "/property/updateProperty/:idProperty",
+  ControllerCustomerSch.updateProperty
+);
 
 module.exports = router;

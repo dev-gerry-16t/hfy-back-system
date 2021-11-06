@@ -299,7 +299,10 @@ router.post(
   "/catalogs/getAllPropertyGeneralCharacteristics",
   ControllerCatalogs.getAllPropertyGeneralCharacteristics
 );
-
+router.post(
+  "/catalogs/getAllApplicationMethods",
+  ControllerCatalogs.getAllApplicationMethods
+);
 //Catalogos//
 
 //Admin//
