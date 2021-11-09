@@ -1811,7 +1811,6 @@ const executeUpdateProperty = async (params, res, url) => {
     isFurnished = null,
     idCustomerOwner = null,
     ownerEmailAddress = null,
-    ownerPhoneNumber = null,
     ownerGivenName = null,
     ownerLastName = null,
     street = null,
@@ -1823,6 +1822,12 @@ const executeUpdateProperty = async (params, res, url) => {
     jsonCoordinates = null,
     propertyAmenities = null,
     propertyGeneralCharacteristics = null,
+    jsonAdviserCommissionWith = null,
+    isPublished = null,
+    customerTenantInvitation = null,
+    isActive = null,
+    title = null,
+    description = null,
     idSystemUser,
     idLoginHistory,
     offset = GLOBAL_CONSTANTS.OFFSET,
@@ -1876,7 +1881,6 @@ const executeUpdateProperty = async (params, res, url) => {
         .input("p_bitIsFurnished", sql.Bit, isFurnished)
         .input("p_uidIdCustomerOwner", sql.NVarChar, idCustomerOwner)
         .input("p_nvcOwnerEmailAddress", sql.NVarChar, ownerEmailAddress)
-        .input("p_nvcOwnerPhoneNumber", sql.NVarChar, ownerPhoneNumber)
         .input("p_nvcOwnerGivenName", sql.NVarChar, ownerGivenName)
         .input("p_nvcOwnerLastName", sql.NVarChar, ownerLastName)
         .input("p_nvcStreet", sql.NVarChar, street)
@@ -1892,6 +1896,20 @@ const executeUpdateProperty = async (params, res, url) => {
           sql.NVarChar,
           propertyGeneralCharacteristics
         )
+        .input(
+          "p_nvcJsonAdviserCommissionWith",
+          sql.NVarChar,
+          jsonAdviserCommissionWith
+        )
+        .input("p_bitIsPublished", sql.Bit, isPublished)
+        .input(
+          "p_nvcCustomerTenantInvitation",
+          sql.NVarChar,
+          customerTenantInvitation
+        )
+        .input("p_bitIsActive", sql.Bit, isActive)
+        .input("p_nvcTitle", sql.NVarChar, title)
+        .input("p_nvcDescription", sql.NVarChar, description)
         .input("p_uidIdSystemUser", sql.NVarChar, idSystemUser)
         .input("p_uidIdLoginHistory", sql.NVarChar, idLoginHistory)
         .input("p_chrOffset", sql.Char, offset)
