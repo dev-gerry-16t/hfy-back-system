@@ -954,6 +954,26 @@ const executeGetAllApplicationMethods = async (params, res) => {
   } catch (error) {}
 };
 
+const executeGetAllProperties = async (params, res) => {
+  const { idCustomer, idSystemUser, idLoginHistory } = params;
+  try {
+    const request = new sql.Request();
+    request.input("p_uidIdCustomer", sql.NVarChar, idCustomer);
+    request.input("p_uidIdSystemUser", sql.NVarChar, idSystemUser);
+    request.input("p_uidIdLoginHistory", sql.NVarChar, idLoginHistory);
+    request.execute("customerSch.USPgetAllProperties", (err, result) => {
+      if (err) {
+        res.status(500).send({ response: "Error en los parametros" });
+      } else {
+        const resultRecordset = result.recordset;
+        res.status(200).send({
+          response: resultRecordset,
+        });
+      }
+    });
+  } catch (error) {}
+};
+
 const ControllerCatalogs = {
   getAllMaritalStatus: (req, res) => {
     const params = req.body;
@@ -1107,6 +1127,10 @@ const ControllerCatalogs = {
   getAllApplicationMethods: (req, res) => {
     const params = req.body;
     executeGetAllApplicationMethods(params, res);
+  },
+  getAllProperties: (req, res) => {
+    const params = req.body;
+    executeGetAllProperties(params, res);
   },
 };
 

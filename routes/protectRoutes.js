@@ -303,6 +303,7 @@ router.post(
   "/catalogs/getAllApplicationMethods",
   ControllerCatalogs.getAllApplicationMethods
 );
+router.post("/catalogs/getAllProperties", ControllerCatalogs.getAllProperties);
 //Catalogos//
 
 //Admin//

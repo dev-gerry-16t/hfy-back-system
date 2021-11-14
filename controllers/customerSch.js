@@ -1636,6 +1636,7 @@ const executeAddPropertyV2 = async (params, res, url) => {
         .input("p_uidIdLoginHistory", sql.NVarChar, idLoginHistory)
         .input("p_chrOffset", sql.Char, offset)
         .execute(storeProcedure);
+      const resultRecordset = result.recordset;
       const resultRecordsetObject = result.recordset[0];
       if (resultRecordsetObject.stateCode !== 200) {
         executeSlackLogCatchBackend({
@@ -1646,6 +1647,15 @@ const executeAddPropertyV2 = async (params, res, url) => {
           response: { message: resultRecordsetObject.message },
         });
       } else {
+        for (const element of resultRecordset) {
+          if (element.canSendEmail === true) {
+            const configEmailServer = JSON.parse(element.jsonEmailServerConfig);
+            await executeMailTo({
+              ...element,
+              ...configEmailServer,
+            });
+          }
+        }
         res.status(200).send({
           response: {
             message: resultRecordsetObject.message,
@@ -1954,6 +1964,87 @@ const executeUpdateProperty = async (params, res, url) => {
   }
 };
 
+const executeSetPropertyAssociation = async (params, res, url) => {
+  const {
+    idPropertyParent = null,
+    idApartmentParent = null,
+    isAccepted,
+    method = null,
+    idApartment,
+    idSystemUser,
+    idLoginHistory,
+    offset = GLOBAL_CONSTANTS.OFFSET,
+  } = params;
+  const { idProperty } = url;
+  const storeProcedure = "customerSch.USPsetPropertyAssociation";
+  try {
+    if (
+      isNil(isAccepted) === true ||
+      isNil(idProperty) === true ||
+      isNil(idApartment) === true ||
+      isNil(idSystemUser) === true ||
+      isNil(idLoginHistory) === true ||
+      isNil(offset) === true
+    ) {
+      res.status(400).send({
+        response: {
+          message: "Error en los parametros de entrada",
+        },
+      });
+    } else {
+      const pool = await sql.connect();
+      const result = await pool
+        .request()
+        .input("p_uidIdProperty", sql.NVarChar, idProperty)
+        .input("p_uidIdApartment", sql.NVarChar, idApartment)
+        .input("p_uidIdPropertyParent", sql.NVarChar, idPropertyParent)
+        .input("p_uidIdApartmentParent", sql.NVarChar, idApartmentParent)
+        .input("p_bitIsAccepted", sql.Bit, isAccepted)
+        .input("p_intMethod", sql.TinyInt, method)
+        .input("p_uidIdSystemUser", sql.NVarChar, idSystemUser)
+        .input("p_uidIdLoginHistory", sql.NVarChar, idLoginHistory)
+        .input("p_chrOffset", sql.Char, offset)
+        .execute(storeProcedure);
+      const resultRecordset = result.recordset;
+      const resultRecordsetObject = result.recordset[0];
+      if (resultRecordsetObject.stateCode !== 200) {
+        executeSlackLogCatchBackend({
+          storeProcedure,
+          error: resultRecordsetObject.errorMessage,
+        });
+        res.status(resultRecordsetObject.stateCode).send({
+          response: { message: resultRecordsetObject.message },
+        });
+      } else {
+        for (const element of resultRecordset) {
+          if (element.canSendEmail === true) {
+            const configEmailServer = JSON.parse(element.jsonEmailServerConfig);
+            await executeMailTo({
+              ...element,
+              ...configEmailServer,
+            });
+          }
+        }
+        res.status(200).send({
+          response: {
+            message: resultRecordsetObject.message,
+            idProperty: resultRecordsetObject.idProperty,
+            idApartment: resultRecordsetObject.idApartment,
+          },
+        });
+      }
+    }
+  } catch (err) {
+    executeSlackLogCatchBackend({
+      storeProcedure,
+      error: err,
+    });
+    res.status(500).send({
+      response: { message: "Error en el sistema" },
+    });
+  }
+};
+
 const ControllerCustomerSch = {
   getCustomerTimeLine: (req, res) => {
     const params = req.body;
@@ -2067,6 +2158,11 @@ const ControllerCustomerSch = {
     const params = req.body;
     const url = req.params; //idProperty
     executeUpdateProperty(params, res, url);
+  },
+  setPropertyAssociation: (req, res) => {
+    const params = req.body;
+    const url = req.params; //idProperty
+    executeSetPropertyAssociation(params, res, url);
   },
 };
 

@@ -99,5 +99,9 @@ router.put(
   "/property/updateProperty/:idProperty",
   ControllerCustomerSch.updateProperty
 );
+router.put(
+  "/property/setPropertyAssociation/:idProperty",
+  ControllerCustomerSch.setPropertyAssociation
+);
 
 module.exports = router;
