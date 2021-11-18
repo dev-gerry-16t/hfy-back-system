@@ -142,22 +142,6 @@ const executeGenerateVerificationCode = async (params, res) => {
       });
     }
   } catch (error) {
-    await rp({
-      url: GLOBAL_CONSTANTS.URL_SLACK_MESSAGE,
-      method: "POST",
-      headers: {
-        encoding: "UTF-8",
-        "Content-Type": "application/json",
-      },
-      json: true,
-      body: {
-        text: `
-        accountSid:${accountSid}
-        authToken:${authToken}
-        `,
-      },
-      rejectUnauthorized: false,
-    });
     res
       .status(500)
       .send({ response: { message: "Error de sistema", messageType: error } });

@@ -793,6 +793,187 @@ const executeGetUsersForAssignment = async (params, res) => {
   } catch (error) {}
 };
 
+const executeGetAllPhoneTypes = async (params, res) => {
+  const { idCustomer, idSystemUser, idLoginHistory, type } = params;
+  try {
+    const request = new sql.Request();
+    request.input("p_uidIdCustomer", sql.NVarChar, idCustomer);
+    request.input("p_intType", sql.Int, type);
+    request.input("p_uidIdSystemUser", sql.NVarChar, idSystemUser);
+    request.input("p_uidIdLoginHistory", sql.NVarChar, idLoginHistory);
+    request.execute("catComSch.USPgetAllPhoneTypes", (err, result) => {
+      if (err) {
+        res.status(500).send({ response: "Error en los parametros" });
+      } else {
+        const resultRecordset = result.recordset;
+        res.status(200).send({
+          response: resultRecordset,
+        });
+      }
+    });
+  } catch (error) {}
+};
+
+const executeGetAllVerificationIdentityStatus = async (params, res) => {
+  const { idSystemUser, idLoginHistory, type } = params;
+  try {
+    const request = new sql.Request();
+    request.input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser);
+    request.input("p_nvcIdLoginHistory", sql.NVarChar, idLoginHistory);
+    request.input("p_intType", sql.Int, type);
+    request.execute(
+      "catCustomerSch.USPgetAllVerificationIdentityStatus",
+      (err, result) => {
+        if (err) {
+          res.status(500).send({ response: "Error en los parametros" });
+        } else {
+          const resultRecordset = result.recordset;
+          res.status(200).send({
+            response: resultRecordset,
+          });
+        }
+      }
+    );
+  } catch (error) {}
+};
+
+const executeGetAllPropertyStates = async (params, res) => {
+  const { idSystemUser, idLoginHistory, type } = params;
+  try {
+    const request = new sql.Request();
+    request.input("p_uidIdSystemUser", sql.NVarChar, idSystemUser);
+    request.input("p_uidIdLoginHistory", sql.NVarChar, idLoginHistory);
+    request.input("p_intType", sql.Int, type);
+    request.execute("addressSch.USPgetAllPropertyStates", (err, result) => {
+      if (err) {
+        res.status(500).send({ response: "Error en los parametros" });
+      } else {
+        const resultRecordset = result.recordset;
+        res.status(200).send({
+          response: resultRecordset,
+        });
+      }
+    });
+  } catch (error) {}
+};
+
+const executeGetAllInvestigationStatus = async (params, res) => {
+  const { idInvestigationProcess, idSystemUser, idLoginHistory, type } = params;
+  try {
+    const request = new sql.Request();
+    request.input(
+      "p_uidIdInvestigationProcess",
+      sql.NVarChar,
+      idInvestigationProcess
+    );
+    request.input("p_uidIdSystemUser", sql.NVarChar, idSystemUser);
+    request.input("p_uidIdLoginHistory", sql.NVarChar, idLoginHistory);
+    request.input("p_intType", sql.Int, type);
+    request.execute(
+      "catCustomerSch.USPgetAllInvestigationStatus",
+      (err, result) => {
+        if (err) {
+          res.status(500).send({ response: "Error en los parametros" });
+        } else {
+          const resultRecordset = result.recordset;
+          res.status(200).send({
+            response: resultRecordset,
+          });
+        }
+      }
+    );
+  } catch (error) {}
+};
+
+const executeGetAllPropertyAmenities = async (params, res) => {
+  const { idSystemUser, idLoginHistory, type } = params;
+  try {
+    const request = new sql.Request();
+    request.input("p_uidIdSystemUser", sql.NVarChar, idSystemUser);
+    request.input("p_uidIdLoginHistory", sql.NVarChar, idLoginHistory);
+    request.input("p_intType", sql.Int, type);
+    request.execute(
+      "catCustomerSch.USPgetAllPropertyAmenities",
+      (err, result) => {
+        if (err) {
+          res.status(500).send({ response: "Error en los parametros" });
+        } else {
+          const resultRecordset = result.recordset;
+          res.status(200).send({
+            response: resultRecordset,
+          });
+        }
+      }
+    );
+  } catch (error) {}
+};
+
+const executeGetAllPropertyGeneralCharacteristics = async (params, res) => {
+  const { idSystemUser, idLoginHistory, type } = params;
+  try {
+    const request = new sql.Request();
+    request.input("p_uidIdSystemUser", sql.NVarChar, idSystemUser);
+    request.input("p_uidIdLoginHistory", sql.NVarChar, idLoginHistory);
+    request.input("p_intType", sql.Int, type);
+    request.execute(
+      "catCustomerSch.USPgetAllPropertyGeneralCharacteristics",
+      (err, result) => {
+        if (err) {
+          res.status(500).send({ response: "Error en los parametros" });
+        } else {
+          const resultRecordset = result.recordset;
+          res.status(200).send({
+            response: resultRecordset,
+          });
+        }
+      }
+    );
+  } catch (error) {}
+};
+
+const executeGetAllApplicationMethods = async (params, res) => {
+  const { idProperty, idApartment, idSystemUser, idLoginHistory, type } =
+    params;
+  try {
+    const request = new sql.Request();
+    request.input("p_uidIdProperty", sql.NVarChar, idProperty);
+    request.input("p_uidIdApartment", sql.NVarChar, idApartment);
+    request.input("p_intType", sql.Int, type);
+    request.input("p_uidIdSystemUser", sql.NVarChar, idSystemUser);
+    request.input("p_uidIdLoginHistory", sql.NVarChar, idLoginHistory);
+    request.execute("catComSch.USPgetAllApplicationMethods", (err, result) => {
+      if (err) {
+        res.status(500).send({ response: "Error en los parametros" });
+      } else {
+        const resultRecordset = result.recordset;
+        res.status(200).send({
+          response: resultRecordset,
+        });
+      }
+    });
+  } catch (error) {}
+};
+
+const executeGetAllProperties = async (params, res) => {
+  const { idCustomer, idSystemUser, idLoginHistory } = params;
+  try {
+    const request = new sql.Request();
+    request.input("p_uidIdCustomer", sql.NVarChar, idCustomer);
+    request.input("p_uidIdSystemUser", sql.NVarChar, idSystemUser);
+    request.input("p_uidIdLoginHistory", sql.NVarChar, idLoginHistory);
+    request.execute("customerSch.USPgetAllProperties", (err, result) => {
+      if (err) {
+        res.status(500).send({ response: "Error en los parametros" });
+      } else {
+        const resultRecordset = result.recordset;
+        res.status(200).send({
+          response: resultRecordset,
+        });
+      }
+    });
+  } catch (error) {}
+};
+
 const ControllerCatalogs = {
   getAllMaritalStatus: (req, res) => {
     const params = req.body;
@@ -918,6 +1099,38 @@ const ControllerCatalogs = {
   getUsersForAssignment: (req, res) => {
     const params = req.body;
     executeGetUsersForAssignment(params, res);
+  },
+  getAllPhoneTypes: (req, res) => {
+    const params = req.body;
+    executeGetAllPhoneTypes(params, res);
+  },
+  getAllVerificationIdentityStatus: (req, res) => {
+    const params = req.body;
+    executeGetAllVerificationIdentityStatus(params, res);
+  },
+  getAllPropertyStates: (req, res) => {
+    const params = req.body;
+    executeGetAllPropertyStates(params, res);
+  },
+  getAllInvestigationStatus: (req, res) => {
+    const params = req.body;
+    executeGetAllInvestigationStatus(params, res);
+  },
+  getAllPropertyAmenities: (req, res) => {
+    const params = req.body;
+    executeGetAllPropertyAmenities(params, res);
+  },
+  getAllPropertyGeneralCharacteristics: (req, res) => {
+    const params = req.body;
+    executeGetAllPropertyGeneralCharacteristics(params, res);
+  },
+  getAllApplicationMethods: (req, res) => {
+    const params = req.body;
+    executeGetAllApplicationMethods(params, res);
+  },
+  getAllProperties: (req, res) => {
+    const params = req.body;
+    executeGetAllProperties(params, res);
   },
 };
 

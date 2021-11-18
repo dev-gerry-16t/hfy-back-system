@@ -8,7 +8,10 @@ const GLOBAL_CONSTANTS = require("../constants/constants");
 const executeUpdateShortMessageService = require("../actions/updateShortMessageService");
 const Stripe = require("stripe");
 const executeAddGWTransaction = require("../actions/addGWTransaction");
-const { executesetConnectAccountWH, executeMatiWebHook } = require("../actions/setCustomerAccount");
+const {
+  executesetConnectAccountWH,
+  executeMatiWebHook,
+} = require("../actions/setCustomerAccount");
 const {
   executeSetDispersionOrder,
   executeSetCollection,
@@ -119,54 +122,97 @@ const ControllerTest = {
       Body: req.file.buffer,
     };
     s3.upload(params, (err, data) => {
-      if (err) throw err;
+      if (err) {
+        res.send({ error: " No document attachment" });
+      }
       res.status(200).send({ message: data });
     });
   },
   viewFiles: async (req, res) => {
     try {
       const params = req.params;
-      const fileType = "jpg";
-      const bucketSource = params.bucketSource.toLowerCase();
-      s3.getObject(
-        {
-          Bucket: bucketSource,
-          Key: params.idDocument,
-        },
-        (err, data) => {
-          if (err) throw err;
-          const buff = new Buffer.from(data.Body, "binary");
-          res.writeHead(200, {
-            "Content-Type": "image/png",
-            "Content-Length": buff.length,
-          });
-          res.end(buff);
+      if (
+        isNil(params.idDocument) === true ||
+        isNil(params.bucketSource) === true
+      ) {
+        res.send({ error: "No document attachment" });
+      } else {
+        const bucketSource = params.bucketSource.toLowerCase();
+        const file = await s3
+          .getObject({
+            Bucket: bucketSource,
+            Key: params.idDocument,
+          })
+          .promise();
+
+        const buff = new Buffer.from(file.Body, "binary");
+        res.writeHead(200, {
+          "Content-Length": buff.length,
+          "Content-Disposition": "attachment",
+        });
+        res.end(buff);
+      }
+    } catch (error) {
+      res.status(400).send({ error: "no file attachment" });
+    }
+  },
+  viewFilesType: async (req, res) => {
+    try {
+      const params = req.params;
+      if (
+        isNil(params.idDocument) === true ||
+        isNil(params.bucketSource) === true
+      ) {
+        res.send({ error: "No document attachment" });
+      } else {
+        let headerType = "";
+        if (params.type === "docx" || params.type === "pdf") {
+          headerType = `application/${params.type}`;
+        } else {
+          headerType = `image/${params.type}`;
         }
-      );
-    } catch (error) {}
+        const bucketSource = params.bucketSource.toLowerCase();
+        const file = await s3
+          .getObject({
+            Bucket: bucketSource,
+            Key: params.idDocument,
+          })
+          .promise();
+
+        const buff = new Buffer.from(file.Body, "binary");
+        res.writeHead(200, {
+          "Content-Type": headerType,
+          "Content-Length": buff.length,
+          "Content-Disposition": `attachment;filename=Document.${params.type}`,
+        });
+        res.end(buff);
+      }
+    } catch (error) {
+      res.status(400).send({ error: "no file attachment" });
+    }
   },
   viewFilesDocx: async (req, res) => {
     try {
       const params = req.params;
-      const fileType = "jpg";
       const bucketSource = params.bucketSource.toLowerCase();
-      s3.getObject(
-        {
+
+      const file = await s3
+        .getObject({
           Bucket: bucketSource,
           Key: params.idDocument,
-        },
-        (err, data) => {
-          if (err) throw err;
-          const buff = new Buffer.from(data.Body, "binary");
-          res.writeHead(200, {
-            "Content-Type":
-              "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-            "Content-Length": buff.length,
-          });
-          res.end(buff);
-        }
-      );
-    } catch (error) {}
+        })
+        .promise();
+
+      const buff = new Buffer.from(file.Body, "binary");
+      res.writeHead(200, {
+        "Content-Type":
+          "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        "Content-Length": buff.length,
+      });
+      res.end(buff);
+    } catch (error) {
+      res.status(400).send({ error: "no file attachment" });
+    }
   },
   viewThumbnail: async (req, res) => {
     // const fileType = "jpg";
@@ -197,17 +243,19 @@ const ControllerTest = {
     const name = params.name;
     const extension = params.extension;
     const bucketSource = params.bucketSource.toLowerCase();
-    s3.getObject(
-      {
-        Bucket: bucketSource,
-        Key: params.idDocument,
-      },
-      (err, data) => {
-        const buff = new Buffer.from(data.Body, "binary");
-        res.attachment(`${name}.${extension}`);
-        res.send(buff);
-      }
-    );
+    try {
+      const file = await s3
+        .getObject({
+          Bucket: bucketSource,
+          Key: params.idDocument,
+        })
+        .promise();
+      const buff = new Buffer.from(file.Body, "binary");
+      res.attachment(`${name}.${extension}`);
+      res.send(buff);
+    } catch (error) {
+      res.status(400).send({ error: "no file attachment" });
+    }
   },
   testStripe: async (req, res) => {
     try {
@@ -431,7 +479,7 @@ const ControllerTest = {
       //   },
       //   rejectUnauthorized: false,
       // });
-      await executeMatiWebHook(req, res);
+      executeMatiWebHook(req, res);
       res.status(200).send({ message: "ok" });
     } catch (error) {
       res.status(500).send({ error: `${error}` });

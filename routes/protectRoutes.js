@@ -278,6 +278,32 @@ router.post(
   "/catalogs/getUsersForAssignment",
   ControllerCatalogs.getUsersForAssignment
 );
+router.post("/catalogs/getAllPhoneTypes", ControllerCatalogs.getAllPhoneTypes);
+router.post(
+  "/catalogs/getAllVerificationIdentityStatus",
+  ControllerCatalogs.getAllVerificationIdentityStatus
+);
+router.post(
+  "/catalogs/getAllPropertyStates",
+  ControllerCatalogs.getAllPropertyStates
+);
+router.post(
+  "/catalogs/getAllInvestigationStatus",
+  ControllerCatalogs.getAllInvestigationStatus
+);
+router.post(
+  "/catalogs/getAllPropertyAmenities",
+  ControllerCatalogs.getAllPropertyAmenities
+);
+router.post(
+  "/catalogs/getAllPropertyGeneralCharacteristics",
+  ControllerCatalogs.getAllPropertyGeneralCharacteristics
+);
+router.post(
+  "/catalogs/getAllApplicationMethods",
+  ControllerCatalogs.getAllApplicationMethods
+);
+router.post("/catalogs/getAllProperties", ControllerCatalogs.getAllProperties);
 //Catalogos//
 
 //Admin//
