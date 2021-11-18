@@ -103,5 +103,25 @@ router.put(
   "/property/setPropertyAssociation/:idProperty",
   ControllerCustomerSch.setPropertyAssociation
 );
+router.put(
+  "/property/setAdviserInProperty/:idProperty",
+  ControllerCustomerSch.setAdviserInProperty
+);
+router.put(
+  "/property/sendTenantInvitation/:idApartment",
+  ControllerCustomerSch.sendTenantInvitation
+);
+router.put(
+  "/property/setApplicant/:idProperty",
+  ControllerCustomerSch.setApplicant
+);
+router.put(
+  "/property/applyToProperty/:idProperty",
+  ControllerCustomerSch.applyToProperty
+);
+router.put(
+  "/property/setFavoriteProperty/:idProperty",
+  ControllerCustomerSch.setFavoriteProperty
+);
 
 module.exports = router;

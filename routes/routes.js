@@ -8,6 +8,7 @@ const ControllerTest = require("../controllers/test");
 const ControllerLeads = require("../controllers/leads");
 const ControllerCatalogs = require("../controllers/catalogs");
 const ControllerCustomer = require("../controllers/customerInformation");
+const ControllerCustomerSch = require("../controllers/customerSch");
 const router = express.Router();
 router.get("/", ControllerTest.test);
 router.get("/test", ControllerTest.testPath);
@@ -90,5 +91,9 @@ router.post(
   ControllerLeads.generateVerificationCode
 );
 router.post("/leads/catalog/getAllCountries", ControllerLeads.getAllCountries);
+
+//customersch//
+router.post("/property/getPropertyById", ControllerCustomerSch.getPropertyById);
+//customersch//
 
 module.exports = router;
