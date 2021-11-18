@@ -2361,6 +2361,7 @@ const executeApplyToProperty = async (params, res, url) => {
 const executeSetFavoriteProperty = async (params, res, url) => {
   const {
     idApartment,
+    identifier,
     idSystemUser,
     idLoginHistory,
     offset = GLOBAL_CONSTANTS.OFFSET,
@@ -2370,6 +2371,7 @@ const executeSetFavoriteProperty = async (params, res, url) => {
   try {
     if (
       isNil(idProperty) === true ||
+      isNil(identifier) === true ||
       isNil(idApartment) === true ||
       isNil(idSystemUser) === true ||
       isNil(idLoginHistory) === true ||
@@ -2386,6 +2388,7 @@ const executeSetFavoriteProperty = async (params, res, url) => {
         .request()
         .input("p_uidIdProperty", sql.NVarChar, idProperty)
         .input("p_uidIdApartment", sql.NVarChar, idApartment)
+        .input("p_vchIdentifier", sql.VarChar, identifier)
         .input("p_uidIdSystemUser", sql.NVarChar, idSystemUser)
         .input("p_uidIdLoginHistory", sql.NVarChar, idLoginHistory)
         .input("p_chrOffset", sql.Char, offset)
