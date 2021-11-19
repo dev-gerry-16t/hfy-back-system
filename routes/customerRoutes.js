@@ -123,5 +123,13 @@ router.put(
   "/property/setFavoriteProperty/:idProperty",
   ControllerCustomerSch.setFavoriteProperty
 );
+router.put(
+  "/property/setContract/:idContract",
+  ControllerCustomerSch.setContract
+);
+router.put(
+  "/property/generateDocument/:idContract",
+  ControllerCustomerSch.generateDocument
+);
 
 module.exports = router;

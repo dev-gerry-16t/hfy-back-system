@@ -1,9 +1,60 @@
 const sql = require("mssql");
+const AWS = require("aws-sdk");
+const Docxtemplater = require("docxtemplater");
+const ImageModule = require("docxtemplater-image-module");
+const PizZip = require("pizzip");
 const GLOBAL_CONSTANTS = require("../constants/constants");
 const isNil = require("lodash/isNil");
 const isEmpty = require("lodash/isEmpty");
 const executeSlackLogCatchBackend = require("../actions/slackLogCatchBackend");
 const executeMailTo = require("../actions/sendInformationUser");
+const replaceConditionsDocx = require("../actions/conditions");
+const s3 = new AWS.S3({
+  accessKeyId: GLOBAL_CONSTANTS.ACCESS_KEY_ID,
+  secretAccessKey: GLOBAL_CONSTANTS.SECRET_ACCESS_KEY,
+});
+
+const parseDateOfBorth = (date) => {
+  let month = "";
+  let year = "";
+  let day = "";
+  if (isNil(date) === false) {
+    year = date.getFullYear();
+    month = date.getMonth() + 1;
+    day = date.getUTCDate();
+  }
+  return { year, month, day };
+};
+
+const base64DataURLToArrayBuffer = (dataURL) => {
+  const base64Regex = /^data:image\/(png|jpg|svg|svg\+xml);base64,/;
+  if (!base64Regex.test(dataURL)) {
+    return false;
+  }
+  const stringBase64 = dataURL.replace(base64Regex, "");
+  let binaryString;
+  if (typeof window !== "undefined") {
+    binaryString = window.atob(stringBase64);
+  } else {
+    binaryString = Buffer.from(stringBase64, "base64").toString("binary");
+  }
+  const len = binaryString.length;
+  const bytes = new Uint8Array(len);
+  for (let i = 0; i < len; i++) {
+    const ascii = binaryString.charCodeAt(i);
+    bytes[i] = ascii;
+  }
+  return bytes.buffer;
+};
+
+const imageOpts = {
+  getImage(tag) {
+    return base64DataURLToArrayBuffer(tag);
+  },
+  getSize() {
+    return [180, 60];
+  },
+};
 
 const executeGetCustomerTimeLine = async (params, res) => {
   const {
@@ -2423,6 +2474,291 @@ const executeSetFavoriteProperty = async (params, res, url) => {
   }
 };
 
+const executeSetContract = async (params, res, url) => {
+  const {
+    idCustomer = null,
+    idCustomerTenant = null,
+    idPolicy = null,
+    digitalSignature = null,
+    anex2 = null,
+    startedAt = null,
+    scheduleSignatureDate = null,
+    collectionDays = null,
+    idSystemUser,
+    idLoginHistory,
+    offset = GLOBAL_CONSTANTS.OFFSET,
+    type,
+    isFaceToFace = null,
+  } = params;
+  const { idContract } = url;
+  const storeProcedure = "customerSch.USPsetContract";
+
+  try {
+    if (
+      isNil(idContract) === true ||
+      isNil(type) === true ||
+      isNil(idSystemUser) === true ||
+      isNil(idLoginHistory) === true ||
+      isNil(offset) === true
+    ) {
+      res.status(400).send({
+        response: {
+          message: "Error en los parametros de entrada",
+        },
+      });
+    } else {
+      const pool = await sql.connect();
+      const result = await pool
+        .request()
+        .input("p_nvcIdCustomer", sql.NVarChar, idCustomer)
+        .input("p_nvcIdCustomerTenant", sql.NVarChar, idCustomerTenant)
+        .input("p_nvcIdContract", sql.NVarChar, idContract)
+        .input("p_nvcIdPolicy", sql.NVarChar, idPolicy)
+        .input("p_vchDigitalSignature", sql.VarChar, digitalSignature)
+        .input("p_nvcAnex2", sql.NVarChar, anex2)
+        .input("p_datStartedAt", sql.Date, startedAt)
+        .input("p_intType", sql.Int, type)
+        .input(
+          "p_datScheduleSignatureDate",
+          sql.DateTime,
+          scheduleSignatureDate
+        )
+        .input("p_nvcCollectionDays", sql.NVarChar, collectionDays)
+        .input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser)
+        .input("p_nvcIdLoginHistory", sql.NVarChar, idLoginHistory)
+        .input("p_chrOffset", sql.Char, offset)
+        .input("p_bitIsFaceToFace", sql.Bit, isFaceToFace)
+        .execute(storeProcedure);
+      const resultRecordset = result.recordset;
+      const resultRecordsetObject = result.recordset[0];
+      if (resultRecordsetObject.stateCode !== 200) {
+        executeSlackLogCatchBackend({
+          storeProcedure,
+          error: resultRecordsetObject.errorMessage,
+        });
+        res.status(resultRecordsetObject.stateCode).send({
+          response: { message: resultRecordsetObject.message },
+        });
+      } else {
+        for (const element of resultRecordset) {
+          if (element.canSendEmail === true) {
+            const configEmailServer = JSON.parse(element.jsonEmailServerConfig);
+            await executeMailTo({
+              ...element,
+              ...configEmailServer,
+            });
+          }
+        }
+        res.status(200).send({
+          response: {
+            message: resultRecordsetObject.message,
+            idContract: resultRecordsetObject.idContract,
+          },
+        });
+      }
+    }
+  } catch (err) {
+    executeSlackLogCatchBackend({
+      storeProcedure,
+      error: err,
+    });
+    res.status(500).send({
+      response: { message: "Error en el sistema" },
+    });
+  }
+};
+
+const executeAddDocumentv2 = async (params) => {
+  const {
+    idCustomer,
+    idSystemUser,
+    idLoginHistory,
+    offset = GLOBAL_CONSTANTS.OFFSET,
+    documentName = null,
+    extension = "docx",
+    preview = null,
+    thumbnail = null,
+    idDocumentType,
+    bucket = "",
+  } = params;
+
+  try {
+    const pool = await sql.connect();
+    const result = await pool
+      .request()
+      .input("p_nvcIdCustomer", sql.NVarChar, idCustomer)
+      .input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser)
+      .input("p_nvcIdLoginHistory", sql.NVarChar, idLoginHistory)
+      .input("p_nvcDocumentName", sql.NVarChar, documentName)
+      .input("p_nvcExtension", sql.NVarChar, extension)
+      .input("p_nvcPreview", sql.NVarChar, preview)
+      .input("p_nvcThumbnail", sql.NVarChar, thumbnail)
+      .input("p_chrOffset", sql.Char, offset)
+      .input("p_intIdDocumentType", sql.Int, idDocumentType)
+      .execute("documentSch.USPaddDocument");
+    const resultRecordset = result.recordset;
+    return resultRecordset;
+  } catch (err) {
+    throw err;
+  }
+};
+
+const executeGenerateDocument = async (params, res, url) => {
+  const {
+    idDocument,
+    idPreviousDocument = null,
+    idDocumentType,
+    bucketSource,
+    previousBucketSource = null,
+    canGenerateDocument,
+    type,
+    idSystemUser,
+    idLoginHistory,
+    offset = GLOBAL_CONSTANTS.OFFSET,
+  } = params;
+  const { idContract } = url;
+  const storeProcedure = "customerSch.USPgetDigitalContractProperties";
+
+  try {
+    if (
+      isNil(idContract) === true ||
+      isNil(idDocument) === true ||
+      isNil(idDocumentType) === true ||
+      isNil(bucketSource) === true ||
+      isNil(type) === true ||
+      isNil(idSystemUser) === true ||
+      isNil(idLoginHistory) === true ||
+      isNil(offset) === true ||
+      isNil(canGenerateDocument) === true
+    ) {
+      res.status(400).send({
+        response: {
+          message: "Error en los parametros de entrada",
+        },
+      });
+    } else {
+      const pool = await sql.connect();
+      const result = await pool
+        .request()
+        .input("p_nvcIdCustomer", sql.NVarChar, null)
+        .input("p_nvcIdCustomerTenant", sql.NVarChar, null)
+        .input("p_nvcIdContract", sql.NVarChar, idContract)
+        .input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser)
+        .input("p_nvcIdLoginHistory", sql.NVarChar, idLoginHistory)
+        .input("p_chrOffset", sql.Char, offset)
+        .input("p_intType", sql.Int, type)
+        .execute(storeProcedure);
+      let resultRecordset = [];
+      if (type !== 4) {
+        resultRecordset = result.recordset;
+      } else {
+        resultRecordset = result.recordsets[1];
+      }
+
+      if (canGenerateDocument === true) {
+        const file = await s3
+          .getObject({
+            Bucket: bucketSource,
+            Key: idDocument,
+          })
+          .promise();
+        const buff = new Buffer.from(file.Body, "binary");
+        let objectParams = {};
+        if (type !== 4) {
+          objectParams =
+            isNil(resultRecordset[0]) === false ? resultRecordset[0] : {};
+        } else {
+          objectParams = {
+            payments: isNil(resultRecordset) === false ? resultRecordset : [],
+          };
+        }
+        const dataAddDocument = await executeAddDocumentv2({
+          idCustomer: null,
+          idSystemUser,
+          idLoginHistory,
+          offset,
+          documentName: null,
+          extension: "docx",
+          preview: null,
+          thumbnail: null,
+          idDocumentType,
+        });
+        const resultObjectAddDocument = dataAddDocument[0];
+        if (resultObjectAddDocument.stateCode !== 200) {
+          executeSlackLogCatchBackend({
+            storeProcedure,
+            error: resultObjectAddDocument.errorMessage,
+          });
+          res.status(resultObjectAddDocument.stateCode).send({
+            response: { message: resultObjectAddDocument.message },
+          });
+        } else {
+          const zip = new PizZip(buff);
+          let doc;
+          const imageModule = new ImageModule(imageOpts);
+          doc = await new Docxtemplater(zip, {
+            modules: [imageModule],
+            parser: replaceConditionsDocx,
+            nullGetter: () => {
+              return "";
+            },
+          });
+          await doc.setData(objectParams);
+          await doc.render();
+          const fileDocument = await doc
+            .getZip()
+            .generate({ type: "nodebuffer" });
+          const newBucketSorce =
+            isNil(resultObjectAddDocument) === false &&
+            isNil(resultObjectAddDocument.bucketSource) === false
+              ? resultObjectAddDocument.bucketSource.toLowerCase()
+              : bucket.toLowerCase();
+          const newIdDocument = resultObjectAddDocument.idDocument;
+          const params2 = {
+            Bucket: newBucketSorce,
+            Key: newIdDocument,
+            Body: fileDocument,
+          };
+          await s3.upload(params2).promise();
+          if (
+            isNil(idPreviousDocument) === false &&
+            isNil(previousBucketSource) === false
+          ) {
+            const params1 = {
+              Bucket: previousBucketSource,
+              Key: idPreviousDocument,
+            };
+            await s3.deleteObject(params1).promise();
+          }
+          res.status(200).send({
+            response: {
+              url: `/api/viewFilesDocx/${newIdDocument}/${newBucketSorce}`,
+              idContract,
+              message: "Tu documento está listo para poder ser revisado",
+            },
+          });
+        }
+      } else {
+        res.status(200).send({
+          response: {
+            url: `/api/viewFilesDocx/${idDocument}/${bucketSource}`,
+            idContract,
+            message: "Tu documento está listo para poder ser revisado",
+          },
+        });
+      }
+    }
+  } catch (err) {
+    executeSlackLogCatchBackend({
+      storeProcedure,
+      error: err,
+    });
+    res.status(500).send({
+      response: { message: "Error en el sistema" },
+    });
+  }
+};
+
 const ControllerCustomerSch = {
   getCustomerTimeLine: (req, res) => {
     const params = req.body;
@@ -2566,6 +2902,16 @@ const ControllerCustomerSch = {
     const params = req.body;
     const url = req.params; //idProperty
     executeSetFavoriteProperty(params, res, url);
+  },
+  setContract: (req, res) => {
+    const params = req.body;
+    const url = req.params; //idContract
+    executeSetContract(params, res, url);
+  },
+  generateDocument: (req, res) => {
+    const params = req.body;
+    const url = req.params; //idContract
+    executeGenerateDocument(params, res, url);
   },
 };
 
