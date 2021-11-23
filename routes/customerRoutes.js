@@ -27,6 +27,10 @@ router.put(
   ControllerCustomerSch.setCustomerWorkingInfo
 );
 router.put(
+  "/personalReferences/setPersonalReference/:idCustomer",
+  ControllerCustomerSch.setPersonalReference
+);
+router.put(
   "/customerDocument/addCustomerDocument/:idCustomer",
   ControllerCustomerSch.addCustomerDocument
 );
