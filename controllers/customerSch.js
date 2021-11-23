@@ -573,6 +573,89 @@ const executeSetCustomerWorkingInfo = async (params, res, url) => {
   }
 };
 
+const executeSetPersonalReference = async (params, res, url) => {
+  const {
+    idPersonalReference = null,
+    idCustomerTenant = null,
+    givenName = null,
+    lastName = null,
+    mothersMaidenName = null,
+    phoneNumber = null,
+    emailAddress = null,
+    street = null,
+    suite = null,
+    streetNumber = null,
+    idZipCode = null,
+    neighborhood = null,
+    isActive = null,
+    idContract = null,
+    idSystemUser,
+    idLoginHistory,
+    offset = process.env.OFFSET,
+  } = params;
+  const { idCustomer } = url;
+  const storeProcedure = "customerSch.USPsetPersonalReference";
+  try {
+    if (
+      isNil(idCustomer) === true ||
+      isNil(idSystemUser) === true ||
+      isNil(idLoginHistory) === true ||
+      isNil(offset) === true
+    ) {
+      res.status(400).send({
+        response: {
+          message: "Error en los parametros de entrada",
+        },
+      });
+    } else {
+      const pool = await sql.connect();
+      const result = await pool
+        .request()
+        .input("p_nvcIdCustomer", sql.NVarChar, idCustomer)
+        .input("p_nvcIdCustomerTenant", sql.NVarChar, idCustomerTenant)
+        .input("p_nvcIdPersonalReference", sql.NVarChar, idPersonalReference)
+        .input("p_nvcGivenName", sql.NVarChar, givenName)
+        .input("p_nvcLastName", sql.NVarChar, lastName)
+        .input("p_nvcMothersMaidenName", sql.NVarChar, mothersMaidenName)
+        .input("p_nvcPhoneNumber", sql.NVarChar, phoneNumber)
+        .input("p_nvcEmailAddress", sql.NVarChar, emailAddress)
+        .input("p_nvcStreet", sql.NVarChar, street)
+        .input("p_nvcSuite", sql.NVarChar, suite)
+        .input("p_nvcStreetNumber", sql.NVarChar, streetNumber)
+        .input("p_intIdZipCode", sql.Int, idZipCode)
+        .input("p_nvcNeighborhood", sql.NVarChar, neighborhood)
+        .input("p_bitIsActive", sql.Bit, isActive)
+        .input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser)
+        .input("p_nvcIdLoginHistory", sql.NVarChar, idLoginHistory)
+        .input("p_chrOffset", sql.Char, offset)
+        .input("p_nvcIdContract", sql.NVarChar, idContract)
+        .execute(storeProcedure);
+      const resultRecordsetObject = result.recordset[0];
+      if (resultRecordsetObject.stateCode !== 200) {
+        executeSlackLogCatchBackend({
+          storeProcedure,
+          error: resultRecordsetObject.errorMessage,
+        });
+        res.status(resultRecordsetObject.stateCode).send({
+          response: { message: resultRecordsetObject.message },
+        });
+      } else {
+        res.status(200).send({
+          response: { message: resultRecordsetObject.message },
+        });
+      }
+    }
+  } catch (err) {
+    executeSlackLogCatchBackend({
+      storeProcedure,
+      error: err,
+    });
+    res.status(500).send({
+      response: { message: "Error en el sistema" },
+    });
+  }
+};
+
 const executeAddCustomerDocument = async (params, res, url) => {
   const {
     idDocument = null,
@@ -2787,6 +2870,11 @@ const ControllerCustomerSch = {
     const params = req.body;
     const url = req.params; //idCustomer
     executeSetCustomerWorkingInfo(params, res, url);
+  },
+  setPersonalReference: (req, res) => {
+    const params = req.body;
+    const url = req.params; //idCustomer
+    executeSetPersonalReference(params, res, url);
   },
   addCustomerDocument: (req, res) => {
     const params = req.body;
