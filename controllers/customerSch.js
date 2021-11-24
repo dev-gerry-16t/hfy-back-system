@@ -658,19 +658,21 @@ const executeSetPersonalReference = async (params, res, url) => {
 
 const executeAddCustomerDocument = async (params, res, url) => {
   const {
-    idDocument = null,
-    type = null,
+    idDocument,
+    type,
     idSystemUser,
-    idLoginHistory,
+    idLoginHistory = null,
     offset = GLOBAL_CONSTANTS.OFFSET,
+    idVerificationProcess = null,
   } = params;
   const { idCustomer } = url;
   const storeProcedure = "customerSch.USPaddCustomerDocument";
   try {
     if (
       isNil(idCustomer) === true ||
+      isNil(type) === true ||
+      isNil(idDocument) === true ||
       isNil(idSystemUser) === true ||
-      isNil(idLoginHistory) === true ||
       isNil(offset) === true
     ) {
       res.status(400).send({
@@ -688,6 +690,11 @@ const executeAddCustomerDocument = async (params, res, url) => {
         .input("p_uidIdSystemUser", sql.NVarChar, idSystemUser)
         .input("p_uidIdLoginHistory", sql.NVarChar, idLoginHistory)
         .input("p_chrOffset", sql.Char, offset)
+        .input(
+          "p_uidIdVerificationProcess",
+          sql.NVarChar,
+          idVerificationProcess
+        )
         .execute(storeProcedure);
       const resultRecordsetObject = result.recordset[0];
       if (resultRecordsetObject.stateCode !== 200) {
@@ -1122,7 +1129,7 @@ const executeGetCustomerDocument = async (params, res) => {
     idLoginHistory,
     offset = GLOBAL_CONSTANTS.OFFSET,
   } = params;
-  const storeProcedure = "hmfUser.USPgetCustomerDocument";
+  const storeProcedure = "customerSch.USPgetCustomerDocument";
   try {
     if (
       isNil(idCustomer) === true ||
@@ -2842,6 +2849,76 @@ const executeGenerateDocument = async (params, res, url) => {
   }
 };
 
+const executeDeactivateCustomerDocument = async (params, res, url) => {
+  const {
+    idCustomer,
+    bucketSource,
+    idSystemUser,
+    idLoginHistory,
+    offset = GLOBAL_CONSTANTS.OFFSET,
+  } = params;
+  const { idDocument } = url;
+  const storeProcedure = "customerSch.USPdeactivateCustomerDocument";
+
+  try {
+    if (
+      isNil(idCustomer) === true ||
+      isNil(bucketSource) === true ||
+      isNil(idDocument) === true ||
+      isNil(idSystemUser) === true ||
+      isNil(idLoginHistory) === true ||
+      isNil(offset) === true
+    ) {
+      res.status(400).send({
+        response: {
+          message: "Error en los parametros de entrada",
+        },
+      });
+    } else {
+      const pool = await sql.connect();
+      const result = await pool
+        .request()
+        .input("p_uidIdCustomer", sql.NVarChar, idCustomer)
+        .input("p_uidIdDocument", sql.NVarChar, idDocument)
+        .input("p_uidIdSystemUser", sql.NVarChar, idSystemUser)
+        .input("p_uidIdLoginHistory", sql.NVarChar, idLoginHistory)
+        .input("p_chrOffset", sql.Char, offset)
+        .execute(storeProcedure);
+      const resultRecordset = result.recordset;
+      const resultRecordsetObject = result.recordset[0];
+      if (resultRecordsetObject.stateCode !== 200) {
+        executeSlackLogCatchBackend({
+          storeProcedure,
+          error: resultRecordsetObject.errorMessage,
+        });
+        res.status(resultRecordsetObject.stateCode).send({
+          response: { message: resultRecordsetObject.message },
+        });
+      } else {
+        const params1 = {
+          Bucket: bucketSource,
+          Key: idDocument,
+        };
+        await s3.deleteObject(params1).promise();
+        res.status(200).send({
+          response: {
+            message: resultRecordsetObject.message,
+            idContract: resultRecordsetObject.idContract,
+          },
+        });
+      }
+    }
+  } catch (err) {
+    executeSlackLogCatchBackend({
+      storeProcedure,
+      error: err,
+    });
+    res.status(500).send({
+      response: { message: "Error en el sistema" },
+    });
+  }
+};
+
 const ControllerCustomerSch = {
   getCustomerTimeLine: (req, res) => {
     const params = req.body;
@@ -3000,6 +3077,11 @@ const ControllerCustomerSch = {
     const params = req.body;
     const url = req.params; //idContract
     executeGenerateDocument(params, res, url);
+  },
+  deactivateCustomerDocument: (req, res) => {
+    const params = req.body;
+    const url = req.params; //idDocument
+    executeDeactivateCustomerDocument(params, res, url);
   },
 };
 

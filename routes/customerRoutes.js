@@ -135,5 +135,9 @@ router.put(
   "/property/generateDocument/:idContract",
   ControllerCustomerSch.generateDocument
 );
+router.put(
+  "/customerDocument/deactivateCustomerDocument/:idDocument",
+  ControllerCustomerSch.deactivateCustomerDocument
+);
 
 module.exports = router;
