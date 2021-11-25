@@ -1133,7 +1133,6 @@ const executeGetCustomerDocument = async (params, res) => {
   try {
     if (
       isNil(idCustomer) === true ||
-      isNil(identifier) === true ||
       isNil(idSystemUser) === true ||
       isNil(idLoginHistory) === true ||
       isNil(offset) === true
