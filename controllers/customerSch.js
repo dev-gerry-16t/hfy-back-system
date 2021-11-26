@@ -2918,6 +2918,41 @@ const executeDeactivateCustomerDocument = async (params, res, url) => {
   }
 };
 
+const executeGetLocationFilter = async (params, res) => {
+  const { value, type, idSystemUser = null, idLoginHistory = null } = params;
+  const storeProcedure = "catCustomerSch.USPgetLocationFilter";
+  try {
+    if (isNil(value) === true || isNil(type) === true) {
+      res.status(400).send({
+        response: {
+          message: "Error en los parametros de entrada",
+        },
+      });
+    } else {
+      const pool = await sql.connect();
+      const result = await pool
+        .request()
+        .input("p_nvcValue", sql.NVarChar, value)
+        .input("p_intType", sql.Int, type)
+        .input("p_uidIdSystemUser", sql.NVarChar, idSystemUser)
+        .input("p_uidIdLoginHistory", sql.NVarChar, idLoginHistory)
+        .execute(storeProcedure);
+      const resultRecordset = result.recordsets;
+      res.status(200).send({
+        response: resultRecordset,
+      });
+    }
+  } catch (err) {
+    executeSlackLogCatchBackend({
+      storeProcedure,
+      error: err,
+    });
+    res.status(500).send({
+      response: { message: "Error en el sistema" },
+    });
+  }
+};
+
 const ControllerCustomerSch = {
   getCustomerTimeLine: (req, res) => {
     const params = req.body;
@@ -3081,6 +3116,10 @@ const ControllerCustomerSch = {
     const params = req.body;
     const url = req.params; //idDocument
     executeDeactivateCustomerDocument(params, res, url);
+  },
+  getLocationFilter: (req, res) => {
+    const params = req.body;
+    executeGetLocationFilter(params, res);
   },
 };
 
