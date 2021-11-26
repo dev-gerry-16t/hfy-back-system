@@ -139,5 +139,6 @@ router.put(
   "/customerDocument/deactivateCustomerDocument/:idDocument",
   ControllerCustomerSch.deactivateCustomerDocument
 );
+router.post("/zipCode/getLocationFilter", ControllerCustomerSch.getLocationFilter);
 
 module.exports = router;
