@@ -1865,15 +1865,14 @@ const executeSetPropertyDocument = async (params, res, url) => {
           response: { message: resultRecordsetObject.message },
         });
       } else {
-        for (const element of resultRecordset) {
-          if (element.canSendEmail === true) {
-            const configEmailServer = JSON.parse(element.jsonEmailServerConfig);
-            await executeMailTo({
-              ...element,
-              ...configEmailServer,
-            });
-          }
+        if (resultRecordsetObject.canDeleteDocument === true) {
+          const params1 = {
+            Bucket: resultRecordsetObject.bucketSource,
+            Key: resultRecordsetObject.idDocument,
+          };
+          await s3.deleteObject(params1).promise();
         }
+
         res.status(200).send({
           response: { message: resultRecordsetObject.message },
         });
