@@ -886,12 +886,13 @@ const executeGetAllInvestigationStatus = async (params, res) => {
 };
 
 const executeGetAllPropertyAmenities = async (params, res) => {
-  const { idSystemUser, idLoginHistory, type } = params;
+  const { idSystemUser, idLoginHistory, type, idApartment = null } = params;
   try {
     const request = new sql.Request();
     request.input("p_uidIdSystemUser", sql.NVarChar, idSystemUser);
     request.input("p_uidIdLoginHistory", sql.NVarChar, idLoginHistory);
     request.input("p_intType", sql.Int, type);
+    request.input("p_uidIdApartment", sql.NVarChar, idApartment);
     request.execute(
       "catCustomerSch.USPgetAllPropertyAmenities",
       (err, result) => {
@@ -909,12 +910,13 @@ const executeGetAllPropertyAmenities = async (params, res) => {
 };
 
 const executeGetAllPropertyGeneralCharacteristics = async (params, res) => {
-  const { idSystemUser, idLoginHistory, type } = params;
+  const { idSystemUser, idLoginHistory, type, idApartment = null } = params;
   try {
     const request = new sql.Request();
     request.input("p_uidIdSystemUser", sql.NVarChar, idSystemUser);
     request.input("p_uidIdLoginHistory", sql.NVarChar, idLoginHistory);
     request.input("p_intType", sql.Int, type);
+    request.input("p_uidIdApartment", sql.NVarChar, idApartment);
     request.execute(
       "catCustomerSch.USPgetAllPropertyGeneralCharacteristics",
       (err, result) => {
