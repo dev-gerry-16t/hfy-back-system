@@ -1661,35 +1661,35 @@ const executeGetPropertyCoincidencesV2 = async (params, res) => {
 
 const executeAddPropertyV2 = async (params, res, url) => {
   const {
-    idPropertyType,
+    idPropertyType = null,
     idCommercialActivity = null,
-    currentRent,
+    currentRent = null,
     idCurrency = null,
-    priceBasedBy,
-    totalBedrooms,
-    totalBathrooms,
-    totalHalfBathrooms,
-    totalParkingSpots,
+    priceBasedBy = null,
+    totalBedrooms = null,
+    totalBathrooms = null,
+    totalHalfBathrooms = null,
+    totalParkingSpots = null,
     totalSquareMetersBuilt = null,
     totalSquareMetersLand = null,
-    totalFloors,
-    floorDescription,
-    maintenanceAmount,
-    isFurnished,
+    totalFloors = null,
+    floorDescription = null,
+    maintenanceAmount = null,
+    isFurnished = null,
     idCustomerOwner = null,
     ownerEmailAddress = null,
     ownerPhoneNumber = null,
     ownerGivenName = null,
     ownerLastName = null,
-    street,
-    streetNumber,
+    street = null,
+    streetNumber = null,
     suite = null,
-    idZipCode,
+    idZipCode = null,
     neighborhood = null,
-    isExactLocation,
-    jsonCoordinates,
-    propertyAmenities,
-    propertyGeneralCharacteristics,
+    isExactLocation = null,
+    jsonCoordinates = null,
+    propertyAmenities = null,
+    propertyGeneralCharacteristics = null,
     idSystemUser,
     idLoginHistory,
     offset = GLOBAL_CONSTANTS.OFFSET,
@@ -1698,24 +1698,6 @@ const executeAddPropertyV2 = async (params, res, url) => {
   const storeProcedure = "customerSch.USPaddPropertyV2";
   try {
     if (
-      isNil(idPropertyType) === true ||
-      isNil(currentRent) === true ||
-      isNil(priceBasedBy) === true ||
-      isNil(totalBedrooms) === true ||
-      isNil(totalBathrooms) === true ||
-      isNil(totalHalfBathrooms) === true ||
-      isNil(totalParkingSpots) === true ||
-      isNil(totalFloors) === true ||
-      isNil(floorDescription) === true ||
-      isNil(maintenanceAmount) === true ||
-      isNil(isFurnished) === true ||
-      isNil(street) === true ||
-      isNil(streetNumber) === true ||
-      isNil(idZipCode) === true ||
-      isNil(isExactLocation) === true ||
-      isNil(jsonCoordinates) === true ||
-      isNil(propertyAmenities) === true ||
-      isNil(propertyGeneralCharacteristics) === true ||
       isNil(idCustomer) === true ||
       isNil(idSystemUser) === true ||
       isNil(idLoginHistory) === true ||
