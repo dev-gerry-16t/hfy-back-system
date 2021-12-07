@@ -99,7 +99,11 @@ const executeSetUserProfile = async (params, res, url, file) => {
             Body: file.buffer,
           };
           await s3.upload(params).promise();
-          if (isNil(idDocument) === false && isNil(bucketSource) === false) {
+          if (
+            isNil(idDocument) === false &&
+            isNil(bucketSource) === false &&
+            resultRecordset[0].canBeDeleted === true
+          ) {
             const params1 = {
               Bucket: bucketSource,
               Key: idDocument,
