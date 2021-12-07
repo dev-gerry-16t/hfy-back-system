@@ -184,7 +184,7 @@ const executeUpdateCustomerAccount = async (params, res, url) => {
     isDataConfirmed = null,
     boundSolidarityGivenName = null,
     boundSolidarityEmailAddress = null,
-    deactivateBoundSolidarity = null,
+    hasBoundSolidarity = null,
     sendReminderBoundSolidarity = null,
     idSystemUser,
     idLoginHistory,
@@ -295,9 +295,9 @@ const executeUpdateCustomerAccount = async (params, res, url) => {
           boundSolidarityEmailAddress
         )
         .input(
-          "p_bitDeactivateBoundSolidarity",
+          "p_bitHasBoundSolidarity",
           sql.Bit,
-          deactivateBoundSolidarity
+          hasBoundSolidarity
         )
         .input(
           "p_bitSendReminderBoundSolidarity",
@@ -422,6 +422,7 @@ const executeSetCustomerBankingAccount = async (params, res, url) => {
     accountHolder = null,
     accountNumber = null,
     clabeNumber = null,
+    password = null,
     idSystemUser,
     idLoginHistory,
     offset = GLOBAL_CONSTANTS.OFFSET,
@@ -450,6 +451,7 @@ const executeSetCustomerBankingAccount = async (params, res, url) => {
         .input("p_nvcAccountHolder", sql.NVarChar, accountHolder)
         .input("p_nvcAccountNumber", sql.NVarChar, accountNumber)
         .input("p_nvcClabeNumber", sql.NVarChar, clabeNumber)
+        .input("p_nvcPassword", sql.NVarChar, password)
         .input("p_uidIdSystemUser", sql.NVarChar, idSystemUser)
         .input("p_uidIdLoginHistory", sql.NVarChar, idLoginHistory)
         .input("p_chrOffset", sql.Char, offset)
@@ -493,6 +495,7 @@ const executeSetCustomerWorkingInfo = async (params, res, url) => {
     bossPhoneNumber = null,
     otherIncomes = null,
     otherIncomesDescription = null,
+    hasOtherIncomes=null,
     hasCar = null,
     carriagePlate = null,
     nIV = null,
@@ -533,6 +536,7 @@ const executeSetCustomerWorkingInfo = async (params, res, url) => {
         .input("p_nvcBossEmailAddress", sql.NVarChar, bossEmailAddress)
         .input("p_nvcBossPhoneNumber", sql.NVarChar, bossPhoneNumber)
         .input("p_decOtherIncomes", sql.Decimal(19, 2), otherIncomes)
+        .input("p_bitHasOtherIncomes", sql.Bit, hasOtherIncomes)
         .input(
           "p_nvcOtherIncomesDescription",
           sql.NVarChar,
