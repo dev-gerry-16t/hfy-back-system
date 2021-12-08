@@ -294,11 +294,7 @@ const executeUpdateCustomerAccount = async (params, res, url) => {
           sql.NVarChar,
           boundSolidarityEmailAddress
         )
-        .input(
-          "p_bitHasBoundSolidarity",
-          sql.Bit,
-          hasBoundSolidarity
-        )
+        .input("p_bitHasBoundSolidarity", sql.Bit, hasBoundSolidarity)
         .input(
           "p_bitSendReminderBoundSolidarity",
           sql.Bit,
@@ -495,7 +491,7 @@ const executeSetCustomerWorkingInfo = async (params, res, url) => {
     bossPhoneNumber = null,
     otherIncomes = null,
     otherIncomesDescription = null,
-    hasOtherIncomes=null,
+    hasOtherIncomes = null,
     hasCar = null,
     carriagePlate = null,
     nIV = null,
@@ -2938,6 +2934,79 @@ const executeGetLocationFilter = async (params, res) => {
   }
 };
 
+const executeProcessInvitation = async (params, res, url, ip) => {
+  const {
+    isAccepted = null,
+    isReported = null,
+    idSystemUser = null,
+    idLoginHistory = null,
+    offset = GLOBAL_CONSTANTS.OFFSET,
+  } = params;
+  const { idInvitation } = url;
+  const storeProcedure = "customerSch.USPprocessInvitation";
+
+  try {
+    if (
+      isNil(idInvitation) === true ||
+      isNil(ip) === true ||
+      isNil(offset) === true
+    ) {
+      res.status(400).send({
+        response: {
+          message: "Error en los parametros de entrada",
+        },
+      });
+    } else {
+      const pool = await sql.connect();
+      const result = await pool
+        .request()
+        .input("p_uidIdInvitation", sql.NVarChar, idInvitation)
+        .input("p_bitIsAccepted", sql.Bit, isAccepted)
+        .input("p_bitIsReported", sql.Bit, isReported)
+        .input("p_nvcRequestedFromIP", sql.NVarChar, ip)
+        .input("p_uidIdSystemUser", sql.NVarChar, idSystemUser)
+        .input("p_uidIdLoginHistory", sql.NVarChar, idLoginHistory)
+        .input("p_chrOffset", sql.Char, offset)
+        .execute(storeProcedure);
+      const resultRecordset = result.recordset;
+      const resultRecordsetObject = result.recordset[0];
+      if (resultRecordsetObject.stateCode !== 200) {
+        executeSlackLogCatchBackend({
+          storeProcedure,
+          error: resultRecordsetObject.errorMessage,
+        });
+        res.status(resultRecordsetObject.stateCode).send({
+          response: { message: resultRecordsetObject.message },
+        });
+      } else {
+        for (const element of resultRecordset) {
+          if (element.canSendEmail === true) {
+            const configEmailServer = JSON.parse(element.jsonEmailServerConfig);
+            await executeMailTo({
+              ...element,
+              ...configEmailServer,
+            });
+          }
+        }
+        res.status(200).send({
+          response: {
+            message: resultRecordsetObject.message,
+            idInvitation: resultRecordsetObject.idInvitation,
+          },
+        });
+      }
+    }
+  } catch (err) {
+    executeSlackLogCatchBackend({
+      storeProcedure,
+      error: err,
+    });
+    res.status(500).send({
+      response: { message: "Error en el sistema" },
+    });
+  }
+};
+
 const ControllerCustomerSch = {
   getCustomerTimeLine: (req, res) => {
     const params = req.body;
@@ -3105,6 +3174,16 @@ const ControllerCustomerSch = {
   getLocationFilter: (req, res) => {
     const params = req.body;
     executeGetLocationFilter(params, res);
+  },
+  processInvitation: (req, res) => {
+    const params = req.body;
+    const url = req.params; //idInvitation
+    const ip = req.header("x-forwarded-for") || req.connection.remoteAddress;
+    let ipPublic = "";
+    if (ip) {
+      ipPublic = ip.split(",")[0];
+    }
+    executeProcessInvitation(params, res, url, ipPublic);
   },
 };
 

@@ -94,6 +94,10 @@ router.post("/leads/catalog/getAllCountries", ControllerLeads.getAllCountries);
 
 //customersch//
 router.post("/property/getPropertyById", ControllerCustomerSch.getPropertyById);
+router.put(
+  "/invitation/processInvitation/:idInvitation",
+  ControllerCustomerSch.processInvitation
+);
 //customersch//
 
 module.exports = router;
