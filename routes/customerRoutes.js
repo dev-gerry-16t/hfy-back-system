@@ -4,6 +4,7 @@ const express = require("express");
 const router = express.Router();
 
 const ControllerCustomerSch = require("../controllers/customerSch");
+const ControllerPaymentSch = require("../controllers/payment");
 
 router.post(
   "/timeLine/getCustomerTimeLine",
@@ -139,6 +140,18 @@ router.put(
   "/customerDocument/deactivateCustomerDocument/:idDocument",
   ControllerCustomerSch.deactivateCustomerDocument
 );
-router.post("/zipCode/getLocationFilter", ControllerCustomerSch.getLocationFilter);
+router.post(
+  "/zipCode/getLocationFilter",
+  ControllerCustomerSch.getLocationFilter
+);
+router.post(
+  "/orderPayment/getOrderPaymentById",
+  ControllerPaymentSch.getOrderPaymentById
+);
+router.put(
+  "/invitation/processInvitation/:idInvitation",
+  ControllerCustomerSch.processInvitation
+);
+
 
 module.exports = router;
