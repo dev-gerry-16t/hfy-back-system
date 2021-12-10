@@ -76,6 +76,14 @@ router.post(
   ControllerCustomerSch.getInvestigationProcessCoincidences
 );
 router.post(
+  "/customer/getUserCoincidences",
+  ControllerCustomerSch.getUserCoincidences
+);
+router.post(
+  "/prospect/getProspectCoincidences",
+  ControllerCustomerSch.getProspectCoincidences
+);
+router.post(
   "/investigation/getInvestigationProcessById",
   ControllerCustomerSch.getInvestigationProcessById
 );
@@ -152,6 +160,5 @@ router.put(
   "/invitation/processInvitation/:idInvitation",
   ControllerCustomerSch.processInvitation
 );
-
 
 module.exports = router;
