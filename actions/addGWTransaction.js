@@ -3,7 +3,6 @@ const executeMailTo = require("./sendInformationUser");
 
 const executeAddGWTransaction = async (params) => {
   const {
-    idPaymentInContract = null,
     idOrderPayment = null,
     serviceIdPI = null,
     serviceIdPC = null,
@@ -25,7 +24,6 @@ const executeAddGWTransaction = async (params) => {
 
     const result = await pool
       .request()
-      .input("p_nvcIdPaymentInContract", sql.NVarChar, idPaymentInContract)
       .input("p_nvcIdOrderPayment", sql.NVarChar, idOrderPayment)
       .input("p_nvcServiceIdPI", sql.NVarChar, serviceIdPI)
       .input("p_nvcServiceIdPC", sql.NVarChar, serviceIdPC)

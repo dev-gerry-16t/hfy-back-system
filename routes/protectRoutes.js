@@ -485,12 +485,20 @@ router.post(
   ControllerPaymentProvider.getAmountForGWTransaction
 );
 router.post(
+  "/providerPayment/getAmountForGWTransactionCard",
+  ControllerPaymentProvider.getAmountForGWTransactionCard
+);
+router.post(
   "/providerPayment/getCatalogAmountForGWTransaction",
   ControllerPaymentProvider.getCatalogAmountForGWTransaction
 );
 router.post(
   "/providerPayment/getConfirmPaymentIntent",
   ControllerPaymentProvider.getConfirmPaymentIntent
+);
+router.post(
+  "/providerPayment/getConfirmRetrievePaymentIntent",
+  ControllerPaymentProvider.getConfirmRetrievePaymentIntent
 );
 //Providers//
 
