@@ -1338,6 +1338,96 @@ const executeGetVerificationIdentityCoincidences = async (params, res) => {
   }
 };
 
+const executeGetUserCoincidences = async (params, res) => {
+  const {
+    idSystemUser,
+    idLoginHistory,
+    topIndex,
+    offset = GLOBAL_CONSTANTS.OFFSET,
+  } = params;
+  const storeProcedure = "customerSch.USPgetUserCoincidences";
+  try {
+    if (
+      isNil(idSystemUser) === true ||
+      isNil(idLoginHistory) === true ||
+      isNil(topIndex) === true ||
+      isNil(offset) === true
+    ) {
+      res.status(400).send({
+        response: {
+          message: "Error en los parametros de entrada",
+        },
+      });
+    } else {
+      const pool = await sql.connect();
+      const result = await pool
+        .request()
+        .input("p_uidIdSystemUser", sql.NVarChar, idSystemUser)
+        .input("p_uidIdLoginHistory", sql.NVarChar, idLoginHistory)
+        .input("p_intTopIndex", sql.Int, topIndex)
+        .input("p_chrOffset", sql.Char, offset)
+        .execute(storeProcedure);
+      const resultRecordset = result.recordset;
+      res.status(200).send({
+        response: resultRecordset,
+      });
+    }
+  } catch (err) {
+    executeSlackLogCatchBackend({
+      storeProcedure,
+      error: err,
+    });
+    res.status(500).send({
+      response: { message: "Error en el sistema" },
+    });
+  }
+};
+
+const executeGetProspectCoincidences = async (params, res) => {
+  const {
+    idSystemUser,
+    idLoginHistory,
+    topIndex,
+    offset = GLOBAL_CONSTANTS.OFFSET,
+  } = params;
+  const storeProcedure = "customerSch.USPgetProspectCoincidences";
+  try {
+    if (
+      isNil(idSystemUser) === true ||
+      isNil(idLoginHistory) === true ||
+      isNil(topIndex) === true ||
+      isNil(offset) === true
+    ) {
+      res.status(400).send({
+        response: {
+          message: "Error en los parametros de entrada",
+        },
+      });
+    } else {
+      const pool = await sql.connect();
+      const result = await pool
+        .request()
+        .input("p_uidIdSystemUser", sql.NVarChar, idSystemUser)
+        .input("p_uidIdLoginHistory", sql.NVarChar, idLoginHistory)
+        .input("p_intTopIndex", sql.Int, topIndex)
+        .input("p_chrOffset", sql.Char, offset)
+        .execute(storeProcedure);
+      const resultRecordset = result.recordset;
+      res.status(200).send({
+        response: resultRecordset,
+      });
+    }
+  } catch (err) {
+    executeSlackLogCatchBackend({
+      storeProcedure,
+      error: err,
+    });
+    res.status(500).send({
+      response: { message: "Error en el sistema" },
+    });
+  }
+};
+
 const executeGetVerificationIdentityById = async (params, res) => {
   const {
     idVerificationIdentity,
@@ -3089,6 +3179,14 @@ const ControllerCustomerSch = {
   getInvestigationProcessCoincidences: (req, res) => {
     const params = req.body;
     executeGetInvestigationProcessCoincidences(params, res);
+  },
+  getUserCoincidences: (req, res) => {
+    const params = req.body;
+    executeGetUserCoincidences(params, res);
+  },
+  getProspectCoincidences: (req, res) => {
+    const params = req.body;
+    executeGetProspectCoincidences(params, res);
   },
   getInvestigationProcessById: (req, res) => {
     const params = req.body;
