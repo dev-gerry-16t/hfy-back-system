@@ -762,6 +762,7 @@ const executeSetCustomerEndorsement = async (params, res, url) => {
     notaryName = null,
     idSystemUser,
     idLoginHistory,
+    isCollPropSame,
     offset = GLOBAL_CONSTANTS.OFFSET,
   } = params;
   const { idCustomer } = url;
@@ -786,6 +787,7 @@ const executeSetCustomerEndorsement = async (params, res, url) => {
         .input("p_bitHasEndorsement", sql.Bit, hasEndorsement)
         .input("p_nvcEndorsementGivenName", sql.NVarChar, endorsementGivenName)
         .input("p_nvcEndorsementLastName", sql.NVarChar, endorsementLastName)
+        .input("p_bitIsCollPropSame", sql.Bit, isCollPropSame)
         .input(
           "p_nvcEndorsementMothersMaidenName",
           sql.NVarChar,
