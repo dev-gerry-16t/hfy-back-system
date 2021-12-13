@@ -304,6 +304,7 @@ const executeUpdateCustomerAccount = async (params, res, url) => {
         .input("p_uidIdLoginHistory", sql.NVarChar, idLoginHistory)
         .input("p_chrOffset", sql.Char, offset)
         .execute(storeProcedure);
+      const resultRecordset = result.recordset;
       const resultRecordsetObject = result.recordset[0];
       if (resultRecordsetObject.stateCode !== 200) {
         executeSlackLogCatchBackend({
@@ -314,6 +315,15 @@ const executeUpdateCustomerAccount = async (params, res, url) => {
           response: { message: resultRecordsetObject.message },
         });
       } else {
+        resultRecordset.forEach((element) => {
+          if (element.canSendEmail === true) {
+            const configEmailServer = JSON.parse(element.jsonEmailServerConfig);
+            executeMailTo({
+              ...element,
+              ...configEmailServer,
+            });
+          }
+        });
         res.status(200).send({
           response: { message: resultRecordsetObject.message },
         });
@@ -752,7 +762,7 @@ const executeSetCustomerEndorsement = async (params, res, url) => {
     collateralPropertyStreet = null,
     collateralPropertyStreetNumber = null,
     collateralPropertySuite = null,
-    collateralPropertyIdZipCoode = null,
+    collateralPropertyIdZipCode = null,
     collateralPropertyNeighborhood = null,
     publicPropertyRegistry = null,
     documentNumber = null,
@@ -870,9 +880,9 @@ const executeSetCustomerEndorsement = async (params, res, url) => {
           collateralPropertySuite
         )
         .input(
-          "p_intCollateralPropertyIdZipCoode",
+          "p_intCollateralPropertyIdZipCode",
           sql.Int,
-          collateralPropertyIdZipCoode
+          collateralPropertyIdZipCode
         )
         .input(
           "p_nvcCollateralPropertyNeighborhood",
