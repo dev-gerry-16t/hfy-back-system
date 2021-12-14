@@ -1730,6 +1730,7 @@ const executeGetPropertyCoincidencesV2 = async (params, res) => {
     jsonConditions = null,
     pagination = null,
     idLoginHistory,
+    type = null,
     offset,
   } = params;
   const storeProcedure = "customerSch.USPgetPropertyCoincidencesV2";
@@ -1752,6 +1753,7 @@ const executeGetPropertyCoincidencesV2 = async (params, res) => {
         .input("p_nvcJsonConditions", sql.NVarChar, jsonConditions)
         .input("p_uidIdLoginHistory", sql.NVarChar, idLoginHistory)
         .input("p_nvcPagination", sql.NVarChar, pagination)
+        .input("p_intType", sql.Int, type)
         .input("p_chrOffset", sql.Char, offset)
         .execute(storeProcedure);
       const resultRecordset = result.recordsets;
