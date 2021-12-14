@@ -9,6 +9,7 @@ const isEmpty = require("lodash/isEmpty");
 const executeSlackLogCatchBackend = require("../actions/slackLogCatchBackend");
 const executeMailTo = require("../actions/sendInformationUser");
 const replaceConditionsDocx = require("../actions/conditions");
+const executeSendSmsToUser = require("../actions/sendSmsToUser");
 const s3 = new AWS.S3({
   accessKeyId: GLOBAL_CONSTANTS.ACCESS_KEY_ID,
   secretAccessKey: GLOBAL_CONSTANTS.SECRET_ACCESS_KEY,
@@ -1060,6 +1061,7 @@ const executeSetCustomerPhoneNumber = async (params, res, url) => {
         .input("p_chrOffset", sql.Char, offset)
         .execute(storeProcedure);
       const resultRecordsetObject = result.recordset[0];
+      const resultRecordset = result.recordset;
       if (resultRecordsetObject.stateCode !== 200) {
         executeSlackLogCatchBackend({
           storeProcedure,
@@ -1069,6 +1071,13 @@ const executeSetCustomerPhoneNumber = async (params, res, url) => {
           response: { message: resultRecordsetObject.message },
         });
       } else {
+        for (const element of resultRecordset) {
+          if (element.canSendSMS === true) {
+            await executeSendSmsToUser({
+              ...element,
+            });
+          }
+        }
         res.status(200).send({
           response: { message: resultRecordsetObject.message },
         });
