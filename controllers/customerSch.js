@@ -1698,6 +1698,7 @@ const executeUpdateInvestigationProcess = async (params, res, url) => {
         .input("p_uidIdLoginHistory", sql.NVarChar, idLoginHistory)
         .input("p_chrOffset", sql.Char, offset)
         .execute(storeProcedure);
+      const resultRecordset = result.recordset;
       const resultRecordsetObject = result.recordset[0];
       if (resultRecordsetObject.stateCode !== 200) {
         executeSlackLogCatchBackend({
@@ -1708,6 +1709,15 @@ const executeUpdateInvestigationProcess = async (params, res, url) => {
           response: { message: resultRecordsetObject.message },
         });
       } else {
+        for (const element of resultRecordset) {
+          if (element.canSendEmail === true) {
+            const configEmailServer = JSON.parse(element.jsonEmailServerConfig);
+            await executeMailTo({
+              ...element,
+              ...configEmailServer,
+            });
+          }
+        }
         res.status(200).send({
           response: { message: resultRecordsetObject.message },
         });
