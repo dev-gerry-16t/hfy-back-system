@@ -1097,7 +1097,7 @@ const executeSetCustomerPhoneNumber = async (params, res, url) => {
 const executeValidateCustomerPropertiesInTab = async (params, res) => {
   const {
     idCustomer,
-    identifier,
+    identifier = null,
     idSystemUser,
     idLoginHistory,
     offset = GLOBAL_CONSTANTS.OFFSET,
@@ -1106,7 +1106,6 @@ const executeValidateCustomerPropertiesInTab = async (params, res) => {
   try {
     if (
       isNil(idCustomer) === true ||
-      isNil(identifier) === true ||
       isNil(idSystemUser) === true ||
       isNil(idLoginHistory) === true ||
       isNil(offset) === true
