@@ -2073,6 +2073,7 @@ const executeUpdateProperty = async (params, res, url) => {
     propertyGeneralCharacteristics = null,
     isPublished = null,
     isActive = null,
+    apartmentDocuments = [],
     title = null,
     description = null,
     idSystemUser,
@@ -2162,6 +2163,16 @@ const executeUpdateProperty = async (params, res, url) => {
           response: { message: resultRecordsetObject.message },
         });
       } else {
+        if (isActive === false && isEmpty(apartmentDocuments) === false) {
+          for (const element of apartmentDocuments) {
+            await s3
+              .deleteObject({
+                Bucket: element.bucketSource,
+                Key: element.idDocument,
+              })
+              .promise();
+          }
+        }
         for (const element of resultRecordset) {
           if (element.canSendEmail === true) {
             const configEmailServer = JSON.parse(element.jsonEmailServerConfig);
