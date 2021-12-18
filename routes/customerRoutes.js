@@ -160,5 +160,9 @@ router.put(
   "/invitation/processInvitation/:idInvitation",
   ControllerCustomerSch.processInvitation
 );
+router.put(
+  "/contract/setContractApprovement/:idSystemUser",
+  ControllerCustomerSch.setContractApprovement
+);
 
 module.exports = router;
