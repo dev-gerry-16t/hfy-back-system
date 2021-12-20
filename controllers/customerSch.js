@@ -2806,6 +2806,36 @@ const executeAddDocumentv2 = async (params) => {
   }
 };
 
+const executeAddContractDocumentV2 = async (params) => {
+  const {
+    idContract,
+    idSystemUser,
+    idLoginHistory,
+    offset = GLOBAL_CONSTANTS.OFFSET,
+    type,
+    idDocument,
+  } = params;
+  try {
+    const pool = await sql.connect();
+    const result = await pool
+      .request()
+      .input("p_nvcIdContract", sql.NVarChar, idContract)
+      .input("p_nvcIdDocument", sql.NVarChar, idDocument)
+      .input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser)
+      .input("p_nvcIdLoginHistory", sql.NVarChar, idLoginHistory)
+      .input("p_chrOffset", sql.Char, offset)
+      .input("p_intType", sql.Int, type)
+      .execute("customerSch.USPaddContractDocument");
+    const resultRecordset = result.recordset;
+    if (resultRecordset[0].stateCode !== 200) {
+      throw new Error(resultRecordset[0].message);
+    }
+    return result;
+  } catch (err) {
+    throw err;
+  }
+};
+
 const executeGenerateDocument = async (params, res, url) => {
   const {
     idDocument,
@@ -2923,6 +2953,14 @@ const executeGenerateDocument = async (params, res, url) => {
             Body: fileDocument,
           };
           await s3.upload(params2).promise();
+          await executeAddContractDocumentV2({
+            idContract,
+            idSystemUser,
+            idLoginHistory,
+            offset,
+            type,
+            idDocument: newIdDocument,
+          });
           if (
             isNil(idPreviousDocument) === false &&
             isNil(previousBucketSource) === false
