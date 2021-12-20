@@ -2882,10 +2882,10 @@ const executeGenerateDocument = async (params, res, url) => {
         .input("p_intType", sql.Int, type)
         .execute(storeProcedure);
       let resultRecordset = [];
-      if (type !== 4) {
-        resultRecordset = result.recordset;
-      } else {
+      if (type === 4 || type === 5) {
         resultRecordset = result.recordsets[1];
+      } else {
+        resultRecordset = result.recordset;
       }
 
       if (canGenerateDocument === true) {
@@ -2897,13 +2897,13 @@ const executeGenerateDocument = async (params, res, url) => {
           .promise();
         const buff = new Buffer.from(file.Body, "binary");
         let objectParams = {};
-        if (type !== 4) {
-          objectParams =
-            isNil(resultRecordset[0]) === false ? resultRecordset[0] : {};
-        } else {
+        if (type === 4 || type === 5) {
           objectParams = {
             payments: isNil(resultRecordset) === false ? resultRecordset : [],
           };
+        } else {
+          objectParams =
+            isNil(resultRecordset[0]) === false ? resultRecordset[0] : {};
         }
         const dataAddDocument = await executeAddDocumentv2({
           idCustomer: null,
@@ -2975,6 +2975,8 @@ const executeGenerateDocument = async (params, res, url) => {
             response: {
               url: `/api/viewFilesDocx/${newIdDocument}/${newBucketSorce}`,
               idContract,
+              newIdDocument,
+              newBucketSorce,
               message: "Tu documento está listo para poder ser revisado",
             },
           });
@@ -2984,6 +2986,8 @@ const executeGenerateDocument = async (params, res, url) => {
           response: {
             url: `/api/viewFilesDocx/${idDocument}/${bucketSource}`,
             idContract,
+            newIdDocument: idDocument,
+            newBucketSorce: bucketSource,
             message: "Tu documento está listo para poder ser revisado",
           },
         });
