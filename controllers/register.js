@@ -4,6 +4,7 @@ const rp = require("request-promise");
 const ERROR_SQL = require("../constants/errors");
 const executeMailToV2 = require("../actions/sendInformationUser");
 const GLOBAL_CONSTANTS = require("../constants/constants");
+const executeSlackLogCatchBackend = require("../actions/slackLogCatchBackend");
 
 const executeRegister = async (params, res) => {
   const { email, password, name, surname } = params;
@@ -193,6 +194,10 @@ const executeRequestSignUpPSU = async (param, res, ip) => {
       } else {
         const resultRecordset = result.recordset[0];
         if (resultRecordset.stateCode !== 200) {
+          executeSlackLogCatchBackend({
+            storeProcedure: "authSch.USPrequestSignUp",
+            error: resultRecordset.errorMessage,
+          });
           res.status(resultRecordset.stateCode).send({
             response: {
               message: resultRecordset.message,
