@@ -2996,7 +2996,7 @@ const executeGenerateDocument = async (params, res, url) => {
   } catch (err) {
     executeSlackLogCatchBackend({
       storeProcedure,
-      error: err,
+      error: JSON.stringify(err, null, 2),
     });
     res.status(500).send({
       response: { message: "Error en el sistema" },
