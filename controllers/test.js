@@ -619,8 +619,7 @@ const ControllerTest = {
         isEmpty(response.pagination) === false
       ) {
         let nextPage = url;
-        let whileVar = 0;
-        while (isNil(nextPage) === false && whileVar !== 1) {
+        while (isNil(nextPage) === false) {
           let responseWhile = await rp({
             url: nextPage,
             method: "GET",
@@ -654,7 +653,6 @@ const ControllerTest = {
             }
           }
           nextPage = responseWhile.pagination.next_page;
-          whileVar = whileVar + 1;
         }
       }
 
