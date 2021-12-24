@@ -1783,6 +1783,7 @@ const executeGetPropertyCoincidencesV2 = async (params, res) => {
 
 const executeAddPropertyV2 = async (params, res, url) => {
   const {
+    idOperationType = null,
     idPropertyType = null,
     idCommercialActivity = null,
     currentRent = null,
@@ -1835,6 +1836,7 @@ const executeAddPropertyV2 = async (params, res, url) => {
       const result = await pool
         .request()
         .input("p_uidIdCustomer", sql.NVarChar, idCustomer)
+        .input("p_intIdOperationType", sql.Int, idOperationType)
         .input("p_intIdPropertyType", sql.Int, idPropertyType)
         .input("p_intIdCommercialActivity", sql.Int, idCommercialActivity)
         .input("p_decCurrentRent", sql.Decimal(19, 2), currentRent)
@@ -2040,6 +2042,7 @@ const executeGetPropertyById = async (params, res) => {
 const executeUpdateProperty = async (params, res, url) => {
   const {
     idApartment,
+    idOperationType = null,
     idPropertyType = null,
     idCommercialActivity = null,
     idPolicy = null,
@@ -2101,6 +2104,7 @@ const executeUpdateProperty = async (params, res, url) => {
         .request()
         .input("p_uidIdProperty", sql.NVarChar, idProperty)
         .input("p_uidIdApartment", sql.NVarChar, idApartment)
+        .input("p_intIdOperationType", sql.Int, idOperationType)
         .input("p_intIdPropertyType", sql.Int, idPropertyType)
         .input("p_intIdCommercialActivity", sql.Int, idCommercialActivity)
         .input("p_uidIdPolicy", sql.NVarChar, idPolicy)
