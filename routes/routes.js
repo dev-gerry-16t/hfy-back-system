@@ -14,6 +14,14 @@ router.get("/", ControllerTest.test);
 router.get("/test", ControllerTest.testPath);
 router.get("/testMail/:idEmailTemplate", ControllerTest.testMail);
 router.post("/whatsapp", ControllerTest.whatsapp);
+router.post(
+  "/getPropertiesOfEasyBroker",
+  ControllerTest.getPropertiesOfEasyBroker
+);
+router.post(
+  "/getPropertiesOfEasyBrokerId",
+  ControllerTest.getPropertiesOfEasyBrokerId
+);
 router.post("/sendWhatsapp", ControllerTest.sendWhatsapp);
 router.get("/sendWhatsappTwilio", ControllerTest.sendWhatsappTwilio);
 router.post("/testStripe", ControllerTest.testStripe);

@@ -31,6 +31,116 @@ const accountSid = GLOBAL_CONSTANTS.TWILIO_ACCOUNT_SID;
 const authToken = GLOBAL_CONSTANTS.TWILIO_AUTH_TOKEN;
 const client = require("twilio")(accountSid, authToken);
 const { getTestMail } = require("./audit");
+const executeSlackLogCatchBackend = require("../actions/slackLogCatchBackend");
+
+const executeGetZipCodeGoogle = async (location) => {
+  let zipCode = null;
+  try {
+    const responseMaps = await rp({
+      url: `https://maps.googleapis.com/maps/api/geocode/json?&latlng=${location.latitude},${location.longitude}&location_type=ROOFTOP&result_type=street_address&key=AIzaSyBwWOmV2W9QVm7lN3EBK4wCysj2sLzPhiQ`,
+      method: "GET",
+      headers: {
+        encoding: "UTF-8",
+        "Content-Type": "application/json",
+      },
+      json: true,
+      rejectUnauthorized: false,
+    });
+    if (
+      isNil(responseMaps.results[0]) === false &&
+      isEmpty(responseMaps.results[0].address_components) === false
+    ) {
+      const responseCode =
+        await responseMaps.results[0].address_components.find((row) => {
+          return isNil(row.types[0]) === false && row.types[0] == "postal_code";
+        });
+      zipCode = isNil(responseCode) === false ? responseCode.short_name : null;
+    }
+    return zipCode;
+  } catch (error) {
+    throw error;
+  }
+};
+
+const executeUploadFiles = async (arrayImages) => {
+  try {
+    if (isEmpty(arrayImages) === false) {
+      for (const element of arrayImages) {
+        const { url, bucketSource, idDocument } = element;
+        const response = await rp({
+          url: url,
+          method: "GET",
+          encoding: null,
+          resolveWithFullResponse: true,
+        });
+        const bufferFile = Buffer.from(response.body, "utf8");
+        const paramsFileAws = {
+          Bucket: bucketSource,
+          Key: idDocument,
+          Body: bufferFile,
+        };
+        await s3.upload(paramsFileAws).promise();
+      }
+    }
+  } catch (error) {
+    throw error;
+  }
+};
+
+const getPropertiesOfEasyBrokerId = async (params) => {
+  const { idCustomer, id, key, offset = GLOBAL_CONSTANTS.OFFSET } = params;
+
+  try {
+    const pool = await sql.connect();
+    let responseProperty = await rp({
+      url: `https://api.easybroker.com/v1/properties/${id}`,
+      method: "GET",
+      headers: {
+        encoding: "UTF-8",
+        "Content-Type": "application/json",
+        "X-Authorization": key,
+      },
+      json: true,
+      rejectUnauthorized: false,
+    });
+
+    const location =
+      isNil(responseProperty) === false &&
+      isEmpty(responseProperty) === false &&
+      isNil(responseProperty.location) === false &&
+      isEmpty(responseProperty.location) === false
+        ? responseProperty.location
+        : {};
+    let zipCode = null;
+    if (isEmpty(location) === false && isNil(location.latitude) === false) {
+      zipCode = location.postal_code;
+      if (isEmpty(zipCode) === true) {
+        zipCode = await executeGetZipCodeGoogle(location);
+      }
+    }
+    const result = await pool
+      .request()
+      .input("p_uidIdCustomer", sql.NVarChar, idCustomer)
+      .input("p_nvcZipCode", sql.NVarChar, zipCode)
+      .input(
+        "p_nvcResponseBody",
+        sql.NVarChar,
+        JSON.stringify(responseProperty)
+      )
+      .input("p_chrOffset", sql.Char, offset)
+      .execute("customerSch.USPimportProperty");
+    const recordset1 = result.recordsets[0][0];
+    const recordset2 = result.recordsets[1];
+    if (recordset1.stateCode === 200) {
+      await executeUploadFiles(recordset2);
+    } else {
+      throw "Base de datos rechazó la subida";
+    }
+    return true;
+  } catch (error) {
+    throw error;
+  }
+};
 
 const ControllerTest = {
   testMail: (req, res) => {
@@ -483,6 +593,133 @@ const ControllerTest = {
       res.status(200).send({ message: "ok" });
     } catch (error) {
       res.status(500).send({ error: `${error}` });
+    }
+  },
+  getPropertiesOfEasyBroker: async (req, res) => {
+    const params = req.body;
+
+    try {
+      let url =
+        "https://api.easybroker.com/v1/properties?search[statuses][]=published";
+
+      const response = await rp({
+        url,
+        method: "GET",
+        headers: {
+          encoding: "UTF-8",
+          "Content-Type": "application/json",
+          "X-Authorization": params.key,
+        },
+        json: true,
+        rejectUnauthorized: false,
+      });
+      if (
+        isEmpty(response) === false &&
+        isNil(response.pagination) === false &&
+        isEmpty(response.pagination) === false
+      ) {
+        let nextPage = url;
+        let whileVar = 0;
+        while (isNil(nextPage) === false && whileVar !== 1) {
+          let responseWhile = await rp({
+            url: nextPage,
+            method: "GET",
+            headers: {
+              encoding: "UTF-8",
+              "Content-Type": "application/json",
+              "X-Authorization": params.key,
+            },
+            json: true,
+            rejectUnauthorized: false,
+          });
+          if (
+            isEmpty(responseWhile) === false &&
+            isNil(responseWhile.content) === false &&
+            isEmpty(responseWhile.content) === false
+          ) {
+            let resultContentWhile = responseWhile.content;
+            for (const element of resultContentWhile) {
+              try {
+                await getPropertiesOfEasyBrokerId({
+                  id: element.public_id,
+                  key: params.key,
+                  idCustomer: params.idCustomer,
+                });
+              } catch (error) {
+                executeSlackLogCatchBackend({
+                  storeProcedure: "customerSch.USPimportProperty",
+                  error: error,
+                });
+              }
+            }
+          }
+          nextPage = responseWhile.pagination.next_page;
+          whileVar = whileVar + 1;
+        }
+      }
+
+      res.status(200).send({ message: "finish" });
+    } catch (error) {
+      res.status(500).send({ message: "error", error: JSON.stringify(error) });
+    }
+  },
+  getPropertiesOfEasyBrokerId: async (req, res) => {
+    const params = req.body;
+    const { idCustomer, id, key, offset = GLOBAL_CONSTANTS.OFFSET } = params;
+
+    try {
+      const pool = await sql.connect();
+      let responseProperty = await rp({
+        url: `https://api.easybroker.com/v1/properties/${id}`,
+        method: "GET",
+        headers: {
+          encoding: "UTF-8",
+          "Content-Type": "application/json",
+          "X-Authorization": key,
+        },
+        json: true,
+        rejectUnauthorized: false,
+      });
+
+      const location =
+        isNil(responseProperty) === false &&
+        isEmpty(responseProperty) === false &&
+        isNil(responseProperty.location) === false &&
+        isEmpty(responseProperty.location) === false
+          ? responseProperty.location
+          : {};
+      let zipCode = null;
+      // console.log("result1", JSON.stringify(location, null, 2));
+
+      if (isEmpty(location) === false && isNil(location.latitude) === false) {
+        zipCode = location.postal_code;
+        if (isEmpty(zipCode) === true) {
+          zipCode = await executeGetZipCodeGoogle(location);
+        }
+      }
+      const result = await pool
+        .request()
+        .input("p_uidIdCustomer", sql.NVarChar, idCustomer)
+        .input("p_nvcZipCode", sql.NVarChar, zipCode)
+        .input(
+          "p_nvcResponseBody",
+          sql.NVarChar,
+          JSON.stringify(responseProperty)
+        )
+        .input("p_chrOffset", sql.Char, offset)
+        .execute("customerSch.USPimportProperty");
+      const recordset1 = result.recordsets[0][0];
+      const recordset2 = result.recordsets[1];
+      if (recordset1.stateCode === 200) {
+        await executeUploadFiles(recordset2);
+      } else {
+        throw "Base de datos rechazó la subida";
+      }
+
+      res.status(200).send({ message: "ok" });
+    } catch (error) {
+      console.log("error", error);
+      res.status(200).send({ message: "error", error: JSON.stringify(error) });
     }
   },
 };
