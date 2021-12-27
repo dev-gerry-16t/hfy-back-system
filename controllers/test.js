@@ -37,7 +37,7 @@ const executeGetZipCodeGoogle = async (location) => {
   let zipCode = null;
   try {
     const responseMaps = await rp({
-      url: `https://maps.googleapis.com/maps/api/geocode/json?&latlng=${location.latitude},${location.longitude}&location_type=ROOFTOP&result_type=street_address&key=AIzaSyBwWOmV2W9QVm7lN3EBK4wCysj2sLzPhiQ`,
+      url: `https://maps.googleapis.com/maps/api/geocode/json?&latlng=${location.latitude},${location.longitude}&location_type=ROOFTOP&key=AIzaSyBwWOmV2W9QVm7lN3EBK4wCysj2sLzPhiQ`,
       method: "GET",
       headers: {
         encoding: "UTF-8",
@@ -619,8 +619,7 @@ const ControllerTest = {
         isEmpty(response.pagination) === false
       ) {
         let nextPage = url;
-        let whileVar = 0;
-        while (isNil(nextPage) === false && whileVar !== 1) {
+        while (isNil(nextPage) === false) {
           let responseWhile = await rp({
             url: nextPage,
             method: "GET",
@@ -654,7 +653,6 @@ const ControllerTest = {
             }
           }
           nextPage = responseWhile.pagination.next_page;
-          whileVar = whileVar + 1;
         }
       }
 

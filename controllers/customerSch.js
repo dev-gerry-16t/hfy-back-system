@@ -1848,12 +1848,12 @@ const executeAddPropertyV2 = async (params, res, url) => {
         .input("p_intTotalParkingSpots", sql.Int, totalParkingSpots)
         .input(
           "p_decTotalSquareMetersBuilt",
-          sql.Decimal(19),
+          sql.Decimal(19, 2),
           totalSquareMetersBuilt
         )
         .input(
           "p_decTotalSquareMetersLand",
-          sql.Decimal(19),
+          sql.Decimal(19, 2),
           totalSquareMetersLand
         )
         .input("p_vchTotalFloors", sql.VarChar, totalFloors)
@@ -2119,12 +2119,12 @@ const executeUpdateProperty = async (params, res, url) => {
         .input("p_intTotalParkingSpots", sql.Int, totalParkingSpots)
         .input(
           "p_decTotalSquareMetersBuilt",
-          sql.Decimal(19),
+          sql.Decimal(19, 2),
           totalSquareMetersBuilt
         )
         .input(
           "p_decTotalSquareMetersLand",
-          sql.Decimal(19),
+          sql.Decimal(19, 2),
           totalSquareMetersLand
         )
         .input("p_vchTotalFloors", sql.VarChar, totalFloors)
