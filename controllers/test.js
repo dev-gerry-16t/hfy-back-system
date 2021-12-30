@@ -266,6 +266,34 @@ const ControllerTest = {
       res.status(400).send({ error: "no file attachment" });
     }
   },
+  viewVideo: async (req, res) => {
+    try {
+      const params = req.params;
+      if (
+        isNil(params.idDocument) === true ||
+        isNil(params.bucketSource) === true
+      ) {
+        res.send({ error: "No document attachment" });
+      } else {
+        const bucketSource = params.bucketSource.toLowerCase();
+        const file = await s3
+          .getObject({
+            Bucket: bucketSource,
+            Key: params.idDocument,
+          })
+          .promise();
+
+        const buff = new Buffer.from(file.Body, "binary");
+        res.writeHead(200, {
+          "Content-Length": buff.length,
+          "Content-Type": `video/${params.type}`,
+        });
+        res.end(buff);
+      }
+    } catch (error) {
+      res.status(400).send({ error: "no file attachment" });
+    }
+  },
   viewFilesType: async (req, res) => {
     try {
       const params = req.params;
