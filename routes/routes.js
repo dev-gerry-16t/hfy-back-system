@@ -8,13 +8,22 @@ const ControllerTest = require("../controllers/test");
 const ControllerLeads = require("../controllers/leads");
 const ControllerCatalogs = require("../controllers/catalogs");
 const ControllerCustomer = require("../controllers/customerInformation");
+const ControllerCustomerSch = require("../controllers/customerSch");
 const router = express.Router();
-
 router.get("/", ControllerTest.test);
 router.get("/test", ControllerTest.testPath);
 router.get("/testMail/:idEmailTemplate", ControllerTest.testMail);
 router.post("/whatsapp", ControllerTest.whatsapp);
+router.post(
+  "/getPropertiesOfEasyBroker",
+  ControllerTest.getPropertiesOfEasyBroker
+);
+router.post(
+  "/getPropertiesOfEasyBrokerId",
+  ControllerTest.getPropertiesOfEasyBrokerId
+);
 router.post("/sendWhatsapp", ControllerTest.sendWhatsapp);
+router.get("/sendWhatsappTwilio", ControllerTest.sendWhatsappTwilio);
 router.post("/testStripe", ControllerTest.testStripe);
 router.post("/connect/matiWebhookHomify", ControllerTest.matiWebhookHomify);
 router.post("/testStripeWebhook", ControllerTest.testStripeWebhook);
@@ -34,6 +43,14 @@ router.get(
   ControllerCustomer.getConfigForCollAndDisp
 );
 router.get("/viewFile/:idDocument/:bucketSource", ControllerTest.viewFiles);
+router.get(
+  "/viewVideo/:idDocument/:bucketSource/:type",
+  ControllerTest.viewVideo
+);
+router.get(
+  "/viewFile/:idDocument/:bucketSource/:type",
+  ControllerTest.viewFilesType
+);
 router.get(
   "/viewFilesDocx/:idDocument/:bucketSource",
   ControllerTest.viewFilesDocx
@@ -81,5 +98,18 @@ router.get(
   ControllerCatalogs.getAllProspectTypes
 );
 router.post("/leads/addLandingProspect", ControllerLeads.addLandingProspect);
+router.post(
+  "/leads/generateVerificationCode",
+  ControllerLeads.generateVerificationCode
+);
+router.post("/leads/catalog/getAllCountries", ControllerLeads.getAllCountries);
+
+//customersch//
+router.post("/property/getPropertyById", ControllerCustomerSch.getPropertyById);
+router.put(
+  "/invitation/processInvitation/:idInvitation",
+  ControllerCustomerSch.processInvitation
+);
+//customersch//
 
 module.exports = router;

@@ -234,7 +234,7 @@ const executeSetTypeForm = async (params, res) => {
     collateralPropertyStreet = null,
     collateralPropertySuite = null,
     collateralPropertyStreetNumber = null,
-    collateralPropertyIdZipCoode = null,
+    collateralPropertyIdZipCode = null,
     collateralPropertyNeighborhood = null,
     documentNumber = null,
     documentSignedAt = null,
@@ -371,9 +371,9 @@ const executeSetTypeForm = async (params, res) => {
       collateralPropertyStreetNumber
     );
     request.input(
-      "p_intCollateralPropertyIdZipCoode",
+      "p_intCollateralPropertyIdZipCode",
       sql.Int,
-      collateralPropertyIdZipCoode
+      collateralPropertyIdZipCode
     );
     request.input(
       "p_nvcCollateralPropertyNeighborhood",

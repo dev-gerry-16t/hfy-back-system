@@ -139,10 +139,10 @@ const executeGetContractPropertiesv2 = async (params) => {
       .input("p_intType", sql.Int, type)
       .execute("customerSch.USPgetDigitalContractProperties");
     let resultRecordset = [];
-    if (type !== 4) {
-      resultRecordset = result.recordset;
-    } else {
+    if (type === 4 || type === 5) {
       resultRecordset = result.recordsets[1];
+    } else {
+      resultRecordset = result.recordset;
     }
     return resultRecordset;
   } catch (err) {
@@ -249,13 +249,13 @@ const executeGetRequestExternalDS = async (params, res, ip) => {
         type,
       });
       let objectParams = {};
-      if (type !== 4) {
-        objectParams =
-          isNil(dataProperties[0]) === false ? dataProperties[0] : {};
-      } else {
+      if (type === 4 || type === 5) {
         objectParams = {
           payments: isNil(dataProperties) === false ? dataProperties : [],
         };
+      } else {
+        objectParams =
+          isNil(dataProperties[0]) === false ? dataProperties[0] : {};
       }
       const dataAddDocument = await executeAddDocumentv2({
         idCustomer: null,

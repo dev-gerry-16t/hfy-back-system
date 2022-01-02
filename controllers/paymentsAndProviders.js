@@ -6,6 +6,7 @@ const ImageModule = require("docxtemplater-image-module");
 const PizZip = require("pizzip");
 const isEmpty = require("lodash/isEmpty");
 const isNil = require("lodash/isNil");
+const executeSlackLogCatchBackend = require("../actions/slackLogCatchBackend");
 const GLOBAL_CONSTANTS = require("../constants/constants");
 const replaceConditionsDocx = require("../actions/conditions");
 const executeMailTo = require("../actions/sendInformationUser");
@@ -906,9 +907,7 @@ const executeGetRequestForProviderProperties = async (params, res) => {
 
 const executeGetAmountForGWTransaction = async (params, res) => {
   const {
-    idPaymentInContract = null,
     idOrderPayment = null,
-    idContract = null,
     idSystemUser,
     idLoginHistory,
     offset = process.env.OFFSET,
@@ -919,147 +918,226 @@ const executeGetAmountForGWTransaction = async (params, res) => {
     const pool = await sql.connect();
     const result = await pool
       .request()
-      .input("p_nvcIdPaymentInContract", sql.NVarChar, idPaymentInContract)
       .input("p_nvcIdOrderPayment", sql.NVarChar, idOrderPayment)
-      .input("p_nvcIdContract", sql.NVarChar, idContract)
       .input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser)
       .input("p_nvcIdLoginHistory", sql.NVarChar, idLoginHistory)
       .input("p_chrOffset", sql.Char, offset)
       .execute("paymentSch.USPgetAmountForGWTransaction");
     const resultRecordset = result.recordset[0];
     if (resultRecordset.canBeProcess === true) {
-      if (isNil(payment_method) === false) {
-        const payment = await stripe.paymentIntents.create({
-          payment_method,
-          payment_method_types,
-          amount: resultRecordset.amount,
-          description: resultRecordset.description,
-          currency: resultRecordset.currency,
-          payment_method_options: {
-            card: {
-              installments: {
-                enabled: true,
-              },
+      const payment = await stripe.paymentIntents.create({
+        payment_method_types,
+        amount: resultRecordset.amount,
+        description: resultRecordset.description,
+        currency: resultRecordset.currency,
+      });
+      await executeAddGWTransaction({
+        idOrderPayment: idOrderPayment,
+        serviceIdPI: payment.id,
+        serviceIdPC: null,
+        amount: payment.amount,
+        last4: null,
+        type: payment.payment_method_types[0],
+        status: payment.status,
+        funding: null,
+        network: null,
+        created: payment.created,
+        jsonServiceResponse: JSON.stringify(payment),
+        idSystemUser,
+        idLoginHistory,
+        count: 0,
+      });
+      res.status(200).send({
+        response: {
+          result: {
+            idOrderPayment,
+            paymentIntent: payment.id,
+            status: payment.status,
+            idClientSecret: payment.client_secret,
+          },
+        },
+      });
+    } else {
+      res.status(500).send({
+        response: {
+          message: "Tu pago no puede ser procesado",
+        },
+      });
+    }
+  } catch (error) {
+    executeSlackLogCatchBackend({
+      storeProcedure: "paymentSch.USPgetAmountForGWTransaction",
+      error: error,
+    });
+    if (isNil(error.raw) === false) {
+      const payment = error.raw;
+      await executeAddGWTransaction({
+        idOrderPayment: idOrderPayment,
+        serviceIdPI: payment.payment_intent.id,
+        serviceIdPC: payment.charge,
+        amount: payment.payment_intent.amount,
+        last4:
+          payment.payment_intent.charges.data[0].payment_method_details.card
+            .last4,
+        type: payment.payment_intent.charges.data[0].payment_method_details
+          .type,
+        status: payment.payment_intent.status,
+        funding:
+          payment.payment_intent.charges.data[0].payment_method_details.card
+            .funding,
+        network:
+          payment.payment_intent.charges.data[0].payment_method_details.card
+            .network,
+        created: payment.payment_intent.created,
+        jsonServiceResponse: JSON.stringify(payment),
+        idSystemUser,
+        idLoginHistory,
+        count: 0,
+      });
+    }
+    res.status(500).send({
+      response: {
+        message: "Tu banco ha declinado la transacción",
+        messageType: `${error}`,
+      },
+    });
+  }
+};
+
+const executeGetAmountForGWTransactionCard = async (params, res) => {
+  const {
+    idOrderPayment = null,
+    idSystemUser,
+    idLoginHistory,
+    offset = process.env.OFFSET,
+    payment_method,
+    payment_method_types,
+  } = params;
+  try {
+    const pool = await sql.connect();
+    const result = await pool
+      .request()
+      .input("p_nvcIdOrderPayment", sql.NVarChar, idOrderPayment)
+      .input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser)
+      .input("p_nvcIdLoginHistory", sql.NVarChar, idLoginHistory)
+      .input("p_chrOffset", sql.Char, offset)
+      .execute("paymentSch.USPgetAmountForGWTransaction");
+    const resultRecordset = result.recordset[0];
+    if (resultRecordset.canBeProcess === true) {
+      //Creo un intento de pago sin confirmar
+      const payment = await stripe.paymentIntents.create({
+        payment_method,
+        payment_method_types,
+        amount: resultRecordset.amount,
+        description: resultRecordset.description,
+        currency: resultRecordset.currency,
+        payment_method_options: {
+          card: {
+            installments: {
+              enabled: true,
             },
           },
-          metadata: { idOrderPayment },
+        },
+        metadata: { idOrderPayment },
+      });
+
+      //Evaluamos si existe pago a plasos
+      const catalogOptionsAvailable =
+        payment.payment_method_options.card.installments.available_plans;
+      if (
+        isEmpty(catalogOptionsAvailable) === false &&
+        isEmpty(result.recordset) === false
+      ) {
+        //Si existe pago a plazos lo mandamos al front un catalogo
+        const catalogMatch = [];
+        catalogMatch.push(result.recordset[0]);
+        //realizamos una comparacion entre lo que permite stripe y lo que permite la base en cuanto a plazos
+        catalogOptionsAvailable.forEach((row, ix) => {
+          const findData = result.recordset.find((rowFind) => {
+            return row.count == rowFind.count;
+          });
+          if (isNil(findData) === false) {
+            catalogMatch.push(findData);
+          }
         });
-        if (payment.status === "requires_action") {
-          const paymentIntent = await stripe.paymentIntents.cancel(payment.id);
+
+        res.status(200).send({
+          response: {
+            result: {
+              message: "Pagar a plazos disponible",
+              requireAction: false,
+              plans: true,
+              idOrderPayment,
+              paymentIntent: payment.id,
+              status: payment.status,
+              clientSecret: null,
+              catalog: catalogMatch,
+            },
+          },
+        });
+      } else {
+        //Si no existe pago a plazos confirmamos el pago
+        const paymentIntentConfirm = await stripe.paymentIntents.confirm(
+          payment.id
+        );
+        if (paymentIntentConfirm.status === "succeeded") {
+          //Si stripe envia succeded terminamos el flujo y front confirma el pago al usuario
           await executeAddGWTransaction({
-            idPaymentInContract: idPaymentInContract,
             idOrderPayment: idOrderPayment,
-            serviceIdPI: paymentIntent.id,
-            serviceIdPC: null,
-            amount: paymentIntent.amount,
-            last4: null,
-            type: null,
-            status: paymentIntent.status,
-            funding: null,
-            network: null,
-            created: paymentIntent.created,
-            jsonServiceResponse: JSON.stringify(paymentIntent),
+            serviceIdPI: paymentIntentConfirm.id,
+            serviceIdPC: paymentIntentConfirm.charges.data[0].id,
+            amount: paymentIntentConfirm.amount,
+            last4:
+              paymentIntentConfirm.charges.data[0].payment_method_details.card
+                .last4,
+            type: paymentIntentConfirm.charges.data[0].payment_method_details
+              .type,
+            status: paymentIntentConfirm.status,
+            funding:
+              paymentIntentConfirm.charges.data[0].payment_method_details.card
+                .funding,
+            network:
+              paymentIntentConfirm.charges.data[0].payment_method_details.card
+                .network,
+            created: paymentIntentConfirm.created,
+            jsonServiceResponse: JSON.stringify(paymentIntentConfirm),
             idSystemUser,
             idLoginHistory,
             count: 0,
           });
+
           res.status(200).send({
             response: {
               result: {
+                message: "Pago realizado con éxito",
+                requireAction: false,
+                plans: false,
                 idOrderPayment,
-                paymentIntent: payment.id,
-                status: payment.status,
+                paymentIntent: paymentIntentConfirm.id,
+                status: paymentIntentConfirm.status,
+                clientSecret: null,
+                catalog: [],
               },
             },
           });
-        } else {
-          const catalogOptionsAvailable =
-            payment.payment_method_options.card.installments.available_plans;
-          if (isEmpty(catalogOptionsAvailable) === false) {
-            res.status(200).send({
-              response: {
-                result: {
-                  idOrderPayment,
-                  paymentIntent: payment.id,
-                  status: payment.status,
-                  plans: true,
-                  catalog: result.recordset,
-                },
+        } else if (paymentIntentConfirm.status === "requires_action") {
+          //Si stripe envia succeded terminamos el flujo y front confirma el pago al usuario
+
+          res.status(200).send({
+            response: {
+              result: {
+                message: "Se requiere una acción",
+                requireAction: true,
+                plans: false,
+                idOrderPayment,
+                paymentIntent: paymentIntentConfirm.id,
+                status: paymentIntentConfirm.status,
+                clientSecret: paymentIntentConfirm.client_secret,
+                catalog: [],
               },
-            });
-          } else {
-            const paymentIntentConfirm = await stripe.paymentIntents.confirm(
-              payment.id
-            );
-            await executeAddGWTransaction({
-              idPaymentInContract: idPaymentInContract,
-              idOrderPayment: idOrderPayment,
-              serviceIdPI: paymentIntentConfirm.id,
-              serviceIdPC: paymentIntentConfirm.charges.data[0].id,
-              amount: paymentIntentConfirm.amount,
-              last4:
-                paymentIntentConfirm.charges.data[0].payment_method_details.card
-                  .last4,
-              type: paymentIntentConfirm.charges.data[0].payment_method_details
-                .type,
-              status: paymentIntentConfirm.status,
-              funding:
-                paymentIntentConfirm.charges.data[0].payment_method_details.card
-                  .funding,
-              network:
-                paymentIntentConfirm.charges.data[0].payment_method_details.card
-                  .network,
-              created: paymentIntentConfirm.created,
-              jsonServiceResponse: JSON.stringify(paymentIntentConfirm),
-              idSystemUser,
-              idLoginHistory,
-              count: 0,
-            });
-            res.status(200).send({
-              response: {
-                result: {
-                  idOrderPayment,
-                  paymentIntent: payment.id,
-                  status: payment.status,
-                },
-              },
-            });
-          }
-        }
-      } else {
-        const payment = await stripe.paymentIntents.create({
-          payment_method_types,
-          amount: resultRecordset.amount,
-          description: resultRecordset.description,
-          currency: resultRecordset.currency,
-        });
-        await executeAddGWTransaction({
-          idPaymentInContract: idPaymentInContract,
-          idOrderPayment: idOrderPayment,
-          serviceIdPI: payment.id,
-          serviceIdPC: null,
-          amount: payment.amount,
-          last4: null,
-          type: payment.payment_method_types[0],
-          status: payment.status,
-          funding: null,
-          network: null,
-          created: payment.created,
-          jsonServiceResponse: JSON.stringify(payment),
-          idSystemUser,
-          idLoginHistory,
-          count: 0,
-        });
-        res.status(200).send({
-          response: {
-            result: {
-              idOrderPayment,
-              paymentIntent: payment.id,
-              status: payment.status,
-              idClientSecret: payment.client_secret,
             },
-          },
-        });
+          });
+        }
       }
     } else {
       res.status(500).send({
@@ -1069,10 +1147,13 @@ const executeGetAmountForGWTransaction = async (params, res) => {
       });
     }
   } catch (error) {
+    executeSlackLogCatchBackend({
+      storeProcedure: "paymentSch.USPgetAmountForGWTransaction",
+      error: error,
+    });
     if (isNil(error.raw) === false) {
       const payment = error.raw;
       await executeAddGWTransaction({
-        idPaymentInContract: idPaymentInContract,
         idOrderPayment: idOrderPayment,
         serviceIdPI: payment.payment_intent.id,
         serviceIdPC: payment.charge,
@@ -1107,22 +1188,16 @@ const executeGetAmountForGWTransaction = async (params, res) => {
 
 const executeGetCatalogAmountForGWTransaction = async (params, res) => {
   const {
-    idPaymentInContract = null,
     idOrderPayment = null,
-    idContract = null,
     idSystemUser,
     idLoginHistory,
     offset = process.env.OFFSET,
-    payment_method,
-    payment_method_types,
   } = params;
   try {
     const pool = await sql.connect();
     const result = await pool
       .request()
-      .input("p_nvcIdPaymentInContract", sql.NVarChar, idPaymentInContract)
       .input("p_nvcIdOrderPayment", sql.NVarChar, idOrderPayment)
-      .input("p_nvcIdContract", sql.NVarChar, idContract)
       .input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser)
       .input("p_nvcIdLoginHistory", sql.NVarChar, idLoginHistory)
       .input("p_chrOffset", sql.Char, offset)
@@ -1147,11 +1222,92 @@ const executeGetCatalogAmountForGWTransaction = async (params, res) => {
   }
 };
 
+const executeConfirmRetrievePaymentIntent = async (params, res) => {
+  const {
+    idOrderPayment = null,
+    idSystemUser,
+    idLoginHistory,
+    offset = process.env.OFFSET,
+    payment_method,
+    payment_method_types,
+    clientSecret,
+    paymentIntent,
+  } = params;
+  try {
+    const paymentIntentConfirm = await stripe.paymentIntents.retrieve(
+      paymentIntent
+    );
+    await executeAddGWTransaction({
+      idOrderPayment: idOrderPayment,
+      serviceIdPI: paymentIntentConfirm.id,
+      serviceIdPC: paymentIntentConfirm.charges.data[0].id,
+      amount: paymentIntentConfirm.amount,
+      last4:
+        paymentIntentConfirm.charges.data[0].payment_method_details.card.last4,
+      type: paymentIntentConfirm.charges.data[0].payment_method_details.type,
+      status: paymentIntentConfirm.status,
+      funding:
+        paymentIntentConfirm.charges.data[0].payment_method_details.card
+          .funding,
+      network:
+        paymentIntentConfirm.charges.data[0].payment_method_details.card
+          .network,
+      created: paymentIntentConfirm.created,
+      jsonServiceResponse: JSON.stringify(paymentIntentConfirm),
+      idSystemUser,
+      idLoginHistory,
+      count: 0,
+    });
+    res.status(200).send({
+      response: {
+        result: {
+          idOrderPayment,
+        },
+      },
+    });
+  } catch (error) {
+    executeSlackLogCatchBackend({
+      storeProcedure: "confirmPayment",
+      error: error,
+    });
+    if (isNil(error.raw) === false) {
+      const payment = error.raw;
+      await executeAddGWTransaction({
+        idOrderPayment: idOrderPayment,
+        serviceIdPI: payment.payment_intent.id,
+        serviceIdPC: payment.charge,
+        amount: payment.payment_intent.amount,
+        last4:
+          payment.payment_intent.charges.data[0].payment_method_details.card
+            .last4,
+        type: payment.payment_intent.charges.data[0].payment_method_details
+          .type,
+        status: payment.payment_intent.status,
+        funding:
+          payment.payment_intent.charges.data[0].payment_method_details.card
+            .funding,
+        network:
+          payment.payment_intent.charges.data[0].payment_method_details.card
+            .network,
+        created: payment.payment_intent.created,
+        jsonServiceResponse: JSON.stringify(payment),
+        idSystemUser,
+        idLoginHistory,
+        count: 0,
+      });
+    }
+    res.status(500).send({
+      response: {
+        message: "Tu banco ha declinado la transacción",
+        messageType: error,
+      },
+    });
+  }
+};
+
 const executeConfirmPaymentIntent = async (params, res) => {
   const {
-    idPaymentInContract = null,
     idOrderPayment = null,
-    idContract = null,
     idSystemUser,
     idLoginHistory,
     offset = process.env.OFFSET,
@@ -1166,9 +1322,7 @@ const executeConfirmPaymentIntent = async (params, res) => {
   try {
     let paymentIntentConfirm = {};
     if (count === 0) {
-      console.log("0 count");
       paymentIntentConfirm = await stripe.paymentIntents.confirm(paymentIntent);
-      console.log("paymentIntentConfirm", paymentIntentConfirm);
     } else {
       await stripe.paymentIntents.update(paymentIntent, {
         amount,
@@ -1193,7 +1347,6 @@ const executeConfirmPaymentIntent = async (params, res) => {
       );
     }
     await executeAddGWTransaction({
-      idPaymentInContract: idPaymentInContract,
       idOrderPayment: idOrderPayment,
       serviceIdPI: paymentIntentConfirm.id,
       serviceIdPC: paymentIntentConfirm.charges.data[0].id,
@@ -1222,10 +1375,13 @@ const executeConfirmPaymentIntent = async (params, res) => {
       },
     });
   } catch (error) {
+    executeSlackLogCatchBackend({
+      storeProcedure: "confirmPayment",
+      error: error,
+    });
     if (isNil(error.raw) === false) {
       const payment = error.raw;
       await executeAddGWTransaction({
-        idPaymentInContract: idPaymentInContract,
         idOrderPayment: idOrderPayment,
         serviceIdPI: payment.payment_intent.id,
         serviceIdPC: payment.charge,
@@ -1462,6 +1618,10 @@ const ControllerPaymentProvider = {
     const params = req.body;
     executeGetAmountForGWTransaction(params, res);
   },
+  getAmountForGWTransactionCard: (req, res) => {
+    const params = req.body;
+    executeGetAmountForGWTransactionCard(params, res);
+  },
   getCatalogAmountForGWTransaction: (req, res) => {
     const params = req.body;
     executeGetCatalogAmountForGWTransaction(params, res);
@@ -1469,6 +1629,10 @@ const ControllerPaymentProvider = {
   getConfirmPaymentIntent: (req, res) => {
     const params = req.body;
     executeConfirmPaymentIntent(params, res);
+  },
+  getConfirmRetrievePaymentIntent: (req, res) => {
+    const params = req.body;
+    executeConfirmRetrievePaymentIntent(params, res);
   },
 };
 

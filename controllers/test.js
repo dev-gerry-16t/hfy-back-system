@@ -8,7 +8,10 @@ const GLOBAL_CONSTANTS = require("../constants/constants");
 const executeUpdateShortMessageService = require("../actions/updateShortMessageService");
 const Stripe = require("stripe");
 const executeAddGWTransaction = require("../actions/addGWTransaction");
-const { executesetConnectAccountWH } = require("../actions/setCustomerAccount");
+const {
+  executesetConnectAccountWH,
+  executeMatiWebHook,
+} = require("../actions/setCustomerAccount");
 const {
   executeSetDispersionOrder,
   executeSetCollection,
@@ -24,7 +27,120 @@ const s3 = new AWS.S3({
   accessKeyId: GLOBAL_CONSTANTS.ACCESS_KEY_ID,
   secretAccessKey: GLOBAL_CONSTANTS.SECRET_ACCESS_KEY,
 });
+const accountSid = GLOBAL_CONSTANTS.TWILIO_ACCOUNT_SID;
+const authToken = GLOBAL_CONSTANTS.TWILIO_AUTH_TOKEN;
+const client = require("twilio")(accountSid, authToken);
 const { getTestMail } = require("./audit");
+const executeSlackLogCatchBackend = require("../actions/slackLogCatchBackend");
+
+const executeGetZipCodeGoogle = async (location) => {
+  let zipCode = null;
+  try {
+    const responseMaps = await rp({
+      url: `https://maps.googleapis.com/maps/api/geocode/json?&latlng=${location.latitude},${location.longitude}&location_type=ROOFTOP&key=AIzaSyBwWOmV2W9QVm7lN3EBK4wCysj2sLzPhiQ`,
+      method: "GET",
+      headers: {
+        encoding: "UTF-8",
+        "Content-Type": "application/json",
+      },
+      json: true,
+      rejectUnauthorized: false,
+    });
+    if (
+      isNil(responseMaps.results[0]) === false &&
+      isEmpty(responseMaps.results[0].address_components) === false
+    ) {
+      const responseCode =
+        await responseMaps.results[0].address_components.find((row) => {
+          return isNil(row.types[0]) === false && row.types[0] == "postal_code";
+        });
+      zipCode = isNil(responseCode) === false ? responseCode.short_name : null;
+    }
+    return zipCode;
+  } catch (error) {
+    throw error;
+  }
+};
+
+const executeUploadFiles = async (arrayImages) => {
+  try {
+    if (isEmpty(arrayImages) === false) {
+      for (const element of arrayImages) {
+        const { url, bucketSource, idDocument } = element;
+        const response = await rp({
+          url: url,
+          method: "GET",
+          encoding: null,
+          resolveWithFullResponse: true,
+        });
+        const bufferFile = Buffer.from(response.body, "utf8");
+        const paramsFileAws = {
+          Bucket: bucketSource,
+          Key: idDocument,
+          Body: bufferFile,
+        };
+        await s3.upload(paramsFileAws).promise();
+      }
+    }
+  } catch (error) {
+    throw error;
+  }
+};
+
+const getPropertiesOfEasyBrokerId = async (params) => {
+  const { idCustomer, id, key, offset = GLOBAL_CONSTANTS.OFFSET } = params;
+
+  try {
+    const pool = await sql.connect();
+    let responseProperty = await rp({
+      url: `https://api.easybroker.com/v1/properties/${id}`,
+      method: "GET",
+      headers: {
+        encoding: "UTF-8",
+        "Content-Type": "application/json",
+        "X-Authorization": key,
+      },
+      json: true,
+      rejectUnauthorized: false,
+    });
+
+    const location =
+      isNil(responseProperty) === false &&
+      isEmpty(responseProperty) === false &&
+      isNil(responseProperty.location) === false &&
+      isEmpty(responseProperty.location) === false
+        ? responseProperty.location
+        : {};
+    let zipCode = null;
+    if (isEmpty(location) === false && isNil(location.latitude) === false) {
+      zipCode = location.postal_code;
+      if (isEmpty(zipCode) === true) {
+        zipCode = await executeGetZipCodeGoogle(location);
+      }
+    }
+    const result = await pool
+      .request()
+      .input("p_uidIdCustomer", sql.NVarChar, idCustomer)
+      .input("p_nvcZipCode", sql.NVarChar, zipCode)
+      .input(
+        "p_nvcResponseBody",
+        sql.NVarChar,
+        JSON.stringify(responseProperty)
+      )
+      .input("p_chrOffset", sql.Char, offset)
+      .execute("customerSch.USPimportProperty");
+    const recordset1 = result.recordsets[0][0];
+    const recordset2 = result.recordsets[1];
+    if (recordset1.stateCode === 200) {
+      await executeUploadFiles(recordset2);
+    } else {
+      throw "Base de datos rechazó la subida";
+    }
+    return true;
+  } catch (error) {
+    throw error;
+  }
+};
 
 const ControllerTest = {
   testMail: (req, res) => {
@@ -40,6 +156,15 @@ const ControllerTest = {
     res.status(200).send({
       message: `Bienvenido al Backend homify :) ${GLOBAL_CONSTANTS.VERSION}`,
     });
+  },
+  sendWhatsappTwilio: async (req, res) => {
+    const params = req.body;
+    const message = await client.messages.create({
+      to: "525562100512",
+      from: "12244083019",
+      body: "Tu codigo de verificación es el: 358545",
+    });
+    res.status(200).send({ message: message.sid });
   },
   sendWhatsapp: async (req, res) => {
     const params = req.body;
@@ -107,54 +232,125 @@ const ControllerTest = {
       Body: req.file.buffer,
     };
     s3.upload(params, (err, data) => {
-      if (err) throw err;
+      if (err) {
+        res.send({ error: " No document attachment" });
+      }
       res.status(200).send({ message: data });
     });
   },
   viewFiles: async (req, res) => {
     try {
       const params = req.params;
-      const fileType = "jpg";
-      const bucketSource = params.bucketSource.toLowerCase();
-      s3.getObject(
-        {
-          Bucket: bucketSource,
-          Key: params.idDocument,
-        },
-        (err, data) => {
-          if (err) throw err;
-          const buff = new Buffer.from(data.Body, "binary");
-          res.writeHead(200, {
-            "Content-Type": "image/png",
-            "Content-Length": buff.length,
-          });
-          res.end(buff);
+      if (
+        isNil(params.idDocument) === true ||
+        isNil(params.bucketSource) === true
+      ) {
+        res.send({ error: "No document attachment" });
+      } else {
+        const bucketSource = params.bucketSource.toLowerCase();
+        const file = await s3
+          .getObject({
+            Bucket: bucketSource,
+            Key: params.idDocument,
+          })
+          .promise();
+
+        const buff = new Buffer.from(file.Body, "binary");
+        res.writeHead(200, {
+          "Content-Length": buff.length,
+          "Content-Disposition": "attachment",
+        });
+        res.end(buff);
+      }
+    } catch (error) {
+      res.status(400).send({ error: "no file attachment" });
+    }
+  },
+  viewVideo: async (req, res) => {
+    try {
+      const params = req.params;
+      if (
+        isNil(params.idDocument) === true ||
+        isNil(params.bucketSource) === true
+      ) {
+        res.send({ error: "No document attachment" });
+      } else {
+        const bucketSource = params.bucketSource.toLowerCase();
+        const file = await s3
+          .getObject({
+            Bucket: bucketSource,
+            Key: params.idDocument,
+          })
+          .promise();
+
+        const buff = new Buffer.from(file.Body, "binary");
+        res.writeHead(200, {
+          "Content-Length": buff.length,
+          "Content-Type": `video/${params.type}`,
+        });
+        res.end(buff);
+      }
+    } catch (error) {
+      res.status(400).send({ error: "no file attachment" });
+    }
+  },
+  viewFilesType: async (req, res) => {
+    try {
+      const params = req.params;
+      if (
+        isNil(params.idDocument) === true ||
+        isNil(params.bucketSource) === true
+      ) {
+        res.send({ error: "No document attachment" });
+      } else {
+        let headerType = "";
+        if (params.type === "docx" || params.type === "pdf") {
+          headerType = `application/${params.type}`;
+        } else {
+          headerType = `image/${params.type}`;
         }
-      );
-    } catch (error) {}
+        const bucketSource = params.bucketSource.toLowerCase();
+        const file = await s3
+          .getObject({
+            Bucket: bucketSource,
+            Key: params.idDocument,
+          })
+          .promise();
+
+        const buff = new Buffer.from(file.Body, "binary");
+        res.writeHead(200, {
+          "Content-Type": headerType,
+          "Content-Length": buff.length,
+          "Content-Disposition": `attachment;filename=Document.${params.type}`,
+        });
+        res.end(buff);
+      }
+    } catch (error) {
+      res.status(400).send({ error: "no file attachment" });
+    }
   },
   viewFilesDocx: async (req, res) => {
     try {
       const params = req.params;
-      const fileType = "jpg";
       const bucketSource = params.bucketSource.toLowerCase();
-      s3.getObject(
-        {
+
+      const file = await s3
+        .getObject({
           Bucket: bucketSource,
           Key: params.idDocument,
-        },
-        (err, data) => {
-          if (err) throw err;
-          const buff = new Buffer.from(data.Body, "binary");
-          res.writeHead(200, {
-            "Content-Type":
-              "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-            "Content-Length": buff.length,
-          });
-          res.end(buff);
-        }
-      );
-    } catch (error) {}
+        })
+        .promise();
+
+      const buff = new Buffer.from(file.Body, "binary");
+      res.writeHead(200, {
+        "Content-Type":
+          "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        "Content-Length": buff.length,
+      });
+      res.end(buff);
+    } catch (error) {
+      res.status(400).send({ error: "no file attachment" });
+    }
   },
   viewThumbnail: async (req, res) => {
     // const fileType = "jpg";
@@ -185,17 +381,19 @@ const ControllerTest = {
     const name = params.name;
     const extension = params.extension;
     const bucketSource = params.bucketSource.toLowerCase();
-    s3.getObject(
-      {
-        Bucket: bucketSource,
-        Key: params.idDocument,
-      },
-      (err, data) => {
-        const buff = new Buffer.from(data.Body, "binary");
-        res.attachment(`${name}.${extension}`);
-        res.send(buff);
-      }
-    );
+    try {
+      const file = await s3
+        .getObject({
+          Bucket: bucketSource,
+          Key: params.idDocument,
+        })
+        .promise();
+      const buff = new Buffer.from(file.Body, "binary");
+      res.attachment(`${name}.${extension}`);
+      res.send(buff);
+    } catch (error) {
+      res.status(400).send({ error: "no file attachment" });
+    }
   },
   testStripe: async (req, res) => {
     try {
@@ -406,22 +604,148 @@ const ControllerTest = {
   },
   matiWebhookHomify: async (req, res) => {
     try {
-      await rp({
-        url: GLOBAL_CONSTANTS.URL_SLACK_MESSAGE,
-        method: "POST",
-        headers: {
-          encoding: "UTF-8",
-          "Content-Type": "application/json",
-        },
-        json: true,
-        body: {
-          text: `${JSON.stringify(req.body, null, 2)}`,
-        },
-        rejectUnauthorized: false,
-      });
+      // await rp({
+      //   url: GLOBAL_CONSTANTS.URL_SLACK_MESSAGE,
+      //   method: "POST",
+      //   headers: {
+      //     encoding: "UTF-8",
+      //     "Content-Type": "application/json",
+      //   },
+      //   json: true,
+      //   body: {
+      //     text: `${JSON.stringify(req.body, null, 2)}`,
+      //   },
+      //   rejectUnauthorized: false,
+      // });
+      executeMatiWebHook(req, res);
       res.status(200).send({ message: "ok" });
     } catch (error) {
       res.status(500).send({ error: `${error}` });
+    }
+  },
+  getPropertiesOfEasyBroker: async (req, res) => {
+    const params = req.body;
+
+    try {
+      let url =
+        "https://api.easybroker.com/v1/properties?search[statuses][]=published";
+
+      const response = await rp({
+        url,
+        method: "GET",
+        headers: {
+          encoding: "UTF-8",
+          "Content-Type": "application/json",
+          "X-Authorization": params.key,
+        },
+        json: true,
+        rejectUnauthorized: false,
+      });
+      if (
+        isEmpty(response) === false &&
+        isNil(response.pagination) === false &&
+        isEmpty(response.pagination) === false
+      ) {
+        let nextPage = url;
+        while (isNil(nextPage) === false) {
+          let responseWhile = await rp({
+            url: nextPage,
+            method: "GET",
+            headers: {
+              encoding: "UTF-8",
+              "Content-Type": "application/json",
+              "X-Authorization": params.key,
+            },
+            json: true,
+            rejectUnauthorized: false,
+          });
+          if (
+            isEmpty(responseWhile) === false &&
+            isNil(responseWhile.content) === false &&
+            isEmpty(responseWhile.content) === false
+          ) {
+            let resultContentWhile = responseWhile.content;
+            for (const element of resultContentWhile) {
+              try {
+                await getPropertiesOfEasyBrokerId({
+                  id: element.public_id,
+                  key: params.key,
+                  idCustomer: params.idCustomer,
+                });
+              } catch (error) {
+                executeSlackLogCatchBackend({
+                  storeProcedure: "customerSch.USPimportProperty",
+                  error: error,
+                });
+              }
+            }
+          }
+          nextPage = responseWhile.pagination.next_page;
+        }
+      }
+
+      res.status(200).send({ message: "finish" });
+    } catch (error) {
+      res.status(500).send({ message: "error", error: JSON.stringify(error) });
+    }
+  },
+  getPropertiesOfEasyBrokerId: async (req, res) => {
+    const params = req.body;
+    const { idCustomer, id, key, offset = GLOBAL_CONSTANTS.OFFSET } = params;
+
+    try {
+      const pool = await sql.connect();
+      let responseProperty = await rp({
+        url: `https://api.easybroker.com/v1/properties/${id}`,
+        method: "GET",
+        headers: {
+          encoding: "UTF-8",
+          "Content-Type": "application/json",
+          "X-Authorization": key,
+        },
+        json: true,
+        rejectUnauthorized: false,
+      });
+
+      const location =
+        isNil(responseProperty) === false &&
+        isEmpty(responseProperty) === false &&
+        isNil(responseProperty.location) === false &&
+        isEmpty(responseProperty.location) === false
+          ? responseProperty.location
+          : {};
+      let zipCode = null;
+      // console.log("result1", JSON.stringify(location, null, 2));
+
+      if (isEmpty(location) === false && isNil(location.latitude) === false) {
+        zipCode = location.postal_code;
+        if (isEmpty(zipCode) === true) {
+          zipCode = await executeGetZipCodeGoogle(location);
+        }
+      }
+      const result = await pool
+        .request()
+        .input("p_uidIdCustomer", sql.NVarChar, idCustomer)
+        .input("p_nvcZipCode", sql.NVarChar, zipCode)
+        .input(
+          "p_nvcResponseBody",
+          sql.NVarChar,
+          JSON.stringify(responseProperty)
+        )
+        .input("p_chrOffset", sql.Char, offset)
+        .execute("customerSch.USPimportProperty");
+      const recordset1 = result.recordsets[0][0];
+      const recordset2 = result.recordsets[1];
+      if (recordset1.stateCode === 200) {
+        await executeUploadFiles(recordset2);
+      } else {
+        throw "Base de datos rechazó la subida";
+      }
+
+      res.status(200).send({ message: "ok" });
+    } catch (error) {
+      console.log("error", error);
+      res.status(200).send({ message: "error", error: JSON.stringify(error) });
     }
   },
 };

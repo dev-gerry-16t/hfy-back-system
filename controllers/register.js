@@ -4,6 +4,7 @@ const rp = require("request-promise");
 const ERROR_SQL = require("../constants/errors");
 const executeMailToV2 = require("../actions/sendInformationUser");
 const GLOBAL_CONSTANTS = require("../constants/constants");
+const executeSlackLogCatchBackend = require("../actions/slackLogCatchBackend");
 
 const executeRegister = async (params, res) => {
   const { email, password, name, surname } = params;
@@ -155,6 +156,7 @@ const executeRequestSignUpPSU = async (param, res, ip) => {
     offset = process.env.OFFSET,
     idInvitation = null,
     hasAcceptedTC = 1,
+    idCountryNationality = null,
     captchaToken,
   } = param;
   try {
@@ -185,12 +187,17 @@ const executeRequestSignUpPSU = async (param, res, ip) => {
     request.input("p_bitHasAcceptedTC", sql.Bit, hasAcceptedTC);
     request.input("p_nvcIdInvitation", sql.NVarChar, idInvitation);
     request.input("p_nvcRequestedFromIP", sql.NVarChar, ip);
+    request.input("p_intIdCountryNationality", sql.Int, idCountryNationality);
     request.execute("authSch.USPrequestSignUp", async (err, result, value) => {
       if (err) {
         res.status(500).send({});
       } else {
         const resultRecordset = result.recordset[0];
         if (resultRecordset.stateCode !== 200) {
+          executeSlackLogCatchBackend({
+            storeProcedure: "authSch.USPrequestSignUp",
+            error: resultRecordset.errorMessage,
+          });
           res.status(resultRecordset.stateCode).send({
             response: {
               message: resultRecordset.message,
@@ -243,14 +250,12 @@ const executeRequestSignUpVCFSU = async (param, res) => {
       } else {
         const resultRecordset = result.recordset[0];
         if (resultRecordset.stateCode !== 200) {
-          res
-            .status(resultRecordset.stateCode)
-            .send({
-              response: {
-                message: resultRecordset.message,
-                idRequestSignUp: resultRecordset.idRequestSignUp,
-              },
-            });
+          res.status(resultRecordset.stateCode).send({
+            response: {
+              message: resultRecordset.message,
+              idRequestSignUp: resultRecordset.idRequestSignUp,
+            },
+          });
         } else {
           result.recordset.forEach((element) => {
             if (element.canSendEmail === true) {

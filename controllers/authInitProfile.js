@@ -1,4 +1,11 @@
 const sql = require("mssql");
+const AWS = require("aws-sdk");
+const GLOBAL_CONSTANTS = require("../constants/constants");
+const isNil = require("lodash/isNil");
+const s3 = new AWS.S3({
+  accessKeyId: GLOBAL_CONSTANTS.ACCESS_KEY_ID,
+  secretAccessKey: GLOBAL_CONSTANTS.SECRET_ACCESS_KEY,
+});
 
 const executeUserProfile = async (params, res) => {
   const { idSystemUser, token, offset = process.env.OFFSET } = params;
@@ -45,39 +52,78 @@ const executeMenuUserProfile = async (params, res) => {
   }
 };
 
-const executeSetUserProfile = async (params, res, url) => {
+const executeSetUserProfile = async (params, res, url, file) => {
   const {
     idCustomer,
     idLoginHistory,
     documentName,
-    extension,
+    extension = null,
     preview,
     thumbnail,
     offset = process.env.OFFSET,
+    idDocument = null,
+    bucketSource = null,
   } = params;
   const { idSystemUser } = url;
+  const fileName = documentName.split(".");
+  const fileType = fileName[fileName.length - 1];
   try {
     const request = new sql.Request();
     request.input("p_nvcIdCustomer", sql.NVarChar, idCustomer);
     request.input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser);
     request.input("p_nvcIdLoginHistory", sql.NVarChar, idLoginHistory);
     request.input("p_nvcDocumentName", sql.NVarChar, documentName);
-    request.input("p_nvcExtension", sql.NVarChar, extension);
+    request.input("p_nvcExtension", sql.NVarChar, fileType);
     request.input("p_nvcPreview", sql.NVarChar, preview);
     request.input("p_nvcThumbnail", sql.NVarChar, thumbnail);
     request.input("p_chrOffset", sql.Char, offset);
-    request.execute("authSch.USPsetUserProfile", (err, result) => {
+    request.execute("authSch.USPsetUserProfile", async (err, result) => {
       if (err) {
         res.status(500).send({ response: "Error en los parametros" });
       } else {
         const resultRecordset = result.recordset;
-        res.status(200).send({
-          response: resultRecordset,
-        });
+        if (resultRecordset[0].stateCode !== 200) {
+          res.status(resultRecordset[0].stateCode).send({
+            response: resultRecordset[0],
+          });
+        } else {
+          const newBucketSorce =
+            isNil(resultRecordset[0]) === false &&
+            isNil(resultRecordset[0].bucketSource) === false
+              ? resultRecordset[0].bucketSource.toLowerCase()
+              : bucket.toLowerCase();
+          const newIdDocument = resultRecordset[0].idDocument;
+          const params = {
+            Bucket: newBucketSorce,
+            Key: newIdDocument,
+            Body: file.buffer,
+          };
+          await s3.upload(params).promise();
+          if (
+            isNil(idDocument) === false &&
+            isNil(bucketSource) === false &&
+            resultRecordset[0].canBeDeleted === true
+          ) {
+            const params1 = {
+              Bucket: bucketSource,
+              Key: idDocument,
+            };
+            await s3.deleteObject(params1).promise();
+          }
+          res.status(200).send({
+            response: {
+              message: resultRecordset[0].message,
+              idDocument: newIdDocument,
+              bucketSource: newBucketSorce,
+            },
+          });
+        }
       }
     });
   } catch (err) {
-    console.log("ERROR", err);
+    res.status(500).send({
+      response: { message: "Error en el sistema" },
+    });
     // ... error checks
   }
 };
@@ -119,9 +165,10 @@ const ControllerAuth = {
     executeMenuUserProfile(params, res);
   },
   setUserProfile: (req, res) => {
-    const params = req.body;
+    const params = JSON.parse(req.body.fileProperties);
+    const fileParams = req.file;
     const url = req.params;
-    executeSetUserProfile(params, res, url);
+    executeSetUserProfile(params, res, url, fileParams);
   },
   setUserProfileTheme: (req, res) => {
     const params = req.body;

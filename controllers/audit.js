@@ -12,6 +12,7 @@ const executeGetAudit = async (params, res) => {
     topIndex,
     offset = process.env.OFFSET,
     type,
+    idLandingProspect = null,
   } = params;
   try {
     const request = new sql.Request();
@@ -28,6 +29,7 @@ const executeGetAudit = async (params, res) => {
     request.input("p_intTopIndex", sql.Int, topIndex);
     request.input("p_chrOffset", sql.Char, offset);
     request.input("p_intType", sql.Int, type);
+    request.input("p_uidIdLandingProspect", sql.NVarChar, idLandingProspect);
     request.execute("auditSch.USPgetAudit", (err, result) => {
       if (err) {
         res.status(500).send({ response: "Error en los parametros" });

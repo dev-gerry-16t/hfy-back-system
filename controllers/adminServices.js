@@ -660,10 +660,10 @@ const executeGetContractProperties = async (params, callback) => {
           callback(err, null);
         } else {
           let resultRecordset = [];
-          if (type !== 4) {
-            resultRecordset = result.recordset;
-          } else {
+          if (type === 4 || type === 5) {
             resultRecordset = result.recordsets[1];
+          } else {
+            resultRecordset = result.recordset;
           }
           callback(null, resultRecordset);
         }
@@ -699,10 +699,10 @@ const executeGetContractPropertiesv2 = async (params) => {
       .input("p_intType", sql.Int, type)
       .execute("customerSch.USPgetDigitalContractProperties");
     let resultRecordset = [];
-    if (type !== 4) {
-      resultRecordset = result.recordset;
-    } else {
+    if (type === 4 || type === 5) {
       resultRecordset = result.recordsets[1];
+    } else {
+      resultRecordset = result.recordset;
     }
     return resultRecordset;
   } catch (err) {
@@ -734,10 +734,10 @@ const executeGetContractPropertiesv3 = async (params) => {
       .input("p_intType", sql.Int, type)
       .execute("customerSch.USPgetDigitalContractProperties");
     let resultRecordset = [];
-    if (type !== 4) {
-      resultRecordset = result.recordset;
-    } else {
+    if (type === 4 || type === 5) {
       resultRecordset = result.recordsets[1];
+    } else {
+      resultRecordset = result.recordset;
     }
     return resultRecordset;
   } catch (err) {
@@ -914,13 +914,13 @@ const processFileToUpload = async (resultObject, params, res) => {
                   if (error) {
                     throw error;
                   } else {
-                    if (params.type !== 4) {
-                      objectParams =
-                        isNil(result[0]) === false ? result[0] : {};
-                    } else {
+                    if (params.type === 4 || params.type === 5) {
                       objectParams = {
                         payments: isNil(result) === false ? result : [],
                       };
+                    } else {
+                      objectParams =
+                        isNil(result[0]) === false ? result[0] : {};
                     }
                     await executeAddDocument(
                       resultObject,
@@ -1153,15 +1153,15 @@ const executeGetContractV2 = async (params, res) => {
 
         //Cuando el documento es un pagare viene en el set 2 del sp y su id es 4
         let objectParams = {};
-        if (type !== 4) {
-          //Extraemos las variables de reemplazo del set 1 como objeto para pólizas y contratos
-          objectParams =
-            isNil(dataProperties[0]) === false ? dataProperties[0] : {};
-        } else {
+        if (type === 4 || type === 5) {
           //Extraemos las variables de reemplazo del set 2 como array para el pagaré
           objectParams = {
             payments: isNil(dataProperties) === false ? dataProperties : [],
           };
+        } else {
+          //Extraemos las variables de reemplazo del set 1 como objeto para pólizas y contratos
+          objectParams =
+            isNil(dataProperties[0]) === false ? dataProperties[0] : {};
         }
 
         //Ejecutamos el USPaddDocument para saber en donde  y con que nombre guardar el nuevo documento a ser reemplazado por las variables
@@ -1582,7 +1582,6 @@ const executeGetRequestAdvancePymtPlan = async (params) => {
         stripeAccount: generalData.idConnectAccount,
       }
     );
-    console.log("subscription", subscription);
   } catch (err) {
     res.status(500).send({
       response: { message: "Error en los parametros", messageType: err },
@@ -1942,6 +1941,7 @@ const executeSetPersonalReferenceForm = async (params, res, url) => {
     idSystemUser,
     idLoginHistory,
     offset = GLOBAL_CONSTANTS.OFFSET,
+    idInvestigationProcess,
   } = params;
   const { idPersonalReference } = url;
   try {
@@ -1965,6 +1965,11 @@ const executeSetPersonalReferenceForm = async (params, res, url) => {
     request.input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser);
     request.input("p_nvcIdLoginHistory", sql.NVarChar, idLoginHistory);
     request.input("p_chrOffset", sql.Char, offset);
+    request.input(
+      "p_uidIdInvestigationProcess",
+      sql.NVarChar,
+      idInvestigationProcess
+    );
     request.execute(
       "customerSch.USPsetPersonalReferenceForm",
       (err, result) => {
