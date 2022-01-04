@@ -34,10 +34,9 @@ const { getTestMail } = require("./audit");
 const executeSlackLogCatchBackend = require("../actions/slackLogCatchBackend");
 
 const executeGetZipCodeGoogle = async (location) => {
-  let zipCode = null;
   try {
     const responseMaps = await rp({
-      url: `https://maps.googleapis.com/maps/api/geocode/json?&latlng=${location.latitude},${location.longitude}&location_type=ROOFTOP&key=AIzaSyBwWOmV2W9QVm7lN3EBK4wCysj2sLzPhiQ`,
+      url: `https://maps.googleapis.com/maps/api/geocode/json?&latlng=${location.latitude},${location.longitude}&key=AIzaSyBwWOmV2W9QVm7lN3EBK4wCysj2sLzPhiQ`,
       method: "GET",
       headers: {
         encoding: "UTF-8",
@@ -46,17 +45,27 @@ const executeGetZipCodeGoogle = async (location) => {
       json: true,
       rejectUnauthorized: false,
     });
-    if (
-      isNil(responseMaps.results[0]) === false &&
-      isEmpty(responseMaps.results[0].address_components) === false
-    ) {
-      const responseCode =
-        await responseMaps.results[0].address_components.find((row) => {
+    const responseResult = responseMaps.results;
+    let arrayGetZipCode = null;
+    if (isEmpty(responseResult) === false) {
+      for (const iterator of responseResult) {
+        const addressComponent =
+          isNil(iterator["address_components"]) === false
+            ? iterator["address_components"]
+            : [];
+        const filterZipCode = addressComponent.find((row) => {
           return isNil(row.types[0]) === false && row.types[0] == "postal_code";
         });
-      zipCode = isNil(responseCode) === false ? responseCode.short_name : null;
+        if (
+          isNil(filterZipCode) === false &&
+          isEmpty(filterZipCode) === false
+        ) {
+          arrayGetZipCode = filterZipCode.short_name;
+          break;
+        }
+      }
     }
-    return zipCode;
+    return arrayGetZipCode;
   } catch (error) {
     throw error;
   }
@@ -723,6 +732,7 @@ const ControllerTest = {
           zipCode = await executeGetZipCodeGoogle(location);
         }
       }
+
       const result = await pool
         .request()
         .input("p_uidIdCustomer", sql.NVarChar, idCustomer)
