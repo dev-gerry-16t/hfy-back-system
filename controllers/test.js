@@ -46,6 +46,7 @@ const executeGetZipCodeGoogle = async (location) => {
       rejectUnauthorized: false,
     });
     const responseResult = responseMaps.results;
+
     let arrayGetZipCode = null;
     if (isEmpty(responseResult) === false) {
       for (const iterator of responseResult) {
@@ -682,10 +683,10 @@ const ControllerTest = {
                   idCustomer: params.idCustomer,
                 });
               } catch (error) {
-                executeSlackLogCatchBackend({
-                  storeProcedure: "customerSch.USPimportProperty",
-                  error: error,
-                });
+                // executeSlackLogCatchBackend({
+                //   storeProcedure: "customerSch.USPimportProperty",
+                //   error: error,
+                // });
               }
             }
           }
@@ -715,7 +716,6 @@ const ControllerTest = {
         json: true,
         rejectUnauthorized: false,
       });
-
       const location =
         isNil(responseProperty) === false &&
         isEmpty(responseProperty) === false &&
@@ -732,7 +732,6 @@ const ControllerTest = {
           zipCode = await executeGetZipCodeGoogle(location);
         }
       }
-
       const result = await pool
         .request()
         .input("p_uidIdCustomer", sql.NVarChar, idCustomer)
