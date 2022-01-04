@@ -732,25 +732,25 @@ const ControllerTest = {
           zipCode = await executeGetZipCodeGoogle(location);
         }
       }
-      console.log('zipCode',zipCode);
-      // const result = await pool
-      //   .request()
-      //   .input("p_uidIdCustomer", sql.NVarChar, idCustomer)
-      //   .input("p_nvcZipCode", sql.NVarChar, zipCode)
-      //   .input(
-      //     "p_nvcResponseBody",
-      //     sql.NVarChar,
-      //     JSON.stringify(responseProperty)
-      //   )
-      //   .input("p_chrOffset", sql.Char, offset)
-      //   .execute("customerSch.USPimportProperty");
-      // const recordset1 = result.recordsets[0][0];
-      // const recordset2 = result.recordsets[1];
-      // if (recordset1.stateCode === 200) {
-      //   await executeUploadFiles(recordset2);
-      // } else {
-      //   throw "Base de datos rechazó la subida";
-      // }
+
+      const result = await pool
+        .request()
+        .input("p_uidIdCustomer", sql.NVarChar, idCustomer)
+        .input("p_nvcZipCode", sql.NVarChar, zipCode)
+        .input(
+          "p_nvcResponseBody",
+          sql.NVarChar,
+          JSON.stringify(responseProperty)
+        )
+        .input("p_chrOffset", sql.Char, offset)
+        .execute("customerSch.USPimportProperty");
+      const recordset1 = result.recordsets[0][0];
+      const recordset2 = result.recordsets[1];
+      if (recordset1.stateCode === 200) {
+        await executeUploadFiles(recordset2);
+      } else {
+        throw "Base de datos rechazó la subida";
+      }
 
       res.status(200).send({ message: "ok" });
     } catch (error) {
