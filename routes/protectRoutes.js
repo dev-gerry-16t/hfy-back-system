@@ -304,6 +304,7 @@ router.post(
   ControllerCatalogs.getAllApplicationMethods
 );
 router.post("/catalogs/getAllProperties", ControllerCatalogs.getAllProperties);
+router.post("/catalogs/getAllCurrencies", ControllerCatalogs.getAllCurrencies);
 //Catalogos//
 
 //Admin//

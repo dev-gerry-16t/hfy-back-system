@@ -18,7 +18,7 @@ const executeSlackLogCatchBackend = async (params) => {
         USP: ${storeProcedure}
         Error:
 
-        ${error}
+        ${typeof error == "object" ? JSON.stringify(error, null, 2) : error}
                   `,
       },
       rejectUnauthorized: false,
