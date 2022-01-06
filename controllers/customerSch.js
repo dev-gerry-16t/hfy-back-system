@@ -68,7 +68,7 @@ const imageOpts = {
 
 const executeGetCustomerTimeLine = async (params, res) => {
   const {
-    idCustomer,
+    idCustomer = null,
     idProperty = null,
     idApartment = null,
     idSystemUser,
@@ -77,11 +77,7 @@ const executeGetCustomerTimeLine = async (params, res) => {
   } = params;
   const storeProcedure = "customerSch.USPgetCustomerTimeLine";
   try {
-    if (
-      isNil(idCustomer) === true ||
-      isNil(idSystemUser) === true ||
-      isNil(idLoginHistory) === true
-    ) {
+    if (isNil(idSystemUser) === true || isNil(idLoginHistory) === true) {
       res.status(400).send({
         response: {
           message: "Error en los parametros de entrada",
