@@ -197,10 +197,16 @@ const executeGetAllPolicies = async (params, res) => {
     idLoginHistory,
     type,
     idProspectType = null,
+    idProperty = null,
+    idApartment = null,
+    idCurrency = null,
   } = params;
   try {
     const request = new sql.Request();
     request.input("p_nvcIdCustomer", sql.NVarChar, idCustomer);
+    request.input("p_uidIdProperty", sql.NVarChar, idProperty);
+    request.input("p_uidIdApartment", sql.NVarChar, idApartment);
+    request.input("p_uidIdCurrency", sql.NVarChar, idCurrency);
     request.input("p_nvcIdCustomerTenant", sql.NVarChar, idCustomerTenant);
     request.input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser);
     request.input("p_nvcIdLoginHistory", sql.NVarChar, idLoginHistory);
@@ -976,6 +982,28 @@ const executeGetAllProperties = async (params, res) => {
   } catch (error) {}
 };
 
+const executeGetAllCurrencies = async (params, res) => {
+  const { idProperty = null, type, idSystemUser, idLoginHistory } = params;
+  try {
+    const request = new sql.Request();
+    request.input("p_uidIdProperty", sql.NVarChar, idProperty);
+    request.input("p_uidIdSystemUser", sql.NVarChar, idSystemUser);
+    request.input("p_uidIdLoginHistory", sql.NVarChar, idLoginHistory);
+    request.input("p_intType", sql.Int, type);
+    request.execute("catPaymentSch.USPgetAllCurrencies", (err, result) => {
+      if (err) {
+        console.log('err',err);
+        res.status(500).send({ response: "Error en los parametros" });
+      } else {
+        const resultRecordset = result.recordset;
+        res.status(200).send({
+          response: resultRecordset,
+        });
+      }
+    });
+  } catch (error) {}
+};
+
 const ControllerCatalogs = {
   getAllMaritalStatus: (req, res) => {
     const params = req.body;
@@ -1133,6 +1161,10 @@ const ControllerCatalogs = {
   getAllProperties: (req, res) => {
     const params = req.body;
     executeGetAllProperties(params, res);
+  },
+  getAllCurrencies: (req, res) => {
+    const params = req.body;
+    executeGetAllCurrencies(params, res);
   },
 };
 

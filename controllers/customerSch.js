@@ -6,6 +6,7 @@ const PizZip = require("pizzip");
 const GLOBAL_CONSTANTS = require("../constants/constants");
 const isNil = require("lodash/isNil");
 const isEmpty = require("lodash/isEmpty");
+const isString = require("lodash/isString");
 const executeSlackLogCatchBackend = require("../actions/slackLogCatchBackend");
 const executeMailTo = require("../actions/sendInformationUser");
 const replaceConditionsDocx = require("../actions/conditions");
@@ -25,6 +26,14 @@ const parseDateOfBorth = (date) => {
     day = date.getUTCDate();
   }
   return { year, month, day };
+};
+
+const parseEmptyInt = (param) => {
+  let dataIn = param;
+  if (isString(param) === true && isEmpty(param) === true) {
+    dataIn = -1;
+  }
+  return dataIn;
 };
 
 const base64DataURLToArrayBuffer = (dataURL) => {
@@ -1849,12 +1858,12 @@ const executeAddPropertyV2 = async (params, res, url) => {
         .input(
           "p_decTotalSquareMetersBuilt",
           sql.Decimal(19, 2),
-          totalSquareMetersBuilt
+          parseEmptyInt(totalSquareMetersBuilt)
         )
         .input(
           "p_decTotalSquareMetersLand",
           sql.Decimal(19, 2),
-          totalSquareMetersLand
+          parseEmptyInt(totalSquareMetersLand)
         )
         .input("p_vchTotalFloors", sql.VarChar, totalFloors)
         .input("p_vchFloorDescription", sql.VarChar, floorDescription)
@@ -2121,12 +2130,12 @@ const executeUpdateProperty = async (params, res, url) => {
         .input(
           "p_decTotalSquareMetersBuilt",
           sql.Decimal(19, 2),
-          totalSquareMetersBuilt
+          parseEmptyInt(totalSquareMetersBuilt)
         )
         .input(
           "p_decTotalSquareMetersLand",
           sql.Decimal(19, 2),
-          totalSquareMetersLand
+          parseEmptyInt(totalSquareMetersLand)
         )
         .input("p_vchTotalFloors", sql.VarChar, totalFloors)
         .input("p_vchFloorDescription", sql.VarChar, floorDescription)
