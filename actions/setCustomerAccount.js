@@ -6,6 +6,7 @@ const executeMailTo = require("./sendInformationUser");
 const GLOBAL_CONSTANTS = require("../constants/constants");
 const isNil = require("lodash/isNil");
 const isEmpty = require("lodash/isEmpty");
+const executeSlackLogCatchBackend = require("./slackLogCatchBackend");
 const s3 = new AWS.S3({
   accessKeyId: GLOBAL_CONSTANTS.ACCESS_KEY_ID,
   secretAccessKey: GLOBAL_CONSTANTS.SECRET_ACCESS_KEY,
@@ -391,22 +392,11 @@ const executeMatiWebHook = async (req, res) => {
       }
     }
   } catch (err) {
-    await rp({
-      url: GLOBAL_CONSTANTS.URL_SLACK_MESSAGE,
-      method: "POST",
-      headers: {
-        encoding: "UTF-8",
-        "Content-Type": "application/json",
-      },
-      json: true,
-      body: {
-        text: `
-        matiSch.USPsetMatiWebHook:
-      ${err}
-      `,
-      },
-      rejectUnauthorized: false,
+    executeSlackLogCatchBackend({
+      storeProcedure: "matiSch.USPsetMatiWebHook",
+      error: err,
     });
+    throw err;
   }
 };
 
