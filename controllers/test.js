@@ -98,7 +98,13 @@ const executeUploadFiles = async (arrayImages) => {
 };
 
 const getPropertiesOfEasyBrokerId = async (params) => {
-  const { idCustomer, id, key, offset = GLOBAL_CONSTANTS.OFFSET } = params;
+  const {
+    urlThumb,
+    idCustomer,
+    id,
+    key,
+    offset = GLOBAL_CONSTANTS.OFFSET,
+  } = params;
 
   try {
     const pool = await sql.connect();
@@ -132,6 +138,7 @@ const getPropertiesOfEasyBrokerId = async (params) => {
       .request()
       .input("p_uidIdCustomer", sql.NVarChar, idCustomer)
       .input("p_nvcZipCode", sql.NVarChar, zipCode)
+      .input("p_nvcTitle_image_thumb", sql.NVarChar, urlThumb)
       .input(
         "p_nvcResponseBody",
         sql.NVarChar,
@@ -681,15 +688,18 @@ const ControllerTest = {
                   id: element.public_id,
                   key: params.key,
                   idCustomer: params.idCustomer,
+                  urlThumb: element.title_image_thumb,
                 });
               } catch (error) {
-                // executeSlackLogCatchBackend({
-                //   storeProcedure: "customerSch.USPimportProperty",
-                //   error: error,
-                // });
+                console.log("error", error);
+                executeSlackLogCatchBackend({
+                  storeProcedure: "customerSch.USPimportProperty",
+                  error: error,
+                });
               }
             }
           }
+
           nextPage = responseWhile.pagination.next_page;
         }
       }
@@ -701,7 +711,13 @@ const ControllerTest = {
   },
   getPropertiesOfEasyBrokerId: async (req, res) => {
     const params = req.body;
-    const { idCustomer, id, key, offset = GLOBAL_CONSTANTS.OFFSET } = params;
+    const {
+      idCustomer,
+      id,
+      key,
+      offset = GLOBAL_CONSTANTS.OFFSET,
+      urlThumb = null,
+    } = params;
 
     try {
       const pool = await sql.connect();
@@ -736,6 +752,7 @@ const ControllerTest = {
         .request()
         .input("p_uidIdCustomer", sql.NVarChar, idCustomer)
         .input("p_nvcZipCode", sql.NVarChar, zipCode)
+        .input("p_nvcTitle_image_thumb", sql.NVarChar, urlThumb)
         .input(
           "p_nvcResponseBody",
           sql.NVarChar,

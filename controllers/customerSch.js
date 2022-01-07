@@ -1982,6 +1982,17 @@ const executeSetPropertyDocument = async (params, res, url) => {
             Key: resultRecordsetObject.idDocument,
           };
           await s3.deleteObject(params1).promise();
+          const parseDocument = JSON.parse(jsonDocument);
+          const findIsMain = parseDocument.find((fd) => {
+            return fd.isMain === true;
+          });
+          if (isNil(findIsMain) === false && findIsMain.isMain === true) {
+            const paramsThumb = {
+              Bucket: resultRecordsetObject.bucketSource,
+              Key: resultRecordsetObject.idDocument + "_thumb",
+            };
+            await s3.deleteObject(paramsThumb).promise();
+          }
         }
 
         res.status(200).send({
@@ -2182,6 +2193,14 @@ const executeUpdateProperty = async (params, res, url) => {
                 Key: element.idDocument,
               })
               .promise();
+            if (element.isMain === true) {
+              await s3
+                .deleteObject({
+                  Bucket: element.bucketSource,
+                  Key: element.idDocument + "_thumb",
+                })
+                .promise();
+            }
           }
         }
         for (const element of resultRecordset) {
