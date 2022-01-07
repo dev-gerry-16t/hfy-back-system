@@ -691,11 +691,11 @@ const ControllerTest = {
                   urlThumb: element.title_image_thumb,
                 });
               } catch (error) {
-                console.log("error", error);
-                executeSlackLogCatchBackend({
-                  storeProcedure: "customerSch.USPimportProperty",
-                  error: error,
-                });
+                // console.log("error", error);
+                // executeSlackLogCatchBackend({
+                //   storeProcedure: "customerSch.USPimportProperty",
+                //   error: error,
+                // });
               }
             }
           }
