@@ -75,14 +75,27 @@ const executeAddDocument = async (params, res, file) => {
   }
 };
 
+const executeAddDocumentThumb = async (params, res, file) => {
+  const { idDocument, bucketSource } = params;
+  try {
+    const paramsAws = {
+      Bucket: bucketSource,
+      Key: idDocument + "_thumb",
+      Body: file.buffer,
+    };
+    await s3.upload(paramsAws).promise();
+    res.status(200).send({
+      response: "ok",
+    });
+  } catch (err) {
+    console.log("ERROR", err);
+    // ... error checks
+  }
+};
+
 const executeGetAllDocumentTypes = async (params, res) => {
-  const {
-    idCustomer,
-    idCustomerTenant,
-    idSystemUser,
-    idLoginHistory,
-    type,
-  } = params;
+  const { idCustomer, idCustomerTenant, idSystemUser, idLoginHistory, type } =
+    params;
   try {
     const request = new sql.Request();
     request.input("p_nvcIdCustomer", sql.NVarChar, idCustomer);
@@ -223,6 +236,12 @@ const ControllerDocuments = {
     const fileParams = req.file;
     executeAddDocument(params, res, fileParams);
   },
+  addDocumentThumb: (req, res) => {
+    const params = JSON.parse(req.body.fileProperties);
+    const fileParams = req.file;
+    executeAddDocumentThumb(params, res, fileParams);
+  },
+
   getAllDocumentTypes: (req, res) => {
     const params = req.body;
     executeGetAllDocumentTypes(params, res);

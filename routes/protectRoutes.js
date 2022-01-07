@@ -113,6 +113,7 @@ router.post(
 );
 //Documents//
 router.post("/addDocument", ControllerDocuments.addDocument);
+router.post("/addDocumentThumb", ControllerDocuments.addDocumentThumb);
 router.post(
   "/customer/getAllDocumentTypes",
   ControllerDocuments.getAllDocumentTypes
