@@ -3105,7 +3105,13 @@ const executeDeactivateCustomerDocument = async (params, res, url) => {
 };
 
 const executeGetLocationFilter = async (params, res) => {
-  const { value, type, idSystemUser = null, idLoginHistory = null } = params;
+  const {
+    value,
+    type,
+    idSystemUser = null,
+    idLoginHistory = null,
+    idOperationType = null,
+  } = params;
   const storeProcedure = "catCustomerSch.USPgetLocationFilter";
   try {
     if (isNil(value) === true) {
@@ -3119,6 +3125,7 @@ const executeGetLocationFilter = async (params, res) => {
       const result = await pool
         .request()
         .input("p_nvcValue", sql.NVarChar, value)
+        .input("p_intIdOperationType", sql.Int, idOperationType)
         .input("p_intType", sql.Int, type)
         .input("p_uidIdSystemUser", sql.NVarChar, idSystemUser)
         .input("p_uidIdLoginHistory", sql.NVarChar, idLoginHistory)
