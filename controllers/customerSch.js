@@ -3108,7 +3108,7 @@ const executeGetLocationFilter = async (params, res) => {
   const { value, type, idSystemUser = null, idLoginHistory = null } = params;
   const storeProcedure = "catCustomerSch.USPgetLocationFilter";
   try {
-    if (isNil(value) === true || isNil(type) === true) {
+    if (isNil(value) === true) {
       res.status(400).send({
         response: {
           message: "Error en los parametros de entrada",
