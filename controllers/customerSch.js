@@ -313,10 +313,10 @@ const executeUpdateCustomerAccount = async (params, res, url) => {
       const resultRecordset = result.recordset;
       const resultRecordsetObject = result.recordset[0];
       if (resultRecordsetObject.stateCode !== 200) {
-        executeSlackLogCatchBackend({
-          storeProcedure,
-          error: resultRecordsetObject.errorMessage,
-        });
+        //executeSlackLogCatchBackend({
+        // storeProcedure,
+        //error: resultRecordsetObject.errorMessage,
+        // });
         res.status(resultRecordsetObject.stateCode).send({
           response: { message: resultRecordsetObject.message },
         });
@@ -403,10 +403,10 @@ const executeSetCustomerAddress = async (params, res, url) => {
         .execute(storeProcedure);
       const resultRecordsetObject = result.recordset[0];
       if (resultRecordsetObject.stateCode !== 200) {
-        executeSlackLogCatchBackend({
-          storeProcedure,
-          error: resultRecordsetObject.errorMessage,
-        });
+        //executeSlackLogCatchBackend({
+        // storeProcedure,
+        //error: resultRecordsetObject.errorMessage,
+        // });
         res.status(resultRecordsetObject.stateCode).send({
           response: { message: resultRecordsetObject.message },
         });
@@ -470,10 +470,10 @@ const executeSetCustomerBankingAccount = async (params, res, url) => {
         .execute(storeProcedure);
       const resultRecordsetObject = result.recordset[0];
       if (resultRecordsetObject.stateCode !== 200) {
-        executeSlackLogCatchBackend({
-          storeProcedure,
-          error: resultRecordsetObject.errorMessage,
-        });
+        //executeSlackLogCatchBackend({
+        // storeProcedure,
+        //error: resultRecordsetObject.errorMessage,
+        // });
         res.status(resultRecordsetObject.stateCode).send({
           response: { message: resultRecordsetObject.message },
         });
@@ -565,10 +565,10 @@ const executeSetCustomerWorkingInfo = async (params, res, url) => {
         .execute(storeProcedure);
       const resultRecordsetObject = result.recordset[0];
       if (resultRecordsetObject.stateCode !== 200) {
-        executeSlackLogCatchBackend({
-          storeProcedure,
-          error: resultRecordsetObject.errorMessage,
-        });
+        //executeSlackLogCatchBackend({
+        // storeProcedure,
+        //error: resultRecordsetObject.errorMessage,
+        // });
         res.status(resultRecordsetObject.stateCode).send({
           response: { message: resultRecordsetObject.message },
         });
@@ -648,10 +648,10 @@ const executeSetPersonalReference = async (params, res, url) => {
         .execute(storeProcedure);
       const resultRecordsetObject = result.recordset[0];
       if (resultRecordsetObject.stateCode !== 200) {
-        executeSlackLogCatchBackend({
-          storeProcedure,
-          error: resultRecordsetObject.errorMessage,
-        });
+        //executeSlackLogCatchBackend({
+        // storeProcedure,
+        //error: resultRecordsetObject.errorMessage,
+        // });
         res.status(resultRecordsetObject.stateCode).send({
           response: { message: resultRecordsetObject.message },
         });
@@ -714,10 +714,10 @@ const executeAddCustomerDocument = async (params, res, url) => {
         .execute(storeProcedure);
       const resultRecordsetObject = result.recordset[0];
       if (resultRecordsetObject.stateCode !== 200) {
-        executeSlackLogCatchBackend({
-          storeProcedure,
-          error: resultRecordsetObject.errorMessage,
-        });
+        //executeSlackLogCatchBackend({
+        // storeProcedure,
+        //error: resultRecordsetObject.errorMessage,
+        // });
         res.status(resultRecordsetObject.stateCode).send({
           response: { message: resultRecordsetObject.message },
         });
@@ -911,10 +911,10 @@ const executeSetCustomerEndorsement = async (params, res, url) => {
         .execute(storeProcedure);
       const resultRecordsetObject = result.recordset[0];
       if (resultRecordsetObject.stateCode !== 200) {
-        executeSlackLogCatchBackend({
-          storeProcedure,
-          error: resultRecordsetObject.errorMessage,
-        });
+        //executeSlackLogCatchBackend({
+        // storeProcedure,
+        //error: resultRecordsetObject.errorMessage,
+        // });
         res.status(resultRecordsetObject.stateCode).send({
           response: { message: resultRecordsetObject.message },
         });
@@ -983,10 +983,10 @@ const executeSetCustomerEmailAddress = async (params, res, url) => {
       const resultRecordset = result.recordset;
       const resultRecordsetObject = result.recordset[0];
       if (resultRecordsetObject.stateCode !== 200) {
-        executeSlackLogCatchBackend({
-          storeProcedure,
-          error: resultRecordsetObject.errorMessage,
-        });
+        //executeSlackLogCatchBackend({
+        // storeProcedure,
+        //error: resultRecordsetObject.errorMessage,
+        // });
         res.status(resultRecordsetObject.stateCode).send({
           response: { message: resultRecordsetObject.message },
         });
@@ -1068,10 +1068,10 @@ const executeSetCustomerPhoneNumber = async (params, res, url) => {
       const resultRecordsetObject = result.recordset[0];
       const resultRecordset = result.recordset;
       if (resultRecordsetObject.stateCode !== 200) {
-        executeSlackLogCatchBackend({
-          storeProcedure,
-          error: resultRecordsetObject.errorMessage,
-        });
+        //executeSlackLogCatchBackend({
+        // storeProcedure,
+        //error: resultRecordsetObject.errorMessage,
+        // });
         res.status(resultRecordsetObject.stateCode).send({
           response: { message: resultRecordsetObject.message },
         });
@@ -1285,10 +1285,10 @@ const executeValidateIdentity = async (params, res, url) => {
       const resultRecordset = result.recordset;
       const resultRecordsetObject = result.recordset[0];
       if (resultRecordsetObject.stateCode !== 200) {
-        executeSlackLogCatchBackend({
-          storeProcedure,
-          error: resultRecordsetObject.errorMessage,
-        });
+        //executeSlackLogCatchBackend({
+        // storeProcedure,
+        //error: resultRecordsetObject.errorMessage,
+        // });
         res.status(resultRecordsetObject.stateCode).send({
           response: { message: resultRecordsetObject.message },
         });
@@ -1705,10 +1705,10 @@ const executeUpdateInvestigationProcess = async (params, res, url) => {
       const resultRecordset = result.recordset;
       const resultRecordsetObject = result.recordset[0];
       if (resultRecordsetObject.stateCode !== 200) {
-        executeSlackLogCatchBackend({
-          storeProcedure,
-          error: resultRecordsetObject.errorMessage,
-        });
+        //executeSlackLogCatchBackend({
+        // storeProcedure,
+        //error: resultRecordsetObject.errorMessage,
+        // });
         res.status(resultRecordsetObject.stateCode).send({
           response: { message: resultRecordsetObject.message },
         });
@@ -1890,10 +1890,10 @@ const executeAddPropertyV2 = async (params, res, url) => {
       const resultRecordset = result.recordset;
       const resultRecordsetObject = result.recordset[0];
       if (resultRecordsetObject.stateCode !== 200) {
-        executeSlackLogCatchBackend({
-          storeProcedure,
-          error: resultRecordsetObject.errorMessage,
-        });
+        //executeSlackLogCatchBackend({
+        // storeProcedure,
+        //error: resultRecordsetObject.errorMessage,
+        // });
         res.status(resultRecordsetObject.stateCode).send({
           response: { message: resultRecordsetObject.message },
         });
@@ -1968,10 +1968,10 @@ const executeSetPropertyDocument = async (params, res, url) => {
       const resultRecordset = result.recordset;
       const resultRecordsetObject = result.recordset[0];
       if (resultRecordsetObject.stateCode !== 200) {
-        executeSlackLogCatchBackend({
-          storeProcedure,
-          error: resultRecordsetObject.errorMessage,
-        });
+        //executeSlackLogCatchBackend({
+        // storeProcedure,
+        //error: resultRecordsetObject.errorMessage,
+        // });
         res.status(resultRecordsetObject.stateCode).send({
           response: { message: resultRecordsetObject.message },
         });
@@ -2177,10 +2177,10 @@ const executeUpdateProperty = async (params, res, url) => {
       const resultRecordset = result.recordset;
       const resultRecordsetObject = result.recordset[0];
       if (resultRecordsetObject.stateCode !== 200) {
-        executeSlackLogCatchBackend({
-          storeProcedure,
-          error: resultRecordsetObject.errorMessage,
-        });
+        //executeSlackLogCatchBackend({
+        // storeProcedure,
+        //error: resultRecordsetObject.errorMessage,
+        // });
         res.status(resultRecordsetObject.stateCode).send({
           response: { message: resultRecordsetObject.message },
         });
@@ -2276,10 +2276,10 @@ const executeSetPropertyAssociation = async (params, res, url) => {
       const resultRecordset = result.recordset;
       const resultRecordsetObject = result.recordset[0];
       if (resultRecordsetObject.stateCode !== 200) {
-        executeSlackLogCatchBackend({
-          storeProcedure,
-          error: resultRecordsetObject.errorMessage,
-        });
+        //executeSlackLogCatchBackend({
+        // storeProcedure,
+        //error: resultRecordsetObject.errorMessage,
+        // });
         res.status(resultRecordsetObject.stateCode).send({
           response: { message: resultRecordsetObject.message },
         });
@@ -2364,10 +2364,10 @@ const executeSetAdviserInProperty = async (params, res, url) => {
       const resultRecordset = result.recordset;
       const resultRecordsetObject = result.recordset[0];
       if (resultRecordsetObject.stateCode !== 200) {
-        executeSlackLogCatchBackend({
-          storeProcedure,
-          error: resultRecordsetObject.errorMessage,
-        });
+        //executeSlackLogCatchBackend({
+        // storeProcedure,
+        //error: resultRecordsetObject.errorMessage,
+        // });
         res.status(resultRecordsetObject.stateCode).send({
           response: { message: resultRecordsetObject.message },
         });
@@ -2445,10 +2445,10 @@ const executeSendTenantInvitation = async (params, res, url) => {
       const resultRecordset = result.recordset;
       const resultRecordsetObject = result.recordset[0];
       if (resultRecordsetObject.stateCode !== 200) {
-        executeSlackLogCatchBackend({
-          storeProcedure,
-          error: resultRecordsetObject.errorMessage,
-        });
+        //executeSlackLogCatchBackend({
+        // storeProcedure,
+        //error: resultRecordsetObject.errorMessage,
+        // });
         res.status(resultRecordsetObject.stateCode).send({
           response: { message: resultRecordsetObject.message },
         });
@@ -2526,10 +2526,10 @@ const executeSetApplicant = async (params, res, url) => {
       const resultRecordset = result.recordset;
       const resultRecordsetObject = result.recordset[0];
       if (resultRecordsetObject.stateCode !== 200) {
-        executeSlackLogCatchBackend({
-          storeProcedure,
-          error: resultRecordsetObject.errorMessage,
-        });
+        //executeSlackLogCatchBackend({
+        // storeProcedure,
+        //error: resultRecordsetObject.errorMessage,
+        // });
         res.status(resultRecordsetObject.stateCode).send({
           response: { message: resultRecordsetObject.message },
         });
@@ -2605,10 +2605,10 @@ const executeApplyToProperty = async (params, res, url) => {
       const resultRecordset = result.recordset;
       const resultRecordsetObject = result.recordset[0];
       if (resultRecordsetObject.stateCode !== 200) {
-        executeSlackLogCatchBackend({
-          storeProcedure,
-          error: resultRecordsetObject.errorMessage,
-        });
+        //executeSlackLogCatchBackend({
+        // storeProcedure,
+        //error: resultRecordsetObject.errorMessage,
+        // });
         res.status(resultRecordsetObject.stateCode).send({
           response: { message: resultRecordsetObject.message },
         });
@@ -2679,10 +2679,10 @@ const executeSetFavoriteProperty = async (params, res, url) => {
         .execute(storeProcedure);
       const resultRecordsetObject = result.recordset[0];
       if (resultRecordsetObject.stateCode !== 200) {
-        executeSlackLogCatchBackend({
-          storeProcedure,
-          error: resultRecordsetObject.errorMessage,
-        });
+        //executeSlackLogCatchBackend({
+        // storeProcedure,
+        //error: resultRecordsetObject.errorMessage,
+        // });
         res.status(resultRecordsetObject.stateCode).send({
           response: { message: resultRecordsetObject.message },
         });
@@ -2765,10 +2765,10 @@ const executeSetContract = async (params, res, url) => {
       const resultRecordset = result.recordset;
       const resultRecordsetObject = result.recordset[0];
       if (resultRecordsetObject.stateCode !== 200) {
-        executeSlackLogCatchBackend({
-          storeProcedure,
-          error: resultRecordsetObject.errorMessage,
-        });
+        //executeSlackLogCatchBackend({
+        // storeProcedure,
+        //error: resultRecordsetObject.errorMessage,
+        // });
         res.status(resultRecordsetObject.stateCode).send({
           response: { message: resultRecordsetObject.message },
         });
@@ -3072,10 +3072,10 @@ const executeDeactivateCustomerDocument = async (params, res, url) => {
       const resultRecordset = result.recordset;
       const resultRecordsetObject = result.recordset[0];
       if (resultRecordsetObject.stateCode !== 200) {
-        executeSlackLogCatchBackend({
-          storeProcedure,
-          error: resultRecordsetObject.errorMessage,
-        });
+        //executeSlackLogCatchBackend({
+        // storeProcedure,
+        //error: resultRecordsetObject.errorMessage,
+        // });
         res.status(resultRecordsetObject.stateCode).send({
           response: { message: resultRecordsetObject.message },
         });
@@ -3183,10 +3183,10 @@ const executeProcessInvitation = async (params, res, url, ip) => {
       const resultRecordset = result.recordset;
       const resultRecordsetObject = result.recordset[0];
       if (resultRecordsetObject.stateCode !== 200) {
-        executeSlackLogCatchBackend({
-          storeProcedure,
-          error: resultRecordsetObject.errorMessage,
-        });
+        //executeSlackLogCatchBackend({
+        // storeProcedure,
+        //error: resultRecordsetObject.errorMessage,
+        // });
         res.status(resultRecordsetObject.stateCode).send({
           response: { message: resultRecordsetObject.message },
         });
@@ -3252,10 +3252,10 @@ const executeSetContractApprovement = async (params, res, url) => {
       const resultRecordset = result.recordset;
       const resultRecordsetObject = result.recordset[0];
       if (resultRecordsetObject.stateCode !== 200) {
-        executeSlackLogCatchBackend({
-          storeProcedure,
-          error: resultRecordsetObject.errorMessage,
-        });
+        //executeSlackLogCatchBackend({
+        // storeProcedure,
+        //error: resultRecordsetObject.errorMessage,
+        // });
         res.status(resultRecordsetObject.stateCode).send({
           response: { message: resultRecordsetObject.message },
         });
