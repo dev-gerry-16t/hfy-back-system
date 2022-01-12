@@ -275,7 +275,6 @@ const ControllerTest = {
         const buff = new Buffer.from(file.Body, "binary");
         res.writeHead(200, {
           "Content-Length": buff.length,
-          "Content-Disposition": "attachment",
         });
         res.end(buff);
       }
