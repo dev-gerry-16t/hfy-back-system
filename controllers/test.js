@@ -337,6 +337,40 @@ const ControllerTest = {
         res.writeHead(200, {
           "Content-Type": headerType,
           "Content-Length": buff.length,
+        });
+        res.end(buff);
+      }
+    } catch (error) {
+      res.status(400).send({ error: "no file attachment" });
+    }
+  },
+  viewFilesTypeDownload: async (req, res) => {
+    try {
+      const params = req.params;
+      if (
+        isNil(params.idDocument) === true ||
+        isNil(params.bucketSource) === true
+      ) {
+        res.send({ error: "No document attachment" });
+      } else {
+        let headerType = "";
+        if (params.type === "docx" || params.type === "pdf") {
+          headerType = `application/${params.type}`;
+        } else {
+          headerType = `image/${params.type}`;
+        }
+        const bucketSource = params.bucketSource.toLowerCase();
+        const file = await s3
+          .getObject({
+            Bucket: bucketSource,
+            Key: params.idDocument,
+          })
+          .promise();
+
+        const buff = new Buffer.from(file.Body, "binary");
+        res.writeHead(200, {
+          "Content-Type": headerType,
+          "Content-Length": buff.length,
           "Content-Disposition": `attachment;filename=Document.${params.type}`,
         });
         res.end(buff);

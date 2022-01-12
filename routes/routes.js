@@ -52,6 +52,10 @@ router.get(
   ControllerTest.viewFilesType
 );
 router.get(
+  "/viewFileDownload/:idDocument/:bucketSource/:type",
+  ControllerTest.viewFilesTypeDownload
+);
+router.get(
   "/viewFilesDocx/:idDocument/:bucketSource",
   ControllerTest.viewFilesDocx
 );
