@@ -347,6 +347,13 @@ const ControllerTest = {
   viewFilesTypeDownload: async (req, res) => {
     try {
       const params = req.params;
+      const queryParams = req.query;
+      const nameFile =
+        isEmpty(queryParams) === false &&
+        isNil(queryParams.name) === false &&
+        isEmpty(queryParams.name) === false
+          ? queryParams.name
+          : "";
       if (
         isNil(params.idDocument) === true ||
         isNil(params.bucketSource) === true
@@ -355,7 +362,10 @@ const ControllerTest = {
       } else {
         let headerType = "";
         if (params.type === "docx" || params.type === "pdf") {
-          headerType = `application/${params.type}`;
+          headerType =
+            params.type === "docx"
+              ? "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+              : `application/${params.type}`;
         } else {
           headerType = `image/${params.type}`;
         }
@@ -371,7 +381,9 @@ const ControllerTest = {
         res.writeHead(200, {
           "Content-Type": headerType,
           "Content-Length": buff.length,
-          "Content-Disposition": `attachment;filename=Document.${params.type}`,
+          "Content-Disposition": `attachment;filename=${
+            isEmpty(nameFile) === false ? nameFile : "Document"
+          }.${params.type}`,
         });
         res.end(buff);
       }
