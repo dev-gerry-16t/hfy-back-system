@@ -395,6 +395,7 @@ const executeMatiWebHook = async (req, res) => {
     executeSlackLogCatchBackend({
       storeProcedure: "matiSch.USPsetMatiWebHook",
       error: err,
+      body: jsonServiceResponse,
     });
     throw err;
   }

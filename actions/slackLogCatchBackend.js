@@ -2,7 +2,7 @@ const rp = require("request-promise");
 const GLOBAL_CONSTANTS = require("../constants/constants");
 
 const executeSlackLogCatchBackend = async (params) => {
-  const { storeProcedure, error } = params;
+  const { storeProcedure, error, body = "" } = params;
   try {
     await rp({
       url: GLOBAL_CONSTANTS.URL_SLACK_MESSAGE,
@@ -16,6 +16,10 @@ const executeSlackLogCatchBackend = async (params) => {
         text: `
         Ambiente: ${GLOBAL_CONSTANTS.APP_ENVIRONMENT}
         USP: ${storeProcedure}
+        ------
+        body: 
+        ${body}
+        ------
         Error:
 
         ${typeof error == "object" ? JSON.stringify(error, null, 2) : error}
