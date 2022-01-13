@@ -514,6 +514,10 @@ const executeSetCustomerWorkingInfo = async (params, res, url) => {
     isCCAccepted = null,
     cCDigitalSignature = null,
     childrenNo = null,
+    hasAdditionalIncomes = null,
+    additionalIncomes = null,
+    idIncomePeriod = null,
+    idIncomeWay = null,
     idSystemUser,
     idLoginHistory,
     offset = GLOBAL_CONSTANTS.OFFSET,
@@ -559,6 +563,14 @@ const executeSetCustomerWorkingInfo = async (params, res, url) => {
         .input("p_nvcNIV", sql.NVarChar, nIV)
         .input("p_bitIsCCAccepted", sql.Bit, isCCAccepted)
         .input("p_vchCCDigitalSignature", sql.VarChar, cCDigitalSignature)
+        .input("p_bitHasAdditionalIncomes", sql.Bit, hasAdditionalIncomes)
+        .input(
+          "p_decHasAdditionalIncomes",
+          sql.Decimal(19, 2),
+          additionalIncomes
+        )
+        .input("p_intIdIncomePeriod", sql.Int, idIncomePeriod)
+        .input("p_intIdIncomeWay", sql.Int, idIncomeWay)
         .input("p_uidIdSystemUser", sql.NVarChar, idSystemUser)
         .input("p_uidIdLoginHistory", sql.NVarChar, idLoginHistory)
         .input("p_chrOffset", sql.Char, offset)
@@ -1150,6 +1162,8 @@ const executeGetCustomerDocument = async (params, res) => {
   const {
     idCustomer,
     identifier,
+    idIncomePeriod = null,
+    idIncomeWay = null,
     idSystemUser,
     idLoginHistory,
     offset = GLOBAL_CONSTANTS.OFFSET,
@@ -1173,6 +1187,8 @@ const executeGetCustomerDocument = async (params, res) => {
         .request()
         .input("p_uidIdCustomer", sql.NVarChar, idCustomer)
         .input("p_intIdentifier", sql.Int, identifier)
+        .input("p_intIdIncomePeriod", sql.Int, idIncomePeriod)
+        .input("p_intIdIncomeWay", sql.Int, idIncomeWay)
         .input("p_uidIdSystemUser", sql.NVarChar, idSystemUser)
         .input("p_uidIdLoginHistory", sql.NVarChar, idLoginHistory)
         .input("p_chrOffset", sql.Char, offset)
