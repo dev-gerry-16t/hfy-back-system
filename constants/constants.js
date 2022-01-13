@@ -1,5 +1,5 @@
 const GLOBAL_CONSTANTS = {
-  VERSION: "v0.0.121",
+  VERSION: "v0.0.122",
   PORT: 3001,
   USER_DATABASE: process.env.DB_USER,
   PASS_DATABASE: process.env.DB_HOMIFY_PASSWORD,
@@ -21,6 +21,7 @@ const GLOBAL_CONSTANTS = {
   APP_ENVIRONMENT: process.env.APP_ENVIRONMENT,
   USER_GET_MATI: process.env.USER_GET_MATI,
   PASS_GET_MATI: process.env.PASS_GET_MATI,
+  MATI_WEBHOOK_SECRET: process.env.MATI_WEBHOOK_SECRET,
 };
 
 module.exports = GLOBAL_CONSTANTS;

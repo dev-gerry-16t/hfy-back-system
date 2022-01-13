@@ -665,25 +665,8 @@ const ControllerTest = {
     }
   },
   matiWebhookHomify: async (req, res) => {
-    try {
-      // await rp({
-      //   url: GLOBAL_CONSTANTS.URL_SLACK_MESSAGE,
-      //   method: "POST",
-      //   headers: {
-      //     encoding: "UTF-8",
-      //     "Content-Type": "application/json",
-      //   },
-      //   json: true,
-      //   body: {
-      //     text: `${JSON.stringify(req.body, null, 2)}`,
-      //   },
-      //   rejectUnauthorized: false,
-      // });
-      executeMatiWebHook(req, res);
-      res.status(200).send({ message: "ok" });
-    } catch (error) {
-      res.status(500).send({ error: `${error}` });
-    }
+    executeMatiWebHook(req);
+    res.status(200).send({ message: "ok" });
   },
   getPropertiesOfEasyBroker: async (req, res) => {
     const params = req.body;
