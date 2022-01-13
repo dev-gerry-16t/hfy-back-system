@@ -12,6 +12,12 @@ const s3 = new AWS.S3({
   secretAccessKey: GLOBAL_CONSTANTS.SECRET_ACCESS_KEY,
 });
 
+const verify = (signature, secret, payloadBody) => {
+  let hash = crypto.createHmac("sha256", secret);
+  hash = hash.update(payloadBody).digest("hex");
+  return hash === signature;
+};
+
 const executeSetCustomerAccount = async (params) => {
   const {
     idContract,
@@ -110,13 +116,6 @@ const executesetConnectAccountWH = async (params) => {
   } catch (error) {
     throw error;
   }
-};
-
-const verify = (signature, secret, payloadBody) => {
-  let hash = crypto.createHmac("sha256", secret);
-  hash = hash.update(payloadBody).digest("hex");
-  console.log("hash2", hash);
-  return hash === signature;
 };
 
 const executeAddCustomerDocument = async (params) => {
@@ -262,134 +261,99 @@ const executeAddDocument = async (params) => {
   }
 };
 
-const executeMatiWebHook = async (req, res) => {
+const executeMatiWebHook = async (req) => {
+  const headers = req.headers;
   const offset = process.env.OFFSET;
   const jsonServiceResponse = JSON.stringify(req.body);
-  const xHeaderAWSKey = "szeePVZO157pgeFML92!|=|";
+  const xHeaderAWSKey = GLOBAL_CONSTANTS.MATI_WEBHOOK_SECRET;
+  const signatureMati = headers["x-signature"];
   let jsonVerificationData = null;
-  // console.log("req.headers", req.headers);
+  const isValidPayload = verify(
+    signatureMati,
+    xHeaderAWSKey,
+    jsonServiceResponse
+  );
 
-  // // Mati hashes your webhook payload
-  // const signature = crypto
-  //   .createHmac("sha256", xHeaderAWSKey)
-  //   .update(JSON.stringify(jsonServiceResponse))
-  //   .digest("hex");
-  // console.log("signature", signature);
-
-  // const isValidPayload = verify(
-  //   signature,
-  //   xHeaderAWSKey,
-  //   JSON.stringify(jsonServiceResponse)
-  // );
-  // console.log(isValidPayload);
-  // await rp({
-  //   url: GLOBAL_CONSTANTS.URL_SLACK_MESSAGE,
-  //   method: "POST",
-  //   headers: {
-  //     encoding: "UTF-8",
-  //     "Content-Type": "application/json",
-  //   },
-  //   json: true,
-  //   body: {
-  //     text: jsonServiceResponse,
-  //   },
-  //   rejectUnauthorized: false,
-  // });
   try {
-    if (
-      req.body.eventName === "verification_updated" ||
-      req.body.eventName === "verification_completed"
-    ) {
-      const response = await rp({
-        url: "https://api.getmati.com/oauth",
-        method: "POST",
-        headers: {
-          encoding: "UTF-8",
-          "Content-Type": "application/x-www-form-urlencoded",
-        },
-        auth: {
-          user: GLOBAL_CONSTANTS.USER_GET_MATI,
-          pass: GLOBAL_CONSTANTS.PASS_GET_MATI,
-        },
-        json: true,
-        body: "grant_type=client_credentials",
-        rejectUnauthorized: false,
-      });
-      const responseResource = await rp({
-        url: req.body.resource,
-        method: "GET",
-        headers: {
-          encoding: "UTF-8",
-        },
-        auth: {
-          bearer: response.access_token,
-        },
-        json: true,
-        rejectUnauthorized: false,
-      });
-      jsonVerificationData = JSON.stringify(responseResource);
-    }
-    // await rp({
-    //   url: GLOBAL_CONSTANTS.URL_SLACK_MESSAGE,
-    //   method: "POST",
-    //   headers: {
-    //     encoding: "UTF-8",
-    //     "Content-Type": "application/json",
-    //   },
-    //   json: true,
-    //   body: {
-    //     text: `
-    //   p_nvcJsonServiceResponse:
-    //   ${jsonServiceResponse}
-
-    //   p_nvcJsonVerificationData:
-    //   ${jsonVerificationData}
-    //   `,
-    //   },
-    //   rejectUnauthorized: false,
-    // });
-    const pool = await sql.connect();
-    const result = await pool
-      .request()
-      .input("p_nvcJsonServiceResponse", sql.NVarChar, jsonServiceResponse)
-      .input("p_nvcJsonVerificationData", sql.NVarChar, jsonVerificationData)
-      .input("p_nvcXHeaderAWSKey", sql.NVarChar, xHeaderAWSKey)
-      .input("p_chrOffset", sql.Char, offset)
-      .execute("matiSch.USPsetMatiWebHook");
-    const resultRecordset = result.recordset;
-    if (resultRecordset[0].stateCode !== 200) {
-      throw resultRecordset[0].errorMessage;
+    if (isValidPayload === true) {
+      if (
+        req.body.eventName === "verification_updated" ||
+        req.body.eventName === "verification_completed"
+      ) {
+        const response = await rp({
+          url: "https://api.getmati.com/oauth",
+          method: "POST",
+          headers: {
+            encoding: "UTF-8",
+            "Content-Type": "application/x-www-form-urlencoded",
+          },
+          auth: {
+            user: GLOBAL_CONSTANTS.USER_GET_MATI,
+            pass: GLOBAL_CONSTANTS.PASS_GET_MATI,
+          },
+          json: true,
+          body: "grant_type=client_credentials",
+          rejectUnauthorized: false,
+        });
+        const responseResource = await rp({
+          url: req.body.resource,
+          method: "GET",
+          headers: {
+            encoding: "UTF-8",
+          },
+          auth: {
+            bearer: response.access_token,
+          },
+          json: true,
+          rejectUnauthorized: false,
+        });
+        jsonVerificationData = JSON.stringify(responseResource);
+      }
+      const pool = await sql.connect();
+      const result = await pool
+        .request()
+        .input("p_nvcJsonServiceResponse", sql.NVarChar, jsonServiceResponse)
+        .input("p_nvcJsonVerificationData", sql.NVarChar, jsonVerificationData)
+        .input("p_nvcXHeaderAWSKey", sql.NVarChar, xHeaderAWSKey)
+        .input("p_chrOffset", sql.Char, offset)
+        .execute("matiSch.USPsetMatiWebHook");
+      const resultRecordset = result.recordset;
+      if (resultRecordset[0].stateCode !== 200) {
+        throw resultRecordset[0].errorMessage;
+      } else {
+        const resultRecordset1 =
+          isNil(result.recordsets[1]) === false ? result.recordsets[1] : [];
+        let uploadMedia;
+        for (const element of resultRecordset) {
+          if (element.canSendEmail === true) {
+            const configEmailServer = JSON.parse(element.jsonEmailServerConfig);
+            await executeMailTo({
+              ...element,
+              ...configEmailServer,
+            });
+          }
+          uploadMedia = element.canUploadMedia;
+        }
+        if (uploadMedia === true) {
+          for (const element of resultRecordset1) {
+            await executeAddDocument({
+              idCustomer: element.idCustomer,
+              idSystemUser: element.idSystemUser,
+              idLoginHistory: null,
+              offset: GLOBAL_CONSTANTS.OFFSET,
+              documentName: null,
+              preview: null,
+              thumbnail: null,
+              idDocumentType: element.idDocumentType,
+              type: element.type,
+              resource: element.resource,
+              idVerificationProcess: element.idVerificationProcess,
+            });
+          }
+        }
+      }
     } else {
-      const resultRecordset1 =
-        isNil(result.recordsets[1]) === false ? result.recordsets[1] : [];
-      let uploadMedia;
-      for (const element of resultRecordset) {
-        if (element.canSendEmail === true) {
-          const configEmailServer = JSON.parse(element.jsonEmailServerConfig);
-          await executeMailTo({
-            ...element,
-            ...configEmailServer,
-          });
-        }
-        uploadMedia = element.canUploadMedia;
-      }
-      if (uploadMedia === true) {
-        for (const element of resultRecordset1) {
-          await executeAddDocument({
-            idCustomer: element.idCustomer,
-            idSystemUser: element.idSystemUser,
-            idLoginHistory: null,
-            offset: GLOBAL_CONSTANTS.OFFSET,
-            documentName: null,
-            preview: null,
-            thumbnail: null,
-            idDocumentType: element.idDocumentType,
-            type: element.type,
-            resource: element.resource,
-            idVerificationProcess: element.idVerificationProcess,
-          });
-        }
-      }
+      throw "Token invalido, el webhook no proviene de nuestros servicios";
     }
   } catch (err) {
     executeSlackLogCatchBackend({
@@ -397,7 +361,6 @@ const executeMatiWebHook = async (req, res) => {
       error: err,
       body: jsonServiceResponse,
     });
-    throw err;
   }
 };
 
