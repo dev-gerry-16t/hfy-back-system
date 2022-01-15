@@ -164,5 +164,9 @@ router.put(
   "/contract/setContractApprovement/:idSystemUser",
   ControllerCustomerSch.setContractApprovement
 );
+router.post(
+  "/customer/getCustomerDetailById",
+  ControllerCustomerSch.getCustomerDetailById
+);
 
 module.exports = router;
