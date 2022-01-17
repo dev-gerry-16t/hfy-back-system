@@ -103,6 +103,7 @@ const executeGetCustomerTimeLine = async (params, res) => {
     executeSlackLogCatchBackend({
       storeProcedure,
       error: err,
+      body: params,
     });
     res.status(500).send({
       response: { message: "Error en el sistema" },
@@ -148,6 +149,7 @@ const executeGetCustomerData = async (params, res) => {
     executeSlackLogCatchBackend({
       storeProcedure,
       error: err,
+      body: params,
     });
     res.status(500).send({
       response: { message: "Error en el sistema" },
@@ -339,6 +341,7 @@ const executeUpdateCustomerAccount = async (params, res, url) => {
     executeSlackLogCatchBackend({
       storeProcedure,
       error: err,
+      body: params,
     });
     res.status(500).send({
       response: { message: "Error en el sistema" },
@@ -420,6 +423,7 @@ const executeSetCustomerAddress = async (params, res, url) => {
     executeSlackLogCatchBackend({
       storeProcedure,
       error: err,
+      body: params,
     });
     res.status(500).send({
       response: { message: "Error en el sistema" },
@@ -487,6 +491,7 @@ const executeSetCustomerBankingAccount = async (params, res, url) => {
     executeSlackLogCatchBackend({
       storeProcedure,
       error: err,
+      body: params,
     });
     res.status(500).send({
       response: { message: "Error en el sistema" },
@@ -594,6 +599,7 @@ const executeSetCustomerWorkingInfo = async (params, res, url) => {
     executeSlackLogCatchBackend({
       storeProcedure,
       error: err,
+      body: params,
     });
     res.status(500).send({
       response: { message: "Error en el sistema" },
@@ -677,6 +683,7 @@ const executeSetPersonalReference = async (params, res, url) => {
     executeSlackLogCatchBackend({
       storeProcedure,
       error: err,
+      body: params,
     });
     res.status(500).send({
       response: { message: "Error en el sistema" },
@@ -743,6 +750,7 @@ const executeAddCustomerDocument = async (params, res, url) => {
     executeSlackLogCatchBackend({
       storeProcedure,
       error: err,
+      body: params,
     });
     res.status(500).send({
       response: { message: "Error en el sistema" },
@@ -940,6 +948,7 @@ const executeSetCustomerEndorsement = async (params, res, url) => {
     executeSlackLogCatchBackend({
       storeProcedure,
       error: err,
+      body: params,
     });
     res.status(500).send({
       response: { message: "Error en el sistema" },
@@ -1021,6 +1030,7 @@ const executeSetCustomerEmailAddress = async (params, res, url) => {
     executeSlackLogCatchBackend({
       storeProcedure,
       error: err,
+      body: params,
     });
     res.status(500).send({
       response: { message: "Error en el sistema" },
@@ -1104,6 +1114,7 @@ const executeSetCustomerPhoneNumber = async (params, res, url) => {
     executeSlackLogCatchBackend({
       storeProcedure,
       error: err,
+      body: params,
     });
     res.status(500).send({
       response: { message: "Error en el sistema" },
@@ -1151,6 +1162,7 @@ const executeValidateCustomerPropertiesInTab = async (params, res) => {
     executeSlackLogCatchBackend({
       storeProcedure,
       error: err,
+      body: params,
     });
     res.status(500).send({
       response: { message: "Error en el sistema" },
@@ -1202,6 +1214,7 @@ const executeGetCustomerDocument = async (params, res) => {
     executeSlackLogCatchBackend({
       storeProcedure,
       error: err,
+      body: params,
     });
     res.status(500).send({
       response: { message: "Error en el sistema" },
@@ -1247,6 +1260,7 @@ const executeGetCustomerTabById = async (params, res) => {
     executeSlackLogCatchBackend({
       storeProcedure,
       error: err,
+      body: params,
     });
     res.status(500).send({
       response: { message: "Error en el sistema" },
@@ -1327,6 +1341,7 @@ const executeValidateIdentity = async (params, res, url) => {
     executeSlackLogCatchBackend({
       storeProcedure,
       error: err,
+      body: params,
     });
     res.status(500).send({
       response: { message: "Error en el sistema" },
@@ -1372,6 +1387,7 @@ const executeGetVerificationIdentityCoincidences = async (params, res) => {
     executeSlackLogCatchBackend({
       storeProcedure,
       error: err,
+      body: params,
     });
     res.status(500).send({
       response: { message: "Error en el sistema" },
@@ -1417,6 +1433,7 @@ const executeGetUserCoincidences = async (params, res) => {
     executeSlackLogCatchBackend({
       storeProcedure,
       error: err,
+      body: params,
     });
     res.status(500).send({
       response: { message: "Error en el sistema" },
@@ -1462,6 +1479,7 @@ const executeGetProspectCoincidences = async (params, res) => {
     executeSlackLogCatchBackend({
       storeProcedure,
       error: err,
+      body: params,
     });
     res.status(500).send({
       response: { message: "Error en el sistema" },
@@ -1511,6 +1529,7 @@ const executeGetVerificationIdentityById = async (params, res) => {
     executeSlackLogCatchBackend({
       storeProcedure,
       error: err,
+      body: params,
     });
     res.status(500).send({
       response: { message: "Error en el sistema" },
@@ -1551,6 +1570,7 @@ const executeGetInvestigationProcessCoincidences = async (params, res) => {
     executeSlackLogCatchBackend({
       storeProcedure,
       error: err,
+      body: params,
     });
     res.status(500).send({
       response: { message: "Error en el sistema" },
@@ -1603,6 +1623,7 @@ const executeGetInvestigationProcessById = async (params, res) => {
     executeSlackLogCatchBackend({
       storeProcedure,
       error: err,
+      body: params,
     });
     res.status(500).send({
       response: { message: "Error en el sistema" },
@@ -1657,6 +1678,7 @@ const executeGetCustomerDataByTab = async (params, res) => {
     executeSlackLogCatchBackend({
       storeProcedure,
       error: err,
+      body: params,
     });
     res.status(500).send({
       response: { message: "Error en el sistema" },
@@ -1747,6 +1769,7 @@ const executeUpdateInvestigationProcess = async (params, res, url) => {
     executeSlackLogCatchBackend({
       storeProcedure,
       error: err,
+      body: params,
     });
     res.status(500).send({
       response: { message: "Error en el sistema" },
@@ -1795,6 +1818,7 @@ const executeGetPropertyCoincidencesV2 = async (params, res) => {
     executeSlackLogCatchBackend({
       storeProcedure,
       error: err,
+      body: params,
     });
     res.status(500).send({
       response: { message: "Error en el sistema" },
@@ -1936,6 +1960,7 @@ const executeAddPropertyV2 = async (params, res, url) => {
     executeSlackLogCatchBackend({
       storeProcedure,
       error: err,
+      body: params,
     });
     res.status(500).send({
       response: { message: "Error en el sistema" },
@@ -2020,6 +2045,7 @@ const executeSetPropertyDocument = async (params, res, url) => {
     executeSlackLogCatchBackend({
       storeProcedure,
       error: err,
+      body: params,
     });
     res.status(500).send({
       response: { message: "Error en el sistema" },
@@ -2064,6 +2090,7 @@ const executeGetPropertyById = async (params, res) => {
     executeSlackLogCatchBackend({
       storeProcedure,
       error: err,
+      body: params,
     });
     res.status(500).send({
       response: { message: "Error en el sistema" },
@@ -2241,6 +2268,7 @@ const executeUpdateProperty = async (params, res, url) => {
     executeSlackLogCatchBackend({
       storeProcedure,
       error: err,
+      body: params,
     });
     res.status(500).send({
       response: { message: "Error en el sistema" },
@@ -2322,6 +2350,7 @@ const executeSetPropertyAssociation = async (params, res, url) => {
     executeSlackLogCatchBackend({
       storeProcedure,
       error: err,
+      body: params,
     });
     res.status(500).send({
       response: { message: "Error en el sistema" },
@@ -2410,6 +2439,7 @@ const executeSetAdviserInProperty = async (params, res, url) => {
     executeSlackLogCatchBackend({
       storeProcedure,
       error: err,
+      body: params,
     });
     res.status(500).send({
       response: { message: "Error en el sistema" },
@@ -2490,6 +2520,7 @@ const executeSendTenantInvitation = async (params, res, url) => {
     executeSlackLogCatchBackend({
       storeProcedure,
       error: err,
+      body: params,
     });
     res.status(500).send({
       response: { message: "Error en el sistema" },
@@ -2572,6 +2603,7 @@ const executeSetApplicant = async (params, res, url) => {
     executeSlackLogCatchBackend({
       storeProcedure,
       error: err,
+      body: params,
     });
     res.status(500).send({
       response: { message: "Error en el sistema" },
@@ -2651,6 +2683,7 @@ const executeApplyToProperty = async (params, res, url) => {
     executeSlackLogCatchBackend({
       storeProcedure,
       error: err,
+      body: params,
     });
     res.status(500).send({
       response: { message: "Error en el sistema" },
@@ -2716,6 +2749,7 @@ const executeSetFavoriteProperty = async (params, res, url) => {
     executeSlackLogCatchBackend({
       storeProcedure,
       error: err,
+      body: params,
     });
     res.status(500).send({
       response: { message: "Error en el sistema" },
@@ -2810,6 +2844,7 @@ const executeSetContract = async (params, res, url) => {
     executeSlackLogCatchBackend({
       storeProcedure,
       error: err,
+      body: params,
     });
     res.status(500).send({
       response: { message: "Error en el sistema" },
@@ -3113,6 +3148,7 @@ const executeDeactivateCustomerDocument = async (params, res, url) => {
     executeSlackLogCatchBackend({
       storeProcedure,
       error: err,
+      body: params,
     });
     res.status(500).send({
       response: { message: "Error en el sistema" },
@@ -3155,6 +3191,7 @@ const executeGetLocationFilter = async (params, res) => {
     executeSlackLogCatchBackend({
       storeProcedure,
       error: err,
+      body: params,
     });
     res.status(500).send({
       response: { message: "Error en el sistema" },
@@ -3228,6 +3265,7 @@ const executeProcessInvitation = async (params, res, url, ip) => {
     executeSlackLogCatchBackend({
       storeProcedure,
       error: err,
+      body: params,
     });
     res.status(500).send({
       response: { message: "Error en el sistema" },
@@ -3296,6 +3334,7 @@ const executeSetContractApprovement = async (params, res, url) => {
     executeSlackLogCatchBackend({
       storeProcedure,
       error: err,
+      body: params,
     });
     res.status(500).send({
       response: { message: "Error en el sistema" },
@@ -3336,6 +3375,7 @@ const executeGetCustomerDetailById = async (params, res) => {
     executeSlackLogCatchBackend({
       storeProcedure,
       error: err,
+      body: params,
     });
     res.status(500).send({
       response: { message: "Error en el sistema" },
