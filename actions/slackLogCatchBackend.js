@@ -18,7 +18,7 @@ const executeSlackLogCatchBackend = async (params) => {
         USP: ${storeProcedure}
         ------
         body: 
-        ${body}
+        ${typeof body == "object" ? JSON.stringify(body, null, 2) : body}
         ------
         Error:
 
