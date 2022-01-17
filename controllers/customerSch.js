@@ -3303,6 +3303,46 @@ const executeSetContractApprovement = async (params, res, url) => {
   }
 };
 
+const executeGetCustomerDetailById = async (params, res) => {
+  const {
+    idCustomer,
+    idSystemUser,
+    idLoginHistory,
+    offset = GLOBAL_CONSTANTS.OFFSET,
+  } = params;
+  const storeProcedure = "customerSch.USPgetCustomerDetailById";
+  try {
+    if (isNil(offset) === true) {
+      res.status(400).send({
+        response: {
+          message: "Error en los parametros de entrada",
+        },
+      });
+    } else {
+      const pool = await sql.connect();
+      const result = await pool
+        .request()
+        .input("p_uidIdCustomer", sql.NVarChar, idCustomer)
+        .input("p_uidIdSystemUser", sql.NVarChar, idSystemUser)
+        .input("p_uidIdLoginHistory", sql.NVarChar, idLoginHistory)
+        .input("p_chrOffset", sql.Char, offset)
+        .execute(storeProcedure);
+      const resultRecordset = result.recordsets;
+      res.status(200).send({
+        response: resultRecordset,
+      });
+    }
+  } catch (err) {
+    executeSlackLogCatchBackend({
+      storeProcedure,
+      error: err,
+    });
+    res.status(500).send({
+      response: { message: "Error en el sistema" },
+    });
+  }
+};
+
 const ControllerCustomerSch = {
   getCustomerTimeLine: (req, res) => {
     const params = req.body;
@@ -3493,6 +3533,10 @@ const ControllerCustomerSch = {
     const params = req.body;
     const url = req.params; //idSystemUser
     executeSetContractApprovement(params, res, url);
+  },
+  getCustomerDetailById: (req, res) => {
+    const params = req.body;
+    executeGetCustomerDetailById(params, res);
   },
 };
 
