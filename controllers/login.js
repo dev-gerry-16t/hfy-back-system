@@ -77,8 +77,8 @@ const executeLoginUser = async (params, res, ip, userAgent) => {
           console.log("error usp", err);
           res.status(500).send({ response: "Error de servidor" });
         } else if (
-          result.recordset.length === 0 ||
-          result.recordset[0].stateCode === 500
+          isNil(result.recordset[0]) === false &&
+          result.recordset[0].stateCode !== 200
         ) {
           res.status(500).send({ response: result.recordset[0] });
         } else if (result) {
