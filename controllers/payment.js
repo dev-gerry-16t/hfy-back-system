@@ -41,6 +41,7 @@ const executeGetOrderPaymentById = async (params, res) => {
     executeSlackLogCatchBackend({
       storeProcedure,
       error: err,
+      body: params,
     });
     res.status(500).send({
       response: { message: "Error en el sistema" },
