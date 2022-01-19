@@ -460,7 +460,7 @@ const ControllerTest = {
   testStripe: async (req, res) => {
     try {
       const params = req.body;
-      const stripe = new Stripe(process.env.SECRET_KEY_STRIPE);
+      const stripe = new Stripe(GLOBAL_CONSTANTS.SECRET_KEY_STRIPE);
       const payment = await stripe.paymentIntents.create({
         ...params,
         currency: "MXN",
@@ -473,24 +473,20 @@ const ControllerTest = {
   },
   testStripeWebhook: async (req, res) => {
     const payment = req.body;
-    // switch (params.type) {
-    //   case "payment_intent.succeeded":
-    //     const paymentIntent = params.data.object;
-    //     // Then define and call a method to handle the successful payment intent.
-    //     // handlePaymentIntentSucceeded(paymentIntent);
-    //     break;
-    //   case "payment_method.attached":
-    //     const paymentMethod = params.data.object;
-    //     // Then define and call a method to handle the successful attachment of a PaymentMethod.
-    //     // handlePaymentMethodAttached(paymentMethod);
-    //     break;
-    //   // ... handle other event types
-    //   default:
-    //     console.log(`Unhandled event type ${params.type}`);
-    // }
-    //console.log("payment", JSON.stringify(payment, null, 2));
+    const stripe = new Stripe(GLOBAL_CONSTANTS.SECRET_KEY_STRIPE);
+    const sig = req.headers["stripe-signature"];
     try {
-      if (payment.data.object.payment_method_types[0] === "oxxo") {
+      await stripe.webhooks.constructEvent(
+        req.rawBody,
+        sig,
+        GLOBAL_CONSTANTS.STRIPE_WEBHOOK_SECRET
+      );
+      if (
+        isNil(payment.data.object.payment_method_types) === false &&
+        isNil(payment.data.object.payment_method_types[0]) === false &&
+        payment.data.object.payment_method_types[0] === "oxxo"
+      ) {
+        console.log("oxxo");
         await executeAddGWTransaction({
           idPaymentInContract: null,
           idOrderPayment: null,
@@ -542,7 +538,11 @@ const ControllerTest = {
       }
       res.status(200).send({ received: true });
     } catch (error) {
-      res.status(500).send({ error: `${error}` });
+      executeSlackLogCatchBackend({
+        storeProcedure: "pymtGwSch.USPaddGWTransaction",
+        error: error.message,
+      });
+      res.status(500).send({ error: `${error.message}` });
     }
   },
   testStripeWebhookConnect: async (req, res) => {
