@@ -2124,6 +2124,7 @@ const executeUpdateProperty = async (params, res, url) => {
     ownerEmailAddress = null,
     ownerGivenName = null,
     ownerLastName = null,
+    ownerPhoneNumber = null,
     street = null,
     streetNumber = null,
     suite = null,
@@ -2195,6 +2196,7 @@ const executeUpdateProperty = async (params, res, url) => {
         .input("p_nvcOwnerEmailAddress", sql.NVarChar, ownerEmailAddress)
         .input("p_nvcOwnerGivenName", sql.NVarChar, ownerGivenName)
         .input("p_nvcOwnerLastName", sql.NVarChar, ownerLastName)
+        .input("p_nvcOwnerPhoneNumber", sql.NVarChar, ownerPhoneNumber)
         .input("p_nvcStreet", sql.NVarChar, street)
         .input("p_nvcStreetNumber", sql.NVarChar, streetNumber)
         .input("p_nvcSuite", sql.NVarChar, suite)

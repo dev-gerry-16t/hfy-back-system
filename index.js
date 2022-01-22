@@ -29,6 +29,9 @@ const upload = multer(storage).single("file");
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(
   bodyParser.json({
+    verify: (req, res, buf, encoding) => {
+      req.rawBody = buf.toString();
+    },
     strict: false,
   })
 );
