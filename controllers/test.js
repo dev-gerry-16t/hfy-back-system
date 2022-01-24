@@ -19,6 +19,7 @@ const {
 const {
   executeGetDispersionOrder,
   executeValidatePaymentSchedule,
+  executeSentReminders,
 } = require("../actions/dispersionOrder");
 const executeSetWAMessage = require("../actions/setWAMMessage");
 const endpointSecret = process.env.END_POINT_SECRET_KEY;
@@ -649,7 +650,6 @@ const ControllerTest = {
   scheduleTaskDispersion: async (req, res) => {
     try {
       executeGetDispersionOrder(req, res);
-      console.log("Se ejecuto correctamente la dispersión");
       res.status(200).send({ message: "ok" });
     } catch (error) {
       res.status(500).send({ error: `${error}` });
@@ -658,7 +658,14 @@ const ControllerTest = {
   scheduleTaskPayment: async (req, res) => {
     try {
       executeValidatePaymentSchedule({}, res);
-      console.log("Se ejecuto correctamente los recordatorios");
+      res.status(200).send({ message: "ok" });
+    } catch (error) {
+      res.status(500).send({ error: `${error}` });
+    }
+  },
+  SentReminders: async (req, res) => {
+    try {
+      executeSentReminders({}, res);
       res.status(200).send({ message: "ok" });
     } catch (error) {
       res.status(500).send({ error: `${error}` });
