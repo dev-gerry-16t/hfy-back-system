@@ -38,6 +38,7 @@ router.get(
   ControllerTest.scheduleTaskDispersion
 );
 router.get("/connect/scheduleTask/payment", ControllerTest.scheduleTaskPayment);
+router.get("/connect/scheduleTask/reminder", ControllerTest.SentReminders);
 router.get(
   "/customer/getConfigForCollAndDisp",
   ControllerCustomer.getConfigForCollAndDisp
