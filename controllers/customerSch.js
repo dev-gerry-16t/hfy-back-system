@@ -1022,7 +1022,11 @@ const executeSetCustomerEmailAddress = async (params, res, url) => {
           }
         });
         res.status(200).send({
-          response: { message: resultRecordsetObject.message },
+          response: {
+            message: resultRecordsetObject.message,
+            idCustomer: resultRecordsetObject.idCustomer,
+            idEmailAddress: resultRecordsetObject.idEmailAddress,
+          },
         });
       }
     }
@@ -1095,7 +1099,9 @@ const executeSetCustomerPhoneNumber = async (params, res, url) => {
         //error: resultRecordsetObject.errorMessage,
         // });
         res.status(resultRecordsetObject.stateCode).send({
-          response: { message: resultRecordsetObject.message },
+          response: {
+            message: resultRecordsetObject.message,
+          },
         });
       } else {
         for (const element of resultRecordset) {
@@ -1106,7 +1112,11 @@ const executeSetCustomerPhoneNumber = async (params, res, url) => {
           }
         }
         res.status(200).send({
-          response: { message: resultRecordsetObject.message },
+          response: {
+            message: resultRecordsetObject.message,
+            idCustomer: resultRecordsetObject.idCustomer,
+            idPhoneNumber: resultRecordsetObject.idPhoneNumber,
+          },
         });
       }
     }
