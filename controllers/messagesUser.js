@@ -60,9 +60,11 @@ const executeGetNotifications = async (params, res) => {
     offset = process.env.OFFSET,
     type = 1,
     topIndex = null,
+    idNotification = null,
   } = params;
   try {
     const request = new sql.Request();
+    request.input("p_uidIdNotification", sql.NVarChar, idNotification);
     request.input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser);
     request.input("p_nvcIdLoginHistory", sql.NVarChar, idLoginHistory);
     request.input("p_intTopIndex", sql.Int, topIndex);
