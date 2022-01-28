@@ -2,6 +2,8 @@ const sql = require("mssql");
 const AWS = require("aws-sdk");
 const GLOBAL_CONSTANTS = require("../constants/constants");
 const isNil = require("lodash/isNil");
+const isEmpty = require("lodash/isEmpty");
+const executeSlackLogCatchBackend = require("../actions/slackLogCatchBackend");
 const s3 = new AWS.S3({
   accessKeyId: GLOBAL_CONSTANTS.ACCESS_KEY_ID,
   secretAccessKey: GLOBAL_CONSTANTS.SECRET_ACCESS_KEY,
@@ -65,62 +67,69 @@ const executeSetUserProfile = async (params, res, url, file) => {
     bucketSource = null,
   } = params;
   const { idSystemUser } = url;
-  const fileName = documentName.split(".");
+  const fileName =
+    isEmpty(documentName) === false
+      ? documentName.split(".")
+      : ["none", "none"];
   const fileType = fileName[fileName.length - 1];
+  const storeProcedure = "authSch.USPsetUserProfile";
   try {
-    const request = new sql.Request();
-    request.input("p_nvcIdCustomer", sql.NVarChar, idCustomer);
-    request.input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser);
-    request.input("p_nvcIdLoginHistory", sql.NVarChar, idLoginHistory);
-    request.input("p_nvcDocumentName", sql.NVarChar, documentName);
-    request.input("p_nvcExtension", sql.NVarChar, fileType);
-    request.input("p_nvcPreview", sql.NVarChar, preview);
-    request.input("p_nvcThumbnail", sql.NVarChar, thumbnail);
-    request.input("p_chrOffset", sql.Char, offset);
-    request.execute("authSch.USPsetUserProfile", async (err, result) => {
-      if (err) {
-        res.status(500).send({ response: "Error en los parametros" });
-      } else {
-        const resultRecordset = result.recordset;
-        if (resultRecordset[0].stateCode !== 200) {
-          res.status(resultRecordset[0].stateCode).send({
-            response: resultRecordset[0],
-          });
-        } else {
-          const newBucketSorce =
-            isNil(resultRecordset[0]) === false &&
-            isNil(resultRecordset[0].bucketSource) === false
-              ? resultRecordset[0].bucketSource.toLowerCase()
-              : bucket.toLowerCase();
-          const newIdDocument = resultRecordset[0].idDocument;
-          const params = {
-            Bucket: newBucketSorce,
-            Key: newIdDocument,
-            Body: file.buffer,
-          };
-          await s3.upload(params).promise();
-          if (
-            isNil(idDocument) === false &&
-            isNil(bucketSource) === false &&
-            resultRecordset[0].canBeDeleted === true
-          ) {
-            const params1 = {
-              Bucket: bucketSource,
-              Key: idDocument,
-            };
-            await s3.deleteObject(params1).promise();
-          }
-          res.status(200).send({
-            response: {
-              message: resultRecordset[0].message,
-              idDocument: newIdDocument,
-              bucketSource: newBucketSorce,
-            },
-          });
-        }
+    const pool = await sql.connect();
+    const result = await pool
+      .request()
+      .input("p_nvcIdCustomer", sql.NVarChar, idCustomer)
+      .input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser)
+      .input("p_nvcIdLoginHistory", sql.NVarChar, idLoginHistory)
+      .input("p_nvcDocumentName", sql.NVarChar, documentName)
+      .input("p_nvcExtension", sql.NVarChar, fileType)
+      .input("p_nvcPreview", sql.NVarChar, preview)
+      .input("p_nvcThumbnail", sql.NVarChar, thumbnail)
+      .input("p_chrOffset", sql.Char, offset)
+      .execute(storeProcedure);
+    const resultRecordset = result.recordset;
+    const resultRecordsetObject = resultRecordset[0];
+    if (resultRecordsetObject.stateCode !== 200) {
+      res.status(resultRecordsetObject.stateCode).send({
+        response: { message: resultRecordsetObject.message },
+      });
+    } else {
+      const newBucketSorce =
+        isNil(resultRecordset[0]) === false &&
+        isNil(resultRecordset[0].bucketSource) === false
+          ? resultRecordset[0].bucketSource.toLowerCase()
+          : bucket.toLowerCase();
+      const newIdDocument = resultRecordset[0].idDocument;
+      const params = {
+        Bucket: newBucketSorce,
+        Key: newIdDocument,
+        Body: file.buffer,
+      };
+      await s3.upload(params).promise();
+      if (
+        isNil(idDocument) === false &&
+        isNil(bucketSource) === false &&
+        resultRecordset[0].canBeDeleted === true
+      ) {
+        const params1 = {
+          Bucket: bucketSource,
+          Key: idDocument,
+        };
+        await s3.deleteObject(params1).promise();
       }
-    });
+      res.status(200).send({
+        response: {
+          message: resultRecordset[0].message,
+          idDocument: newIdDocument,
+          bucketSource: newBucketSorce,
+        },
+      });
+    }
   } catch (err) {
+    executeSlackLogCatchBackend({
+      storeProcedure,
+      error: err,
+      body: params,
+    });
     res.status(500).send({
       response: { message: "Error en el sistema" },
     });
