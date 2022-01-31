@@ -1881,6 +1881,9 @@ const executeAddPropertyV2 = async (params, res, url) => {
     idSystemUser,
     idLoginHistory,
     offset = GLOBAL_CONSTANTS.OFFSET,
+    isPublished = null,
+    title = null,
+    description = null,
   } = params;
   const { idCustomer } = url;
   const storeProcedure = "customerSch.USPaddPropertyV2";
@@ -1902,6 +1905,9 @@ const executeAddPropertyV2 = async (params, res, url) => {
         .request()
         .input("p_uidIdCustomer", sql.NVarChar, idCustomer)
         .input("p_intIdOperationType", sql.Int, idOperationType)
+        .input("p_bitIsPublished", sql.Bit, isPublished)
+        .input("p_nvcTitle", sql.NVarChar, title)
+        .input("p_nvcDescription", sql.NVarChar, description)
         .input("p_intIdPropertyType", sql.Int, idPropertyType)
         .input("p_intIdCommercialActivity", sql.Int, idCommercialActivity)
         .input("p_decCurrentRent", sql.Decimal(19, 2), currentRent)
@@ -3405,6 +3411,82 @@ const executeGetCustomerDetailById = async (params, res) => {
   }
 };
 
+const executeRequestPropertyContact = async (params, res, url) => {
+  const {
+    idApartment,
+    idCustomer,
+    idSystemUser,
+    idLoginHistory,
+    offset = GLOBAL_CONSTANTS.OFFSET,
+  } = params;
+  const { idProperty } = url;
+  const storeProcedure = "customerSch.USPrequestPropertyContact";
+  try {
+    if (
+      isNil(idProperty) === true ||
+      isNil(idCustomer) === true ||
+      isNil(idApartment) === true ||
+      isNil(idSystemUser) === true ||
+      isNil(idLoginHistory) === true ||
+      isNil(offset) === true
+    ) {
+      res.status(400).send({
+        response: {
+          message: "Error en los parametros de entrada",
+        },
+      });
+    } else {
+      const pool = await sql.connect();
+      const result = await pool
+        .request()
+        .input("p_uidIdProperty", sql.NVarChar, idProperty)
+        .input("p_uidIdApartment", sql.NVarChar, idApartment)
+        .input("p_uidIdCustomer", sql.NVarChar, idCustomer)
+        .input("p_uidIdSystemUser", sql.NVarChar, idSystemUser)
+        .input("p_uidIdLoginHistory", sql.NVarChar, idLoginHistory)
+        .input("p_chrOffset", sql.Char, offset)
+        .execute(storeProcedure);
+      const resultRecordset = result.recordset;
+      const resultRecordsetObject = result.recordset[0];
+      if (resultRecordsetObject.stateCode !== 200) {
+        //executeSlackLogCatchBackend({
+        // storeProcedure,
+        //error: resultRecordsetObject.errorMessage,
+        // });
+        res.status(resultRecordsetObject.stateCode).send({
+          response: { message: resultRecordsetObject.message },
+        });
+      } else {
+        for (const element of resultRecordset) {
+          if (element.canSendEmail === true) {
+            const configEmailServer = JSON.parse(element.jsonEmailServerConfig);
+            await executeMailTo({
+              ...element,
+              ...configEmailServer,
+            });
+          }
+        }
+        res.status(200).send({
+          response: {
+            message: resultRecordsetObject.message,
+            idProperty: resultRecordsetObject.idProperty,
+            idApartment: resultRecordsetObject.idApartment,
+          },
+        });
+      }
+    }
+  } catch (err) {
+    executeSlackLogCatchBackend({
+      storeProcedure,
+      error: err,
+      body: params,
+    });
+    res.status(500).send({
+      response: { message: "Error en el sistema" },
+    });
+  }
+};
+
 const ControllerCustomerSch = {
   getCustomerTimeLine: (req, res) => {
     const params = req.body;
@@ -3599,6 +3681,11 @@ const ControllerCustomerSch = {
   getCustomerDetailById: (req, res) => {
     const params = req.body;
     executeGetCustomerDetailById(params, res);
+  },
+  requestPropertyContact: (req, res) => {
+    const params = req.body;
+    const url = req.params; //idProperty
+    executeRequestPropertyContact(params, res, url);
   },
 };
 
