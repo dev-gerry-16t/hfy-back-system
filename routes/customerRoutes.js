@@ -168,5 +168,9 @@ router.post(
   "/customer/getCustomerDetailById",
   ControllerCustomerSch.getCustomerDetailById
 );
+router.put(
+  "/property/requestPropertyContact/:idProperty",
+  ControllerCustomerSch.requestPropertyContact
+);
 
 module.exports = router;
