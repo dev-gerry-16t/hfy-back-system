@@ -172,5 +172,7 @@ router.put(
   "/property/requestPropertyContact/:idProperty",
   ControllerCustomerSch.requestPropertyContact
 );
+router.post("/customer/getAdviserStats", ControllerCustomerSch.getAdviserStats);
+router.post("/loginHistory/getUserStats", ControllerCustomerSch.getUserStats);
 
 module.exports = router;
