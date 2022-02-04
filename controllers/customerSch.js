@@ -3569,6 +3569,49 @@ const executeGetUserStats = async (params, res) => {
   }
 };
 
+const executeGetAdviserRanking = async (params, res) => {
+  const {
+    idSystemUser,
+    jsonConditions,
+    pagination,
+    idLoginHistory,
+    offset = GLOBAL_CONSTANTS.OFFSET,
+  } = params;
+  const storeProcedure = "customerSch.USPgetAdviserRanking";
+  try {
+    if (isNil(offset) === true) {
+      res.status(400).send({
+        response: {
+          message: "Error en los parametros de entrada",
+        },
+      });
+    } else {
+      const pool = await sql.connect();
+      const result = await pool
+        .request()
+        .input("p_uidIdSystemUser", sql.NVarChar, idSystemUser)
+        .input("p_nvcJsonConditions", sql.NVarChar, jsonConditions)
+        .input("p_nvcPagination", sql.NVarChar, pagination)
+        .input("p_uidIdLoginHistory", sql.NVarChar, idLoginHistory)
+        .input("p_chrOffset", sql.Char, offset)
+        .execute(storeProcedure);
+      const resultRecordset = result.recordsets;
+      res.status(200).send({
+        response: resultRecordset,
+      });
+    }
+  } catch (err) {
+    executeSlackLogCatchBackend({
+      storeProcedure,
+      error: err,
+      body: params,
+    });
+    res.status(500).send({
+      response: { message: "Error en el sistema" },
+    });
+  }
+};
+
 const ControllerCustomerSch = {
   getCustomerTimeLine: (req, res) => {
     const params = req.body;
@@ -3776,6 +3819,10 @@ const ControllerCustomerSch = {
   getUserStats: (req, res) => {
     const params = req.body;
     executeGetUserStats(params, res);
+  },
+  getAdviserRanking: (req, res) => {
+    const params = req.body;
+    executeGetAdviserRanking(params, res);
   },
 };
 
