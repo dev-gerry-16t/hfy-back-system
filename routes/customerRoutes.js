@@ -174,5 +174,9 @@ router.put(
 );
 router.post("/customer/getAdviserStats", ControllerCustomerSch.getAdviserStats);
 router.post("/loginHistory/getUserStats", ControllerCustomerSch.getUserStats);
+router.post(
+  "/customer/getAdviserRanking",
+  ControllerCustomerSch.getAdviserRanking
+);
 
 module.exports = router;
