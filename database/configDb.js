@@ -14,11 +14,15 @@ const CONFIG = {
   server: SERVER_DATABASE,
   database: DATABASE_NAME,
   port: DATABASE_PORT,
-//   pool: {
-//       max: 10,
-//       min: 0,
-//       idleTimeoutMillis: 30000
-//   }
+  options: {
+    encrypt: false,
+    enableArithAbort: true,
+  },
+  //   pool: {
+  //       max: 10,
+  //       min: 0,
+  //       idleTimeoutMillis: 30000
+  //   }
 };
 
 module.exports = CONFIG;
