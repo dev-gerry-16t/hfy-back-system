@@ -2,11 +2,7 @@ const sql = require("mssql");
 const rp = require("request-promise");
 
 const executeGetTokenMlUser = async (params) => {
-  const {} = params;
-  const app_id = "2169250693153406";
-  const client_secret = "ji3ARh9kFM5pjjYrFDObp7MfUpVIXQjN";
-  const code_id = "TG-6203071c5c52ee001a0fe913-1066839489";
-  const redirect_url = "https://apptest.homify.ai";
+  const { appId, clientSecret, codeId, redirectUrl } = params;
   try {
     const response = await rp({
       url: "https://api.mercadolibre.com/oauth/token",
@@ -16,7 +12,7 @@ const executeGetTokenMlUser = async (params) => {
         "Content-Type": "application/x-www-form-urlencoded",
       },
       json: true,
-      body: `grant_type=authorization_code&client_id=${app_id}&client_secret=${client_secret}&code=${code_id}&redirect_uri=${redirect_url}`,
+      body: `grant_type=authorization_code&client_id=${appId}&client_secret=${clientSecret}&code=${codeId}&redirect_uri=${redirectUrl}`,
       rejectUnauthorized: false,
     });
     return response;
@@ -26,9 +22,7 @@ const executeGetTokenMlUser = async (params) => {
 };
 
 const executeRefreshTokenMlUser = async (params) => {
-  const { refresh_token } = params;
-  const app_id = "2169250693153406";
-  const client_secret = "ji3ARh9kFM5pjjYrFDObp7MfUpVIXQjN";
+  const { appId, refreshToken, clientSecret } = params;
   try {
     const response = await rp({
       url: "https://api.mercadolibre.com/oauth/token",
@@ -38,7 +32,7 @@ const executeRefreshTokenMlUser = async (params) => {
         "Content-Type": "application/x-www-form-urlencoded",
       },
       json: true,
-      body: `grant_type=refresh_token&client_id=${app_id}&client_secret=${client_secret}&refresh_token${refresh_token}`,
+      body: `grant_type=refresh_token&client_id=${appId}&client_secret=${clientSecret}&refresh_token${refreshToken}`,
       rejectUnauthorized: false,
     });
     return response;

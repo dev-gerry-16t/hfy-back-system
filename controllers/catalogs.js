@@ -992,7 +992,36 @@ const executeGetAllCurrencies = async (params, res) => {
     request.input("p_intType", sql.Int, type);
     request.execute("catPaymentSch.USPgetAllCurrencies", (err, result) => {
       if (err) {
-        console.log('err',err);
+        console.log("err", err);
+        res.status(500).send({ response: "Error en los parametros" });
+      } else {
+        const resultRecordset = result.recordset;
+        res.status(200).send({
+          response: resultRecordset,
+        });
+      }
+    });
+  } catch (error) {}
+};
+
+const executeGetAllSites = async (params, res) => {
+  const {
+    idProperty = null,
+    idApartment = null,
+    type,
+    idSystemUser,
+    idLoginHistory,
+  } = params;
+  try {
+    const request = new sql.Request();
+    request.input("p_uidIdProperty", sql.NVarChar, idProperty);
+    request.input("p_uidIdApartment", sql.NVarChar, idApartment);
+    request.input("p_uidIdSystemUser", sql.NVarChar, idSystemUser);
+    request.input("p_uidIdLoginHistory", sql.NVarChar, idLoginHistory);
+    request.input("p_intType", sql.Int, type);
+    request.execute("catClassifiedSch.USPgetAllSites", (err, result) => {
+      if (err) {
+        console.log("err", err);
         res.status(500).send({ response: "Error en los parametros" });
       } else {
         const resultRecordset = result.recordset;
@@ -1165,6 +1194,10 @@ const ControllerCatalogs = {
   getAllCurrencies: (req, res) => {
     const params = req.body;
     executeGetAllCurrencies(params, res);
+  },
+  getAllSites: (req, res) => {
+    const params = req.body;
+    executeGetAllSites(params, res);
   },
 };
 
