@@ -8,10 +8,17 @@ const CONFIG = require("./database/configDb");
 const GLOBAL_CONSTANTS = require("./constants/constants");
 const verifyToken = require("./middleware/authenticate");
 const multer = require("multer");
+const executeSlackLogCatchBackend = require("./actions/slackLogCatchBackend");
 
 const app = express();
 sql.connect(CONFIG, (err, res) => {
-  if (err) console.log("error connect", err);
+  if (err) {
+    executeSlackLogCatchBackend({
+      storeProcedure: "Connect DB",
+      error: err,
+      body: CONFIG,
+    });
+  }
   if (res) console.log("success connect");
 });
 const projectRoutes = require("./routes/routes");
