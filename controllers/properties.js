@@ -236,11 +236,13 @@ const executeUpdateProperty = async (params, res, url) => {
     ownerLastName = null,
     ownerPhoneNumber = null,
     isPublished = null,
+    sites = null,
     isActive = null,
     apartmentDocuments = [],
     title = null,
     description = null,
     isPropertyConfiguered = null,
+    landAccess = null,
     idSystemUser,
     idLoginHistory,
     offset = GLOBAL_CONSTANTS.OFFSET,
@@ -299,10 +301,12 @@ const executeUpdateProperty = async (params, res, url) => {
         .input("p_nvcOwnerLastName", sql.NVarChar, ownerLastName)
         .input("p_nvcOwnerPhoneNumber", sql.NVarChar, ownerPhoneNumber)
         .input("p_bitIsPublished", sql.Bit, isPublished)
+        .input("p_nvcSites", sql.NVarChar, sites)
         .input("p_bitIsActive", sql.Bit, isActive)
         .input("p_nvcTitle", sql.NVarChar, title)
         .input("p_nvcDescription", sql.NVarChar, description)
         .input("p_bitIsPropertyConfiguered", sql.Bit, isPropertyConfiguered)
+        .input("p_intIdLandAccess", sql.Int, landAccess)
         .input("p_uidIdSystemUser", sql.NVarChar, idSystemUser)
         .input("p_uidIdLoginHistory", sql.NVarChar, idLoginHistory)
         .input("p_chrOffset", sql.Char, offset)
