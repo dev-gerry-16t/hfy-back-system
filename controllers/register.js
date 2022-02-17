@@ -158,7 +158,9 @@ const executeRequestSignUpPSU = async (param, res, ip) => {
     hasAcceptedTC = 1,
     idCountryNationality = null,
     captchaToken,
+    idContact = null,
   } = param;
+  
   try {
     const responseGoogle = await rp({
       url: `https://www.google.com/recaptcha/api/siteverify`,
@@ -188,8 +190,13 @@ const executeRequestSignUpPSU = async (param, res, ip) => {
     request.input("p_nvcIdInvitation", sql.NVarChar, idInvitation);
     request.input("p_nvcRequestedFromIP", sql.NVarChar, ip);
     request.input("p_intIdCountryNationality", sql.Int, idCountryNationality);
+    request.input("p_nvcIdContact", sql.NVarChar, idContact);
     request.execute("authSch.USPrequestSignUp", async (err, result, value) => {
       if (err) {
+        executeSlackLogCatchBackend({
+          storeProcedure: "authSch.USPrequestSignUp",
+          error: err,
+        });
         res.status(500).send({});
       } else {
         const resultRecordset = result.recordset[0];
