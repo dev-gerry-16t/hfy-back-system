@@ -14,6 +14,7 @@ const executeSendSmsToUser = require("../actions/sendSmsToUser");
 const {
   executeGetTokenMlUser,
   executeRefreshTokenMlUser,
+  executePublicToMLM,
 } = require("../actions/getTokenMlUser");
 const s3 = new AWS.S3({
   accessKeyId: GLOBAL_CONSTANTS.ACCESS_KEY_ID,
@@ -26,6 +27,140 @@ const parseEmptyInt = (param) => {
     dataIn = -1;
   }
   return dataIn;
+};
+
+const executeSetClassified = async (params) => {
+  const {
+    id,
+    category_id,
+    status,
+    permalink,
+    date_created,
+    last_updated,
+    attributes,
+    pictures,
+    idProperty,
+    idApartment,
+    idSystemUser,
+    idLoginHistory,
+    offset,
+  } = params;
+  const jsonServiceResponse = JSON.stringify(params);
+  const jsonAttributes =
+    isEmpty(attributes) === false ? JSON.stringify(attributes) : "[]";
+  const jsonPictures =
+    isEmpty(pictures) === false ? JSON.stringify(pictures) : "[]";
+  const storeProcedure = "mlSch.USPsetClassified";
+  try {
+    const pool = await sql.connect();
+    await pool
+      .request()
+      .input("p_uidIdProperty", sql.NVarChar, idProperty)
+      .input("p_uidIdApartment", sql.NVarChar, idApartment)
+      .input("p_nvcId", sql.NVarChar, id)
+      .input("p_nvcJsonServiceResponse", sql.NVarChar, jsonServiceResponse)
+      .input("p_nvcCategoryId", sql.NVarChar, category_id)
+      .input("p_nvcStatus", sql.NVarChar, status)
+      .input("p_nvcPermalink", sql.NVarChar, permalink)
+      .input("p_datDateCreated", sql.Date, date_created)
+      .input("p_datDateUpdated", sql.Date, last_updated)
+      .input("p_nvcJsonAttributes", sql.NVarChar, jsonAttributes)
+      .input("p_nvcJsonPictures", sql.NVarChar, jsonPictures)
+      .input("p_uidIdSystemUser", sql.NVarChar, idSystemUser)
+      .input("p_uidIdLoginHistory", sql.NVarChar, idLoginHistory)
+      .input("p_chrOffset", sql.Char, offset)
+      .execute(storeProcedure);
+  } catch (err) {
+    executeSlackLogCatchBackend({
+      storeProcedure,
+      error: err,
+      body: params,
+    });
+  }
+};
+
+const handlerPublishedMLM = async (params) => {
+  const {
+    idProperty,
+    idApartment,
+    isPublished,
+    idSystemUser,
+    idLoginHistory,
+    offset,
+  } = params;
+  const storeProcedure = "mlSch.USPgetPropertyAttributes";
+  try {
+    const pool = await sql.connect();
+    const result = await pool
+      .request()
+      .input("p_uidIdProperty", sql.NVarChar, idProperty)
+      .input("p_uidIdApartment", sql.NVarChar, idApartment)
+      .input("p_bitIsPublished", sql.Bit, isPublished)
+      .input("p_uidIdSystemUser", sql.NVarChar, idSystemUser)
+      .input("p_uidIdLoginHistory", sql.NVarChar, idLoginHistory)
+      .input("p_chrOffset", sql.Char, offset)
+      .execute(storeProcedure);
+    const resultRecordsetObject =
+      isNil(result.recordset) === false && isNil(result.recordset[0]) === false
+        ? result.recordset[0]
+        : {};
+    const classified =
+      isEmpty(resultRecordsetObject) === false &&
+      isNil(resultRecordsetObject.classified) === false &&
+      isEmpty(resultRecordsetObject.classified) === false
+        ? JSON.parse(resultRecordsetObject.classified)
+        : {};
+    const pictures =
+      isEmpty(resultRecordsetObject) === false &&
+      isNil(resultRecordsetObject.pictures) === false &&
+      isEmpty(resultRecordsetObject.pictures) === false
+        ? JSON.parse(resultRecordsetObject.pictures)
+        : [];
+    const seller_contact =
+      isEmpty(resultRecordsetObject) === false &&
+      isNil(resultRecordsetObject.seller_contact) === false &&
+      isEmpty(resultRecordsetObject.seller_contact) === false
+        ? JSON.parse(resultRecordsetObject.seller_contact)
+        : {};
+    const location =
+      isEmpty(resultRecordsetObject) === false &&
+      isNil(resultRecordsetObject.location) === false &&
+      isEmpty(resultRecordsetObject.location) === false
+        ? JSON.parse(resultRecordsetObject.location)
+        : {};
+    const attributes =
+      isEmpty(resultRecordsetObject) === false &&
+      isNil(resultRecordsetObject.attributes) === false &&
+      isEmpty(resultRecordsetObject.attributes) === false
+        ? JSON.parse(resultRecordsetObject.attributes)
+        : [];
+    const token =
+      "APP_USR-2169250693153406-022321-391827cd5e3df78da24076259c61b647-1076872505";
+    const responseML = await executePublicToMLM({
+      ...resultRecordsetObject,
+      classified,
+      pictures,
+      seller_contact,
+      location,
+      attributes,
+      token,
+    });
+    await executeSetClassified({
+      idProperty,
+      idApartment,
+      idSystemUser,
+      idLoginHistory,
+      offset,
+      ...responseML,
+    });
+    return { link: responseML.permalink };
+  } catch (error) {
+    executeSlackLogCatchBackend({
+      storeProcedure,
+      error: error,
+      body: params,
+    });
+  }
 };
 
 const executeSecondSetUserConfig = async (params) => {
@@ -98,6 +233,7 @@ const executeAddPropertyV2 = async (params, res, url) => {
     isPublished = null,
     title = null,
     description = null,
+    idLandAccess = null,
   } = params;
   const { idCustomer } = url;
   const storeProcedure = "customerSch.USPaddPropertyV2";
@@ -156,6 +292,7 @@ const executeAddPropertyV2 = async (params, res, url) => {
         .input("p_intIdZipCode", sql.Int, idZipCode)
         .input("p_nvcNeighborhood", sql.NVarChar, neighborhood)
         .input("p_bitIsExactLocation", sql.Bit, isExactLocation)
+        .input("p_intIdLandAccess", sql.Int, idLandAccess)
         .input("p_nvcJsonCoordinates", sql.NVarChar, jsonCoordinates)
         .input("p_nvcPropertyAmenities", sql.NVarChar, propertyAmenities)
         .input(
@@ -214,9 +351,6 @@ const executeUpdateProperty = async (params, res, url) => {
     idOperationType = null,
     idPropertyType = null,
     idCommercialActivity = null,
-    idPolicy = null,
-    idPolicyPaymentMethod = null,
-    idApplicationMethod = null,
     currentRent = null,
     idCurrency = null,
     priceBasedBy = null,
@@ -235,14 +369,13 @@ const executeUpdateProperty = async (params, res, url) => {
     ownerGivenName = null,
     ownerLastName = null,
     ownerPhoneNumber = null,
-    isPublished = null,
     sites = null,
     isActive = null,
     apartmentDocuments = [],
     title = null,
     description = null,
     isPropertyConfiguered = null,
-    landAccess = null,
+    idLandAccess = null,
     idSystemUser,
     idLoginHistory,
     offset = GLOBAL_CONSTANTS.OFFSET,
@@ -271,9 +404,6 @@ const executeUpdateProperty = async (params, res, url) => {
         .input("p_intIdOperationType", sql.Int, idOperationType)
         .input("p_intIdPropertyType", sql.Int, idPropertyType)
         .input("p_intIdCommercialActivity", sql.Int, idCommercialActivity)
-        .input("p_uidIdPolicy", sql.NVarChar, idPolicy)
-        .input("p_intIdPolicyPaymentMethod", sql.Int, idPolicyPaymentMethod)
-        .input("p_intIdApplicationMethod", sql.Int, idApplicationMethod)
         .input("p_decCurrentRent", sql.Decimal(19, 2), currentRent)
         .input("p_uidIdCurrency", sql.NVarChar, idCurrency)
         .input("p_tynPriceBasedBy", sql.TinyInt(3), priceBasedBy)
@@ -300,19 +430,19 @@ const executeUpdateProperty = async (params, res, url) => {
         .input("p_nvcOwnerGivenName", sql.NVarChar, ownerGivenName)
         .input("p_nvcOwnerLastName", sql.NVarChar, ownerLastName)
         .input("p_nvcOwnerPhoneNumber", sql.NVarChar, ownerPhoneNumber)
-        .input("p_bitIsPublished", sql.Bit, isPublished)
         .input("p_nvcSites", sql.NVarChar, sites)
         .input("p_bitIsActive", sql.Bit, isActive)
         .input("p_nvcTitle", sql.NVarChar, title)
         .input("p_nvcDescription", sql.NVarChar, description)
         .input("p_bitIsPropertyConfiguered", sql.Bit, isPropertyConfiguered)
-        .input("p_intIdLandAccess", sql.Int, landAccess)
+        .input("p_intIdLandAccess", sql.Int, idLandAccess)
         .input("p_uidIdSystemUser", sql.NVarChar, idSystemUser)
         .input("p_uidIdLoginHistory", sql.NVarChar, idLoginHistory)
         .input("p_chrOffset", sql.Char, offset)
         .execute(storeProcedure);
       const resultRecordset = result.recordset;
       const resultRecordsetObject = result.recordset[0];
+      let objectResult = [];
       if (resultRecordsetObject.stateCode !== 200) {
         //executeSlackLogCatchBackend({
         // storeProcedure,
@@ -340,6 +470,28 @@ const executeUpdateProperty = async (params, res, url) => {
             }
           }
         }
+        if (isEmpty(resultRecordsetObject.sites) === false) {
+          const getToPublicPlatform = JSON.parse(resultRecordsetObject.sites);
+          for (const element of getToPublicPlatform) {
+            if (element.idSite == "MLM" && element.isPublished === true) {
+              const permalink = await handlerPublishedMLM({
+                idApartment,
+                idProperty,
+                idSystemUser,
+                idLoginHistory,
+                offset,
+                isPublished: true,
+              });
+              objectResult.push({
+                idSite: element.idSite,
+                link:
+                  isNil(permalink) === false && isNil(permalink.link) === false
+                    ? permalink.link
+                    : null,
+              });
+            }
+          }
+        }
         for (const element of resultRecordset) {
           if (element.canSendEmail === true) {
             const configEmailServer = JSON.parse(element.jsonEmailServerConfig);
@@ -354,11 +506,13 @@ const executeUpdateProperty = async (params, res, url) => {
             message: resultRecordsetObject.message,
             idProperty: resultRecordsetObject.idProperty,
             idApartment: resultRecordsetObject.idApartment,
+            piblicIn: objectResult,
           },
         });
       }
     }
   } catch (err) {
+    console.log("err", err);
     executeSlackLogCatchBackend({
       storeProcedure,
       error: err,
@@ -518,6 +672,85 @@ const executeUpdatePropertyCharAndAmen = async (params, res, url) => {
   }
 };
 
+const executeUpdatePropertyInApplicationMethod = async (params, res, url) => {
+  const {
+    idApartment,
+    idPolicy = null,
+    idPolicyPaymentMethod = null,
+    idApplicationMethod = null,
+    idSystemUser,
+    idLoginHistory,
+    offset = GLOBAL_CONSTANTS.OFFSET,
+  } = params;
+  const { idProperty } = url;
+  const storeProcedure = "customerSch.USPupdatePropertyInApplicationMethod";
+  try {
+    if (
+      isNil(idApartment) === true ||
+      isNil(idProperty) === true ||
+      isNil(idSystemUser) === true ||
+      isNil(idLoginHistory) === true ||
+      isNil(offset) === true
+    ) {
+      res.status(400).send({
+        response: {
+          message: "Error en los parametros de entrada",
+        },
+      });
+    } else {
+      const pool = await sql.connect();
+      const result = await pool
+        .request()
+        .input("p_uidIdProperty", sql.NVarChar, idProperty)
+        .input("p_uidIdApartment", sql.NVarChar, idApartment)
+        .input("p_uidIdPolicy", sql.NVarChar, idPolicy)
+        .input("p_intIdPolicyPaymentMethod", sql.Int, idPolicyPaymentMethod)
+        .input("p_intIdApplicationMethod", sql.Int, idApplicationMethod)
+        .input("p_uidIdSystemUser", sql.NVarChar, idSystemUser)
+        .input("p_uidIdLoginHistory", sql.NVarChar, idLoginHistory)
+        .input("p_chrOffset", sql.Char, offset)
+        .execute(storeProcedure);
+      const resultRecordsetObject = result.recordset[0];
+      const resultRecordset = result.recordset;
+      if (resultRecordsetObject.stateCode !== 200) {
+        //executeSlackLogCatchBackend({
+        // storeProcedure,
+        //error: resultRecordsetObject.errorMessage,
+        // });
+        res.status(resultRecordsetObject.stateCode).send({
+          response: { message: resultRecordsetObject.message },
+        });
+      } else {
+        for (const element of resultRecordset) {
+          if (element.canSendEmail === true) {
+            const configEmailServer = JSON.parse(element.jsonEmailServerConfig);
+            await executeMailTo({
+              ...element,
+              ...configEmailServer,
+            });
+          }
+        }
+        res.status(200).send({
+          response: {
+            message: resultRecordsetObject.message,
+            idProperty: resultRecordsetObject.idProperty,
+            idApartment: resultRecordsetObject.idApartment,
+          },
+        });
+      }
+    }
+  } catch (err) {
+    executeSlackLogCatchBackend({
+      storeProcedure,
+      error: err,
+      body: params,
+    });
+    res.status(500).send({
+      response: { message: "Error en el sistema" },
+    });
+  }
+};
+
 const executeGetPropertyById = async (params, res) => {
   const {
     idProperty = null,
@@ -622,7 +855,7 @@ const executeSetUserConfig = async (params, res, url) => {
           const responseToken = await executeGetTokenMlUser({
             appId,
             clientSecret,
-            codeId,
+            codeId: "TG-62103bce7dfe03001a68145c-1076872505",
             redirectUrl,
           });
           const {
@@ -638,7 +871,7 @@ const executeSetUserConfig = async (params, res, url) => {
             tokenType: token_type,
             expires: expires_in,
             userId: user_id,
-            codeId,
+            codeId: "TG-62103bce7dfe03001a68145c-1076872505",
             idSystemUser,
             idLoginHistory,
             offset,
@@ -697,6 +930,55 @@ const executeSetUserConfig = async (params, res, url) => {
   }
 };
 
+const executeValidateClassified = async (params, res) => {
+  const {
+    idProperty = null,
+    idApartment = null,
+    idSystemUser = null,
+    idLoginHistory = null,
+    offset = GLOBAL_CONSTANTS.OFFSET,
+  } = params;
+  const storeProcedure = "mlSch.USPvalidateClassified";
+  try {
+    if (
+      isNil(idProperty) === true ||
+      isNil(idApartment) === true ||
+      isNil(idSystemUser) === true ||
+      isNil(idLoginHistory) === true ||
+      isNil(offset) === true
+    ) {
+      res.status(400).send({
+        response: {
+          message: "Error en los parametros de entrada",
+        },
+      });
+    } else {
+      const pool = await sql.connect();
+      const result = await pool
+        .request()
+        .input("p_uidIdProperty", sql.NVarChar, idProperty)
+        .input("p_uidIdApartment", sql.NVarChar, idApartment)
+        .input("p_uidIdSystemUser", sql.NVarChar, idSystemUser)
+        .input("p_uidIdLoginHistory", sql.NVarChar, idLoginHistory)
+        .input("p_chrOffset", sql.Char, offset)
+        .execute(storeProcedure);
+      const resultRecordset = result.recordsets;
+      res.status(200).send({
+        response: resultRecordset,
+      });
+    }
+  } catch (err) {
+    executeSlackLogCatchBackend({
+      storeProcedure,
+      error: err,
+      body: params,
+    });
+    res.status(500).send({
+      response: { message: "Error en el sistema" },
+    });
+  }
+};
+
 const ControllerProperties = {
   setUserConfig: (req, res) => {
     const params = req.body;
@@ -718,6 +1000,11 @@ const ControllerProperties = {
     const url = req.params; //idProperty
     executeUpdatePropertyCharAndAmen(params, res, url);
   },
+  updatePropertyInApplicationMethod: (req, res) => {
+    const params = req.body;
+    const url = req.params; //idProperty
+    executeUpdatePropertyInApplicationMethod(params, res, url);
+  },
   updateProperty: (req, res) => {
     const params = req.body;
     const url = req.params; //idProperty
@@ -726,6 +1013,10 @@ const ControllerProperties = {
   getPropertyById: (req, res) => {
     const params = req.body;
     executeGetPropertyById(params, res);
+  },
+  validateClassified: (req, res) => {
+    const params = req.body;
+    executeValidateClassified(params, res);
   },
 };
 

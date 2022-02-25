@@ -16,6 +16,11 @@ router.put(
   "/updatePropertyCharAndAmen/:idProperty",
   ControllerProperties.updatePropertyCharAndAmen
 );
+router.put(
+  "/updatePropertyInApplicationMethod/:idProperty",
+  ControllerProperties.updatePropertyInApplicationMethod
+);
 router.post("/getPropertyById", ControllerProperties.getPropertyById);
+router.post("/validateClassified", ControllerProperties.validateClassified);
 
 module.exports = router;

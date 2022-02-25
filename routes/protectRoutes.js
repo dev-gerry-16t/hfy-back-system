@@ -307,6 +307,7 @@ router.post(
 router.post("/catalogs/getAllProperties", ControllerCatalogs.getAllProperties);
 router.post("/catalogs/getAllCurrencies", ControllerCatalogs.getAllCurrencies);
 router.post("/catalogs/getAllSites", ControllerCatalogs.getAllSites);
+router.post("/catalogs/getAllLandAccess", ControllerCatalogs.getAllLandAccess);
 //Catalogos//
 
 //Admin//

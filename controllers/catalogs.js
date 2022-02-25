@@ -1033,6 +1033,28 @@ const executeGetAllSites = async (params, res) => {
   } catch (error) {}
 };
 
+const executeGetAllLandAccess = async (params, res) => {
+  const { idApartment = null, type, idSystemUser, idLoginHistory } = params;
+  try {
+    const request = new sql.Request();
+    request.input("p_uidIdSystemUser", sql.NVarChar, idSystemUser);
+    request.input("p_uidIdLoginHistory", sql.NVarChar, idLoginHistory);
+    request.input("p_intType", sql.Int, type);
+    request.input("p_uidIdApartment", sql.NVarChar, idApartment);
+    request.execute("catCustomerSch.USPgetAllLandAccess", (err, result) => {
+      if (err) {
+        console.log("err", err);
+        res.status(500).send({ response: "Error en los parametros" });
+      } else {
+        const resultRecordset = result.recordset;
+        res.status(200).send({
+          response: resultRecordset,
+        });
+      }
+    });
+  } catch (error) {}
+};
+
 const ControllerCatalogs = {
   getAllMaritalStatus: (req, res) => {
     const params = req.body;
@@ -1198,6 +1220,10 @@ const ControllerCatalogs = {
   getAllSites: (req, res) => {
     const params = req.body;
     executeGetAllSites(params, res);
+  },
+  getAllLandAccess: (req, res) => {
+    const params = req.body;
+    executeGetAllLandAccess(params, res);
   },
 };
 
