@@ -979,6 +979,131 @@ const executeValidateClassified = async (params, res) => {
   }
 };
 
+const executeSetSubscription = async (params, res, url) => {
+  const {
+    idSubscriptionType,
+    idMethod,
+    isTrial = null,
+    isCanceled = null,
+    acceptedCode = null,
+    idLoginHistory,
+    offset = GLOBAL_CONSTANTS.OFFSET,
+  } = params;
+  const { idSystemUser } = url;
+  const storeProcedure = "subscriptionSch.USPsetSubscription";
+  try {
+    if (
+      isNil(idSystemUser) === true ||
+      isNil(idLoginHistory) === true ||
+      isNil(idSubscriptionType) === true ||
+      isNil(idMethod) === true ||
+      isNil(offset) === true
+    ) {
+      res.status(400).send({
+        response: {
+          message: "Error en los parametros de entrada",
+        },
+      });
+    } else {
+      const pool = await sql.connect();
+      const result = await pool
+        .request()
+        .input("p_uidIdSystemUser", sql.NVarChar, idSystemUser)
+        .input("p_uidIdLoginHistory", sql.NVarChar, idLoginHistory)
+        .input("p_intIdSubscriptionType", sql.Int, idSubscriptionType)
+        .input("p_intIdMethod", sql.Int, idMethod)
+        .input("p_bitIsTrial", sql.Bit, isTrial)
+        .input("p_bitIsCanceled", sql.Bit, isCanceled)
+        .input("p_nvcAcceptedCode", sql.NVarChar, acceptedCode)
+        .input("p_chrOffset", sql.Char, offset)
+        .execute(storeProcedure);
+      const resultRecordset = result.recordset;
+      const resultRecordsetObject = result.recordset[0];
+      if (resultRecordsetObject.stateCode !== 200) {
+        //executeSlackLogCatchBackend({
+        // storeProcedure,
+        //error: resultRecordsetObject.errorMessage,
+        // });
+        res.status(resultRecordsetObject.stateCode).send({
+          response: {
+            message: resultRecordsetObject.message,
+            errorMessage: resultRecordsetObject.errorMessage,
+          },
+        });
+      } else {
+        for (const element of resultRecordset) {
+          if (element.canSendEmail === true) {
+            const configEmailServer = JSON.parse(element.jsonEmailServerConfig);
+            await executeMailTo({
+              ...element,
+              ...configEmailServer,
+            });
+          }
+        }
+        res.status(200).send({
+          response: {
+            message: resultRecordsetObject.message,
+            idProperty: resultRecordsetObject.idProperty,
+            idApartment: resultRecordsetObject.idApartment,
+          },
+        });
+      }
+    }
+  } catch (err) {
+    executeSlackLogCatchBackend({
+      storeProcedure,
+      error: err,
+      body: params,
+    });
+    res.status(500).send({
+      response: { message: "Error en el sistema" },
+    });
+  }
+};
+
+const executeGetSuscriptionDetail = async (params, res) => {
+  const {
+    idSystemUser,
+    idLoginHistory,
+    offset = GLOBAL_CONSTANTS.OFFSET,
+  } = params;
+  const storeProcedure = "subscriptionSch.USPgetSuscriptionDetail";
+  try {
+    if (
+      isNil(offset) === true ||
+      isNil(idSystemUser) === true ||
+      isNil(idLoginHistory) === true
+    ) {
+      res.status(400).send({
+        response: {
+          message: "Error en los parametros de entrada",
+        },
+      });
+    } else {
+      const pool = await sql.connect();
+      const result = await pool
+        .request()
+        .input("p_uidIdSystemUser", sql.NVarChar, idSystemUser)
+        .input("p_uidIdLoginHistory", sql.NVarChar, idLoginHistory)
+        .input("p_chrOffset", sql.Char, offset)
+        .execute(storeProcedure);
+      const resultRecordset = result.recordsets;
+      res.status(200).send({
+        response: resultRecordset,
+      });
+    }
+  } catch (err) {
+    executeSlackLogCatchBackend({
+      storeProcedure,
+      error: err,
+      body: params,
+    });
+    res.status(500).send({
+      response: { message: "Error en el sistema" },
+    });
+  }
+};
+
 const ControllerProperties = {
   setUserConfig: (req, res) => {
     const params = req.body;
@@ -1017,6 +1142,15 @@ const ControllerProperties = {
   validateClassified: (req, res) => {
     const params = req.body;
     executeValidateClassified(params, res);
+  },
+  setSubscription: (req, res) => {
+    const params = req.body;
+    const url = req.params; //idSystemUser
+    executeSetSubscription(params, res, url);
+  },
+  getSuscriptionDetail: (req, res) => {
+    const params = req.body;
+    executeGetSuscriptionDetail(params, res);
   },
 };
 

@@ -22,5 +22,10 @@ router.put(
 );
 router.post("/getPropertyById", ControllerProperties.getPropertyById);
 router.post("/validateClassified", ControllerProperties.validateClassified);
+router.put(
+  "/setSubscription/:idSystemUser",
+  ControllerProperties.setSubscription
+);
+router.post("/getSuscriptionDetail", ControllerProperties.getSuscriptionDetail);
 
 module.exports = router;
