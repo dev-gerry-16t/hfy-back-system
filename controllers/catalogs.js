@@ -1,4 +1,5 @@
 const sql = require("mssql");
+const executeSlackLogCatchBackend = require("../actions/slackLogCatchBackend");
 
 const executeGetAllMaritalStatus = async (params, res) => {
   const {
@@ -1055,6 +1056,36 @@ const executeGetAllLandAccess = async (params, res) => {
   } catch (error) {}
 };
 
+const executeGetAllSubscriptionTypes = async (params, res) => {
+  const { type, idSystemUser, idLoginHistory, idMethod } = params;
+  try {
+    const request = new sql.Request();
+    request.input("p_uidIdSystemUser", sql.NVarChar, idSystemUser);
+    request.input("p_uidIdLoginHistory", sql.NVarChar, idLoginHistory);
+    request.input("p_intType", sql.Int, type);
+    request.input("p_intIdMethod", sql.Int, idMethod);
+    request.execute(
+      "catSubscriptionSch.USPgetAllSubscriptionTypes",
+      (err, result) => {
+        if (err) {
+          console.log("err", err);
+          executeSlackLogCatchBackend({
+            storeProcedure: "catSubscriptionSch.USPgetAllSubscriptionTypes",
+            error: err,
+            body: params,
+          });
+          res.status(500).send({ response: "Error en los parametros" });
+        } else {
+          const resultRecordset = result.recordset;
+          res.status(200).send({
+            response: resultRecordset,
+          });
+        }
+      }
+    );
+  } catch (error) {}
+};
+
 const ControllerCatalogs = {
   getAllMaritalStatus: (req, res) => {
     const params = req.body;
@@ -1224,6 +1255,10 @@ const ControllerCatalogs = {
   getAllLandAccess: (req, res) => {
     const params = req.body;
     executeGetAllLandAccess(params, res);
+  },
+  getAllSubscriptionTypes: (req, res) => {
+    const params = req.body;
+    executeGetAllSubscriptionTypes(params, res);
   },
 };
 
