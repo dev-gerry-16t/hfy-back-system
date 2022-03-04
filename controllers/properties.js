@@ -135,7 +135,7 @@ const handlerPublishedMLM = async (params) => {
         ? JSON.parse(resultRecordsetObject.attributes)
         : [];
     const token =
-      "APP_USR-2169250693153406-022321-391827cd5e3df78da24076259c61b647-1076872505";
+      "APP_USR-2169250693153406-030417-25b9e284dbeeb9e82aa38c23b5fe157a-1076872505";
     const responseML = await executePublicToMLM({
       ...resultRecordsetObject,
       classified,
@@ -145,6 +145,7 @@ const handlerPublishedMLM = async (params) => {
       attributes,
       token,
     });
+    
     await executeSetClassified({
       idProperty,
       idApartment,

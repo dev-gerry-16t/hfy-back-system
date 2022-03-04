@@ -169,6 +169,7 @@ const executePublicToMLM = async (params) => {
     description,
     buying_modes,
   } = classified;
+
   try {
     const parseLocation = await handlerGetLocationObject(location, token);
     const body = {
@@ -181,9 +182,6 @@ const executePublicToMLM = async (params) => {
       listing_type_id,
       condition,
       video_id: null,
-      description: {
-        plain_text: description,
-      },
       pictures,
       seller_contact,
       location: parseLocation,
@@ -205,7 +203,20 @@ const executePublicToMLM = async (params) => {
         rejectUnauthorized: false,
       });
 
-      console.log("response", response);
+      const responseDescription = await rp({
+        url: `https://api.mercadolibre.com/items/${response.id}/description`,
+        method: "POST",
+        headers: {
+          accept: "application/json",
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        json: true,
+        body: {
+          plain_text: description,
+        },
+        rejectUnauthorized: false,
+      });
 
       return response;
     }

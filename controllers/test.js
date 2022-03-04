@@ -265,7 +265,9 @@ const ControllerTest = {
       ) {
         res.send({ error: "No document attachment" });
       } else {
-        const bucketSource = params.bucketSource.toLowerCase();
+        const splitParam = params.bucketSource.split(".");
+        const bucketSource =
+          isNil(splitParam[0]) === false ? splitParam[0].toLowerCase() : "";
         const file = await s3
           .getObject({
             Bucket: bucketSource,
@@ -276,6 +278,7 @@ const ControllerTest = {
         const buff = new Buffer.from(file.Body, "binary");
         res.writeHead(200, {
           "Content-Length": buff.length,
+          "Content-Type": "image/jpeg",
         });
         res.end(buff);
       }
