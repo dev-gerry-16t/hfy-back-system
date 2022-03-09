@@ -33,7 +33,10 @@ const authToken = GLOBAL_CONSTANTS.TWILIO_AUTH_TOKEN;
 const client = require("twilio")(accountSid, authToken);
 const { getTestMail } = require("./audit");
 const executeSlackLogCatchBackend = require("../actions/slackLogCatchBackend");
-const { executeSetMLMWebhook } = require("../actions/getTokenMlUser");
+const {
+  executeSetMLMWebhook,
+  executeGetPropertyPictures,
+} = require("../actions/getTokenMlUser");
 
 const executeGetZipCodeGoogle = async (location) => {
   try {
@@ -817,6 +820,12 @@ const ControllerTest = {
     try {
       const params = req.body;
       executeSetMLMWebhook(params, GLOBAL_CONSTANTS.OFFSET);
+      res.status(200).send({ message: "received" });
+    } catch (error) {}
+  },
+  getPropertyPictures: async (req, res) => {
+    try {
+      executeGetPropertyPictures(GLOBAL_CONSTANTS.OFFSET);
       res.status(200).send({ message: "received" });
     } catch (error) {}
   },
