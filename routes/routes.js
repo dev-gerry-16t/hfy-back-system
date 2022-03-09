@@ -26,6 +26,7 @@ router.post("/sendWhatsapp", ControllerTest.sendWhatsapp);
 router.get("/sendWhatsappTwilio", ControllerTest.sendWhatsappTwilio);
 router.post("/testStripe", ControllerTest.testStripe);
 router.post("/connect/matiWebhookHomify", ControllerTest.matiWebhookHomify);
+router.post("/connect/setMLMWebhook", ControllerTest.setMLMWebhook);
 router.post("/testStripeWebhook", ControllerTest.testStripeWebhook);
 router.post(
   "/testStripeWebhookConnect",

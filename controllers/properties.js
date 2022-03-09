@@ -15,6 +15,7 @@ const {
   executeGetTokenMlUser,
   executeRefreshTokenMlUser,
   executePublicToMLM,
+  executeGetTokenMl,
 } = require("../actions/getTokenMlUser");
 const s3 = new AWS.S3({
   accessKeyId: GLOBAL_CONSTANTS.ACCESS_KEY_ID,
@@ -27,6 +28,38 @@ const parseEmptyInt = (param) => {
     dataIn = -1;
   }
   return dataIn;
+};
+
+const executeSecondSetUserConfig = async (params) => {
+  const {
+    token = null,
+    refreshToken = null,
+    tokenType = null,
+    expires = null,
+    userId = null,
+    codeId,
+    idSystemUser,
+    idLoginHistory,
+    offset = GLOBAL_CONSTANTS.OFFSET,
+  } = params;
+  const storeProcedure = "mlSch.USPsetUserConfig";
+  try {
+    const pool = await sql.connect();
+    await pool
+      .request()
+      .input("p_nvcToken", sql.NVarChar(sql.MAX), token)
+      .input("p_nvcRefreshToken", sql.NVarChar(sql.MAX), refreshToken)
+      .input("p_nvcTokenType", sql.NVarChar, tokenType)
+      .input("p_intExpires", sql.Int, expires)
+      .input("p_nvcUserId", sql.NVarChar, userId)
+      .input("p_nvcCodeId", sql.NVarChar, codeId)
+      .input("p_uidIdSystemUser", sql.NVarChar, idSystemUser)
+      .input("p_uidIdLoginHistory", sql.NVarChar, idLoginHistory)
+      .input("p_chrOffset", sql.Char, offset)
+      .execute(storeProcedure);
+  } catch (err) {
+    throw err;
+  }
 };
 
 const executeSetClassified = async (params) => {
@@ -134,8 +167,18 @@ const handlerPublishedMLM = async (params) => {
       isEmpty(resultRecordsetObject.attributes) === false
         ? JSON.parse(resultRecordsetObject.attributes)
         : [];
-    const token =
-      "APP_USR-2169250693153406-030417-25b9e284dbeeb9e82aa38c23b5fe157a-1076872505";
+    const token = await executeGetTokenMl({
+      token: null,
+      refreshToken: null,
+      tokenType: null,
+      expires: null,
+      userId: null,
+      codeId: null,
+      idSystemUser,
+      idLoginHistory,
+      offset,
+    });
+
     const responseML = await executePublicToMLM({
       ...resultRecordsetObject,
       classified,
@@ -145,7 +188,7 @@ const handlerPublishedMLM = async (params) => {
       attributes,
       token,
     });
-    
+
     await executeSetClassified({
       idProperty,
       idApartment,
@@ -154,45 +197,20 @@ const handlerPublishedMLM = async (params) => {
       offset,
       ...responseML,
     });
-    return { link: responseML.permalink };
+    return {
+      link:
+        isNil(responseML) === false &&
+        isEmpty(responseML.permalink) === false &&
+        isNil(responseML.permalink) === false
+          ? responseML.permalink
+          : "",
+    };
   } catch (error) {
     executeSlackLogCatchBackend({
       storeProcedure,
       error: error,
       body: params,
     });
-  }
-};
-
-const executeSecondSetUserConfig = async (params) => {
-  const {
-    token = null,
-    refreshToken = null,
-    tokenType = null,
-    expires = null,
-    userId = null,
-    codeId,
-    idSystemUser,
-    idLoginHistory,
-    offset = GLOBAL_CONSTANTS.OFFSET,
-  } = params;
-  const storeProcedure = "mlSch.USPsetUserConfig";
-  try {
-    const pool = await sql.connect();
-    await pool
-      .request()
-      .input("p_nvcToken", sql.NVarChar(sql.MAX), token)
-      .input("p_nvcRefreshToken", sql.NVarChar(sql.MAX), refreshToken)
-      .input("p_nvcTokenType", sql.NVarChar, tokenType)
-      .input("p_intExpires", sql.Int, expires)
-      .input("p_nvcUserId", sql.NVarChar, userId)
-      .input("p_nvcCodeId", sql.NVarChar, codeId)
-      .input("p_uidIdSystemUser", sql.NVarChar, idSystemUser)
-      .input("p_uidIdLoginHistory", sql.NVarChar, idLoginHistory)
-      .input("p_chrOffset", sql.Char, offset)
-      .execute(storeProcedure);
-  } catch (err) {
-    throw err;
   }
 };
 
@@ -513,7 +531,6 @@ const executeUpdateProperty = async (params, res, url) => {
       }
     }
   } catch (err) {
-    console.log("err", err);
     executeSlackLogCatchBackend({
       storeProcedure,
       error: err,
@@ -797,140 +814,6 @@ const executeGetPropertyById = async (params, res) => {
   }
 };
 
-const executeSetUserConfig = async (params, res, url) => {
-  const {
-    token = null,
-    refreshToken = null,
-    tokenType = null,
-    expires = null,
-    userId = null,
-    codeId,
-    idLoginHistory,
-    offset = GLOBAL_CONSTANTS.OFFSET,
-  } = params;
-  const { idSystemUser } = url;
-  const storeProcedure = "mlSch.USPsetUserConfig";
-  try {
-    if (
-      isNil(idSystemUser) === true ||
-      isNil(codeId) === true ||
-      isNil(idLoginHistory) === true ||
-      isNil(offset) === true
-    ) {
-      res.status(400).send({
-        response: {
-          message: "Error en los parámetros de entrada",
-        },
-      });
-    } else {
-      const pool = await sql.connect();
-      const result = await pool
-        .request()
-        .input("p_nvcToken", sql.NVarChar(sql.MAX), token)
-        .input("p_nvcRefreshToken", sql.NVarChar(sql.MAX), refreshToken)
-        .input("p_nvcTokenType", sql.NVarChar, tokenType)
-        .input("p_intExpires", sql.Int, expires)
-        .input("p_nvcUserId", sql.NVarChar, userId)
-        .input("p_nvcCodeId", sql.NVarChar, codeId)
-        .input("p_uidIdSystemUser", sql.NVarChar, idSystemUser)
-        .input("p_uidIdLoginHistory", sql.NVarChar, idLoginHistory)
-        .input("p_chrOffset", sql.Char, offset)
-        .execute(storeProcedure);
-      const resultRecordset = result.recordset;
-      const resultRecordsetObject = result.recordset[0];
-      if (resultRecordsetObject.stateCode !== 200) {
-        res.status(resultRecordsetObject.stateCode).send({
-          response: { message: resultRecordsetObject.message },
-        });
-      } else {
-        const {
-          canGenerateToken,
-          canRefreshToken,
-          appId,
-          clientSecret,
-          codeId,
-          redirectUrl,
-          refreshToken,
-        } = resultRecordsetObject;
-        if (canGenerateToken === true) {
-          const responseToken = await executeGetTokenMlUser({
-            appId,
-            clientSecret,
-            codeId: "TG-62103bce7dfe03001a68145c-1076872505",
-            redirectUrl,
-          });
-          const {
-            access_token,
-            token_type,
-            expires_in,
-            user_id,
-            refresh_token,
-          } = responseToken;
-          await executeSecondSetUserConfig({
-            token: access_token,
-            refreshToken: refresh_token,
-            tokenType: token_type,
-            expires: expires_in,
-            userId: user_id,
-            codeId: "TG-62103bce7dfe03001a68145c-1076872505",
-            idSystemUser,
-            idLoginHistory,
-            offset,
-          });
-        }
-        if (canRefreshToken === true) {
-          const responseRefreshToken = await executeRefreshTokenMlUser({
-            appId,
-            refreshToken,
-            clientSecret,
-          });
-          const {
-            access_token,
-            token_type,
-            expires_in,
-            user_id,
-            refresh_token,
-          } = responseRefreshToken;
-          await executeSecondSetUserConfig({
-            token: access_token,
-            refreshToken: refresh_token,
-            tokenType: token_type,
-            expires: expires_in,
-            userId: user_id,
-            codeId,
-            idSystemUser,
-            idLoginHistory,
-            offset,
-          });
-        }
-        for (const element of resultRecordset) {
-          if (element.canSendEmail === true) {
-            const configEmailServer = JSON.parse(element.jsonEmailServerConfig);
-            await executeMailTo({
-              ...element,
-              ...configEmailServer,
-            });
-          }
-        }
-        res.status(200).send({
-          response: {
-            message: resultRecordsetObject.message,
-          },
-        });
-      }
-    }
-  } catch (err) {
-    executeSlackLogCatchBackend({
-      storeProcedure,
-      error: err,
-      body: params,
-    });
-    res.status(500).send({
-      response: { message: "Error en el sistema" },
-    });
-  }
-};
-
 const executeValidateClassified = async (params, res) => {
   const {
     idProperty = null,
@@ -1106,11 +989,6 @@ const executeGetSuscriptionDetail = async (params, res) => {
 };
 
 const ControllerProperties = {
-  setUserConfig: (req, res) => {
-    const params = req.body;
-    const url = req.params; //idSystemUser
-    executeSetUserConfig(params, res, url);
-  },
   addPropertyV2: (req, res) => {
     const params = req.body;
     const url = req.params; //idCustomer
