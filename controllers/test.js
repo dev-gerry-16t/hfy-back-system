@@ -22,6 +22,7 @@ const {
   executeSentReminders,
 } = require("../actions/dispersionOrder");
 const executeSetWAMessage = require("../actions/setWAMMessage");
+const executeTestMailToNotification = require("../actions/testMailTo");
 const endpointSecret = process.env.END_POINT_SECRET_KEY;
 const executeMailToNotification = require("../actions/sendInformationLog");
 const s3 = new AWS.S3({
@@ -33,7 +34,10 @@ const authToken = GLOBAL_CONSTANTS.TWILIO_AUTH_TOKEN;
 const client = require("twilio")(accountSid, authToken);
 const { getTestMail } = require("./audit");
 const executeSlackLogCatchBackend = require("../actions/slackLogCatchBackend");
-const { executeSetMLMWebhook } = require("../actions/getTokenMlUser");
+const {
+  executeSetMLMWebhook,
+  executeGetPropertyPictures,
+} = require("../actions/getTokenMlUser");
 
 const executeGetZipCodeGoogle = async (location) => {
   try {
@@ -817,6 +821,18 @@ const ControllerTest = {
     try {
       const params = req.body;
       executeSetMLMWebhook(params, GLOBAL_CONSTANTS.OFFSET);
+      res.status(200).send({ message: "received" });
+    } catch (error) {}
+  },
+  getPropertyPictures: async (req, res) => {
+    try {
+      executeGetPropertyPictures(GLOBAL_CONSTANTS.OFFSET);
+      res.status(200).send({ message: "received" });
+    } catch (error) {}
+  },
+  testMailToNotification: async (req, res) => {
+    try {
+      executeTestMailToNotification({});
       res.status(200).send({ message: "received" });
     } catch (error) {}
   },

@@ -16,6 +16,7 @@ const {
   executeRefreshTokenMlUser,
   executePublicToMLM,
   executeGetTokenMl,
+  executeSetAnswerToML,
 } = require("../actions/getTokenMlUser");
 const s3 = new AWS.S3({
   accessKeyId: GLOBAL_CONSTANTS.ACCESS_KEY_ID,
@@ -1030,6 +1031,10 @@ const ControllerProperties = {
   getSuscriptionDetail: (req, res) => {
     const params = req.body;
     executeGetSuscriptionDetail(params, res);
+  },
+  setAnswerToML: (req, res) => {
+    const params = req.body;
+    executeSetAnswerToML(params, res);
   },
 };
 

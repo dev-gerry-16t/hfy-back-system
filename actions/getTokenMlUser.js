@@ -427,6 +427,7 @@ const executeGetTokenMl = async (params) => {
       error,
       body: params,
     });
+    throw error;
   }
 };
 
@@ -469,10 +470,150 @@ const executeSetMLMWebhook = async (params, offset) => {
   }
 };
 
+const executeSetMLMPicture = async (params, offset) => {
+  const storeProcedure = "mlSch.USPsetMLMPicture";
+  try {
+    const pool = await sql.connect();
+    await pool
+      .request()
+      .input("p_nvcIdClassified", sql.NVarChar, params.id)
+      .input("p_nvcJsonServiceResponse", sql.NVarChar, JSON.stringify(params))
+      .input("p_chrOffset", sql.Char, offset)
+      .execute(storeProcedure);
+  } catch (err) {
+    executeSlackLogCatchBackend({
+      storeProcedure,
+      error: err,
+      body: params,
+    });
+  }
+};
+
+const executeGetPropertyPictures = async (offset) => {
+  const storeProcedure = "mlSch.USPgetPropertyPictures";
+  try {
+    let hasMore = true;
+    while (hasMore === true) {
+      const pool = await sql.connect();
+      const result = await pool
+        .request()
+        .input("p_chrOffset", sql.Char, offset)
+        .execute(storeProcedure);
+      const resultRecordsetObject =
+        isEmpty(result.recordset) === false &&
+        isNil(result.recordset[0]) === false &&
+        isEmpty(result.recordset[0]) === false
+          ? result.recordset[0]
+          : {};
+      if (isEmpty(resultRecordsetObject) === false) {
+        const token = await executeGetTokenMl({
+          offset,
+          userId: resultRecordsetObject.user_id,
+        });
+        const pictures =
+          isEmpty(resultRecordsetObject) === false &&
+          isNil(resultRecordsetObject.pictures) === false &&
+          isEmpty(resultRecordsetObject.pictures) === false
+            ? JSON.parse(resultRecordsetObject.pictures)
+            : [];
+        const idClassified =
+          isEmpty(resultRecordsetObject) === false &&
+          isNil(resultRecordsetObject.idClassified) === false &&
+          isEmpty(resultRecordsetObject.idClassified) === false
+            ? resultRecordsetObject.idClassified
+            : "";
+        const response = await rp({
+          url: `https://api.mercadolibre.com/items/${idClassified}`,
+          method: "PUT",
+          headers: {
+            accept: "application/json",
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          json: true,
+          body: {
+            pictures,
+          },
+          rejectUnauthorized: false,
+        });
+        await executeSetMLMPicture(response, offset);
+        hasMore =
+          isEmpty(resultRecordsetObject) === false &&
+          isNil(resultRecordsetObject.hasMore) === false
+            ? resultRecordsetObject.hasMore
+            : "";
+      }
+    }
+  } catch (err) {
+    executeSlackLogCatchBackend({
+      storeProcedure,
+      error: err,
+      body: {},
+    });
+  }
+};
+
+const executeSetAnswerToML = async (params, res) => {
+  const {
+    question_id,
+    answer,
+    idSystemUser,
+    idLoginHistory,
+    offset = GLOBAL_CONSTANTS.OFFSET,
+  } = params;
+  try {
+    const token = await executeGetTokenMl({
+      offset,
+      userId: null,
+      idSystemUser,
+      idLoginHistory,
+    });
+    const response = await rp({
+      url: `https://api.mercadolibre.com/answers`,
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      json: true,
+      rejectUnauthorized: false,
+      body: {
+        question_id,
+        text: answer,
+      },
+    });
+    res.status(200).send({
+      response: {
+        message: "Respuesta enviada",
+      },
+    });
+  } catch (error) {
+    res.status(500).send({
+      response: {
+        message:
+          isNil(error) === false &&
+          isNil(error.error) === false &&
+          isNil(error.error.error) === false
+            ? error.error.error
+            : "Error, no se pudo enviar la respuesta",
+      },
+    });
+    executeSlackLogCatchBackend({
+      storeProcedure: "answer enviado a mercado libre con error",
+      error: error,
+      body: {
+        question_id,
+        text: answer,
+      },
+    });
+  }
+};
+
 module.exports = {
   executeGetTokenMlUser,
   executeRefreshTokenMlUser,
   executePublicToMLM,
   executeGetTokenMl,
   executeSetMLMWebhook,
+  executeGetPropertyPictures,
+  executeSetAnswerToML,
 };
