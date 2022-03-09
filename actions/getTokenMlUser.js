@@ -3,6 +3,7 @@ const rp = require("request-promise");
 const isNil = require("lodash/isNil");
 const isEmpty = require("lodash/isEmpty");
 const executeSlackLogCatchBackend = require("./slackLogCatchBackend");
+const GLOBAL_CONSTANTS = require("../constants/constants");
 
 const executeGetTokenMlUser = async (params) => {
   const { appId, clientSecret, codeId, redirectUrl } = params;
@@ -15,7 +16,13 @@ const executeGetTokenMlUser = async (params) => {
         "Content-Type": "application/x-www-form-urlencoded",
       },
       json: true,
-      body: `grant_type=authorization_code&client_id=${appId}&client_secret=${clientSecret}&code=${codeId}&redirect_uri=${redirectUrl}`,
+      form: {
+        grant_type: "authorization_code",
+        client_id: appId,
+        client_secret: clientSecret,
+        code: codeId,
+        redirect_uri: redirectUrl,
+      },
       rejectUnauthorized: false,
     });
     return response;
@@ -35,7 +42,12 @@ const executeRefreshTokenMlUser = async (params) => {
         "Content-Type": "application/x-www-form-urlencoded",
       },
       json: true,
-      body: `grant_type=refresh_token&client_id=${appId}&client_secret=${clientSecret}&refresh_token${refreshToken}`,
+      form: {
+        grant_type: "refresh_token",
+        client_id: appId,
+        client_secret: clientSecret,
+        refresh_token: refreshToken,
+      },
       rejectUnauthorized: false,
     });
     return response;
@@ -112,7 +124,6 @@ const handlerGetLocationObject = async (dataLocation, token) => {
     }
     return objectParse;
   } catch (error) {
-    console.log("error", error);
     return objectParse;
   }
 };
@@ -131,7 +142,6 @@ const handlerValidatePublication = async (body, token) => {
       body,
       rejectUnauthorized: false,
     });
-    console.log("response", response);
   } catch (error) {
     executeSlackLogCatchBackend({
       storeProcedure: "Validación de objeto ML",
@@ -156,7 +166,6 @@ const executePublicToMLM = async (params) => {
     attributes,
     token = "",
   } = params;
-
   const {
     title,
     category_id,
@@ -169,27 +178,29 @@ const executePublicToMLM = async (params) => {
     description,
     buying_modes,
   } = classified;
-
   try {
-    const parseLocation = await handlerGetLocationObject(location, token);
-    const body = {
-      title,
-      category_id,
-      price,
-      currency_id,
-      available_quantity,
-      buying_mode: buying_modes,
-      listing_type_id,
-      condition,
-      video_id: null,
-      pictures,
-      seller_contact,
-      location: parseLocation,
-      attributes,
-    };
+    const parseLocation =
+      isEmpty(location) === false
+        ? await handlerGetLocationObject(location, token)
+        : {};
 
-    await handlerValidatePublication(body, token);
     if (operationType == "publish") {
+      const body = {
+        title,
+        category_id,
+        price,
+        currency_id,
+        available_quantity,
+        buying_mode: buying_modes,
+        listing_type_id,
+        condition,
+        video_id: null,
+        pictures,
+        seller_contact,
+        location: parseLocation,
+        attributes,
+      };
+      await handlerValidatePublication(body, token);
       const response = await rp({
         url: "https://api.mercadolibre.com/items",
         method: "POST",
@@ -219,9 +230,242 @@ const executePublicToMLM = async (params) => {
       });
 
       return response;
+    } else if (operationType == "update") {
+      let body = {};
+      if (isEmpty(seller_contact) === false) {
+        body.seller_contact = seller_contact;
+      }
+      if (isEmpty(parseLocation) === false) {
+        body.location = parseLocation;
+      }
+      if (isEmpty(attributes) === false) {
+        body.attributes = attributes;
+      }
+      if (isEmpty(classified) === false) {
+        const body = {
+          title,
+          category_id,
+          price,
+          currency_id,
+          available_quantity,
+          buying_mode: buying_modes,
+          listing_type_id,
+          condition,
+          video_id: null,
+          pictures,
+          seller_contact,
+          location: parseLocation,
+          attributes,
+        };
+        if (isNil(title) === false) {
+          body.title = title;
+        }
+        if (isNil(category_id) === false) {
+          body.category_id = category_id;
+        }
+        if (isNil(price) === false) {
+          body.price = price;
+        }
+        if (isNil(currency_id) === false) {
+          body.currency_id = currency_id;
+        }
+        if (isNil(available_quantity) === false) {
+          body.available_quantity = available_quantity;
+        }
+        if (isNil(listing_type_id) === false) {
+          body.listing_type_id = listing_type_id;
+        }
+        if (isNil(condition) === false) {
+          body.condition = condition;
+        }
+        if (isNil(description) === false) {
+          const responseDescription = await rp({
+            url: `https://api.mercadolibre.com/items/${idClassified}/description`,
+            method: "PUT",
+            headers: {
+              accept: "application/json",
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            json: true,
+            body: {
+              plain_text: description,
+            },
+            rejectUnauthorized: false,
+          });
+        }
+        if (isNil(buying_modes) === false) {
+          body.buying_mode = buying_modes;
+        }
+      }
+      const response = await rp({
+        url: `https://api.mercadolibre.com/items/${idClassified}`,
+        method: "PUT",
+        headers: {
+          accept: "application/json",
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        json: true,
+        body,
+        rejectUnauthorized: false,
+      });
+      return response;
     }
   } catch (error) {
     throw error;
+  }
+};
+
+const executeSetUserConfig = async (params) => {
+  const {
+    token = null,
+    refreshToken = null,
+    tokenType = null,
+    expires = null,
+    userId = null,
+    codeId = null,
+    idSystemUser = null,
+    idLoginHistory = null,
+    offset,
+  } = params;
+  const storeProcedure = "mlSch.USPsetUserConfig";
+  try {
+    const pool = await sql.connect();
+    const result = await pool
+      .request()
+      .input("p_nvcToken", sql.NVarChar(sql.MAX), token)
+      .input("p_nvcRefreshToken", sql.NVarChar(sql.MAX), refreshToken)
+      .input("p_nvcTokenType", sql.NVarChar, tokenType)
+      .input("p_intExpires", sql.Int, expires)
+      .input("p_nvcUserId", sql.NVarChar, userId)
+      .input("p_nvcCodeId", sql.NVarChar, codeId)
+      .input("p_uidIdSystemUser", sql.NVarChar, idSystemUser)
+      .input("p_uidIdLoginHistory", sql.NVarChar, idLoginHistory)
+      .input(
+        "p_nvcPassPhrase",
+        sql.NVarChar,
+        GLOBAL_CONSTANTS.WEBHOOK_PASS_ML_DB
+      )
+      .input("p_chrOffset", sql.Char, offset)
+      .execute(storeProcedure);
+    const resultRecordsetObject =
+      isEmpty(result.recordset) === false &&
+      isNil(result.recordset[0]) === false &&
+      isEmpty(result.recordset[0]) === false
+        ? result.recordset[0]
+        : {};
+    return resultRecordsetObject;
+  } catch (err) {
+    throw err;
+  }
+};
+
+const executeGetTokenMl = async (params) => {
+  const { idSystemUser, idLoginHistory, offset } = params;
+  try {
+    const oneResponse = await executeSetUserConfig(params);
+    const {
+      canGenerateToken,
+      canRefreshToken,
+      appId,
+      clientSecret,
+      codeId,
+      redirectUrl,
+      refreshToken,
+      token,
+    } = oneResponse;
+    let tokenActive = null;
+    if (canGenerateToken === true) {
+      const responseToken = await executeGetTokenMlUser({
+        appId,
+        clientSecret,
+        codeId,
+        redirectUrl,
+      });
+      const { access_token, token_type, expires_in, user_id, refresh_token } =
+        responseToken;
+      await executeSetUserConfig({
+        token: access_token,
+        refreshToken: refresh_token,
+        tokenType: token_type,
+        expires: expires_in,
+        userId: user_id,
+        codeId,
+        idSystemUser,
+        idLoginHistory,
+        offset,
+      });
+      tokenActive = access_token;
+    } else if (canRefreshToken === true) {
+      const responseRefreshToken = await executeRefreshTokenMlUser({
+        appId,
+        refreshToken,
+        clientSecret,
+      });
+      const { access_token, token_type, expires_in, user_id, refresh_token } =
+        responseRefreshToken;
+      await executeSetUserConfig({
+        token: access_token,
+        refreshToken: refresh_token,
+        tokenType: token_type,
+        expires: expires_in,
+        userId: user_id,
+        codeId,
+        idSystemUser,
+        idLoginHistory,
+        offset,
+      });
+      tokenActive = access_token;
+    } else {
+      tokenActive = token;
+    }
+    return tokenActive;
+  } catch (error) {
+    executeSlackLogCatchBackend({
+      storeProcedure: "algún error en el getToken",
+      error,
+      body: params,
+    });
+  }
+};
+
+const executeSetMLMWebhook = async (params, offset) => {
+  const { resource, user_id, topic } = params;
+  const storeProcedure = "mlSch.USPsetMLMWebhook";
+  try {
+    const token = await executeGetTokenMl({ offset, userId: user_id });
+    const response = await rp({
+      url: `https://api.mercadolibre.com${resource}`,
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      json: true,
+      rejectUnauthorized: false,
+    });
+    const pool = await sql.connect();
+    const result = await pool
+      .request()
+      .input("p_nvcJsonServiceResponse", sql.NVarChar, JSON.stringify(params))
+      .input("p_nvcJsonRequestResponse", sql.NVarChar, JSON.stringify(response))
+      .input("p_nvcTopic", sql.NVarChar, topic)
+      .input("p_bitWasFound", sql.Bit, null)
+      .input("p_chrOffset", sql.Char, offset)
+      .execute(storeProcedure);
+    const resultRecordsetObject =
+      isEmpty(result.recordset) === false &&
+      isNil(result.recordset[0]) === false &&
+      isEmpty(result.recordset[0]) === false
+        ? result.recordset[0]
+        : {};
+    return resultRecordsetObject;
+  } catch (err) {
+    executeSlackLogCatchBackend({
+      storeProcedure,
+      error: err,
+      body: params,
+    });
   }
 };
 
@@ -229,4 +473,6 @@ module.exports = {
   executeGetTokenMlUser,
   executeRefreshTokenMlUser,
   executePublicToMLM,
+  executeGetTokenMl,
+  executeSetMLMWebhook,
 };
