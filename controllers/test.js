@@ -22,6 +22,7 @@ const {
   executeSentReminders,
 } = require("../actions/dispersionOrder");
 const executeSetWAMessage = require("../actions/setWAMMessage");
+const executeTestMailToNotification = require("../actions/testMailTo");
 const endpointSecret = process.env.END_POINT_SECRET_KEY;
 const executeMailToNotification = require("../actions/sendInformationLog");
 const s3 = new AWS.S3({
@@ -826,6 +827,12 @@ const ControllerTest = {
   getPropertyPictures: async (req, res) => {
     try {
       executeGetPropertyPictures(GLOBAL_CONSTANTS.OFFSET);
+      res.status(200).send({ message: "received" });
+    } catch (error) {}
+  },
+  testMailToNotification: async (req, res) => {
+    try {
+      executeTestMailToNotification({});
       res.status(200).send({ message: "received" });
     } catch (error) {}
   },

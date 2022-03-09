@@ -553,6 +553,61 @@ const executeGetPropertyPictures = async (offset) => {
   }
 };
 
+const executeSetAnswerToML = async (params, res) => {
+  const {
+    question_id,
+    answer,
+    idSystemUser,
+    idLoginHistory,
+    offset = GLOBAL_CONSTANTS.OFFSET,
+  } = params;
+  try {
+    const token = await executeGetTokenMl({
+      offset,
+      userId: null,
+      idSystemUser,
+      idLoginHistory,
+    });
+    const response = await rp({
+      url: `https://api.mercadolibre.com/answers`,
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      json: true,
+      rejectUnauthorized: false,
+      body: {
+        question_id,
+        text: answer,
+      },
+    });
+    res.status(200).send({
+      response: {
+        message: "Respuesta enviada",
+      },
+    });
+  } catch (error) {
+    res.status(500).send({
+      response: {
+        message:
+          isNil(error) === false &&
+          isNil(error.error) === false &&
+          isNil(error.error.error) === false
+            ? error.error.error
+            : "Error, no se pudo enviar la respuesta",
+      },
+    });
+    executeSlackLogCatchBackend({
+      storeProcedure: "answer enviado a mercado libre con error",
+      error: error,
+      body: {
+        question_id,
+        text: answer,
+      },
+    });
+  }
+};
+
 module.exports = {
   executeGetTokenMlUser,
   executeRefreshTokenMlUser,
@@ -560,4 +615,5 @@ module.exports = {
   executeGetTokenMl,
   executeSetMLMWebhook,
   executeGetPropertyPictures,
+  executeSetAnswerToML,
 };
