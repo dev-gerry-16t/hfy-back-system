@@ -431,6 +431,80 @@ const executeGetTokenMl = async (params) => {
   }
 };
 
+const executeGetTokenMlWithUserId = async (params) => {
+  const { idSystemUser, idLoginHistory, offset } = params;
+  try {
+    const oneResponse = await executeSetUserConfig(params);
+    const {
+      canGenerateToken,
+      canRefreshToken,
+      appId,
+      clientSecret,
+      codeId,
+      redirectUrl,
+      refreshToken,
+      token,
+      userId,
+    } = oneResponse;
+    let tokenActive = {
+      token: null,
+      userId: null,
+    };
+    if (canGenerateToken === true) {
+      const responseToken = await executeGetTokenMlUser({
+        appId,
+        clientSecret,
+        codeId,
+        redirectUrl,
+      });
+      const { access_token, token_type, expires_in, user_id, refresh_token } =
+        responseToken;
+      await executeSetUserConfig({
+        token: access_token,
+        refreshToken: refresh_token,
+        tokenType: token_type,
+        expires: expires_in,
+        userId: user_id,
+        codeId,
+        idSystemUser,
+        idLoginHistory,
+        offset,
+      });
+      tokenActive = { token: access_token, userId: user_id };
+    } else if (canRefreshToken === true) {
+      const responseRefreshToken = await executeRefreshTokenMlUser({
+        appId,
+        refreshToken,
+        clientSecret,
+      });
+      const { access_token, token_type, expires_in, user_id, refresh_token } =
+        responseRefreshToken;
+      await executeSetUserConfig({
+        token: access_token,
+        refreshToken: refresh_token,
+        tokenType: token_type,
+        expires: expires_in,
+        userId: user_id,
+        codeId,
+        idSystemUser,
+        idLoginHistory,
+        offset,
+      });
+      tokenActive = { token: access_token, userId: user_id };
+    } else {
+      tokenActive = { token, userId };
+    }
+    return tokenActive;
+  } catch (error) {
+    executeSlackLogCatchBackend({
+      storeProcedure: "algún error en el getToken",
+      error,
+      body: params,
+    });
+    throw error;
+  }
+};
+
 const executeSetMLMWebhook = async (params, offset) => {
   const { resource, user_id, topic } = params;
   const storeProcedure = "mlSch.USPsetMLMWebhook";
@@ -608,6 +682,33 @@ const executeSetAnswerToML = async (params, res) => {
   }
 };
 
+const executeGetPromotionPacks = async (params) => {
+  const { offset } = params;
+  try {
+    const { token, userId } = await executeGetTokenMlWithUserId({
+      offset,
+      userId: null,
+    });
+    const response = await rp({
+      url: `https://api.mercadolibre.com/users/${userId}/classifieds_promotion_packs?package_content=ALL`,
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      json: true,
+      rejectUnauthorized: false,
+    });
+    return isEmpty(response) === false ? JSON.stringify(response) : "{}";
+  } catch (error) {
+    executeSlackLogCatchBackend({
+      storeProcedure: "Consulta de paquetes",
+      error: error,
+      body: {},
+    });
+    return "{}";
+  }
+};
+
 module.exports = {
   executeGetTokenMlUser,
   executeRefreshTokenMlUser,
@@ -616,4 +717,5 @@ module.exports = {
   executeSetMLMWebhook,
   executeGetPropertyPictures,
   executeSetAnswerToML,
+  executeGetPromotionPacks,
 };

@@ -17,6 +17,7 @@ const {
   executePublicToMLM,
   executeGetTokenMl,
   executeSetAnswerToML,
+  executeGetPromotionPacks,
 } = require("../actions/getTokenMlUser");
 const s3 = new AWS.S3({
   accessKeyId: GLOBAL_CONSTANTS.ACCESS_KEY_ID,
@@ -124,10 +125,18 @@ const handlerPublishedMLM = async (params) => {
   } = params;
   const storeProcedure = "mlSch.USPgetPropertyAttributes";
   try {
+    const responsePackage = await executeGetPromotionPacks({
+      offset,
+    });
     const pool = await sql.connect();
     const result = await pool
       .request()
       .input("p_uidIdProperty", sql.NVarChar, idProperty)
+      .input(
+        "p_nvcJsonPromotionPackageResponse",
+        sql.NVarChar(sql.MAX),
+        responsePackage
+      )
       .input("p_uidIdApartment", sql.NVarChar, idApartment)
       .input("p_bitIsPublished", sql.Bit, isPublished)
       .input("p_uidIdSystemUser", sql.NVarChar, idSystemUser)
@@ -838,9 +847,17 @@ const executeValidateClassified = async (params, res) => {
         },
       });
     } else {
+      const responsePackage = await executeGetPromotionPacks({
+        offset,
+      });
       const pool = await sql.connect();
       const result = await pool
         .request()
+        .input(
+          "p_nvcJsonPromotionPackageResponse",
+          sql.NVarChar(sql.MAX),
+          responsePackage
+        )
         .input("p_uidIdProperty", sql.NVarChar, idProperty)
         .input("p_uidIdApartment", sql.NVarChar, idApartment)
         .input("p_uidIdSystemUser", sql.NVarChar, idSystemUser)
