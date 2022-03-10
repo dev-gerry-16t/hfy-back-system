@@ -200,7 +200,7 @@ const executePublicToMLM = async (params) => {
         location: parseLocation,
         attributes,
       };
-      await handlerValidatePublication(body, token);
+      //await handlerValidatePublication(body, token);
       const response = await rp({
         url: "https://api.mercadolibre.com/items",
         method: "POST",
@@ -683,10 +683,9 @@ const executeSetAnswerToML = async (params, res) => {
 };
 
 const executeGetPromotionPacks = async (params) => {
-  const { offset } = params;
   try {
     const { token, userId } = await executeGetTokenMlWithUserId({
-      offset,
+      ...params,
       userId: null,
     });
     const response = await rp({

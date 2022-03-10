@@ -126,6 +126,8 @@ const handlerPublishedMLM = async (params) => {
   const storeProcedure = "mlSch.USPgetPropertyAttributes";
   try {
     const responsePackage = await executeGetPromotionPacks({
+      idSystemUser,
+      idLoginHistory,
       offset,
     });
     const pool = await sql.connect();
@@ -849,6 +851,8 @@ const executeValidateClassified = async (params, res) => {
     } else {
       const responsePackage = await executeGetPromotionPacks({
         offset,
+        idSystemUser,
+        idLoginHistory,
       });
       const pool = await sql.connect();
       const result = await pool
