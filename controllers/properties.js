@@ -199,6 +199,7 @@ const handlerPublishedMLM = async (params) => {
       location,
       attributes,
       token,
+      isPublished,
     });
 
     await executeSetClassified({
@@ -504,14 +505,14 @@ const executeUpdateProperty = async (params, res, url) => {
         if (isEmpty(resultRecordsetObject.sites) === false) {
           const getToPublicPlatform = JSON.parse(resultRecordsetObject.sites);
           for (const element of getToPublicPlatform) {
-            if (element.idSite == "MLM" && element.isPublished === true) {
+            if (element.idSite == "MLM") {
               const permalink = await handlerPublishedMLM({
                 idApartment,
                 idProperty,
                 idSystemUser,
                 idLoginHistory,
                 offset,
-                isPublished: true,
+                isPublished: element.isPublished,
               });
               objectResult.push({
                 idSite: element.idSite,
