@@ -611,6 +611,21 @@ const executeUpdatePropertyAddress = async (params, res, url) => {
           response: { message: resultRecordsetObject.message },
         });
       } else {
+        if (isEmpty(resultRecordsetObject.sites) === false) {
+          const getToPublicPlatform = JSON.parse(resultRecordsetObject.sites);
+          for (const element of getToPublicPlatform) {
+            if (element.idSite == "MLM") {
+              await handlerPublishedMLM({
+                idApartment,
+                idProperty,
+                idSystemUser,
+                idLoginHistory,
+                offset,
+                isPublished: element.isPublished,
+              });
+            }
+          }
+        }
         res.status(200).send({
           response: {
             message: resultRecordsetObject.message,
@@ -682,6 +697,21 @@ const executeUpdatePropertyCharAndAmen = async (params, res, url) => {
           response: { message: resultRecordsetObject.message },
         });
       } else {
+        if (isEmpty(resultRecordsetObject.sites) === false) {
+          const getToPublicPlatform = JSON.parse(resultRecordsetObject.sites);
+          for (const element of getToPublicPlatform) {
+            if (element.idSite == "MLM") {
+              await handlerPublishedMLM({
+                idApartment,
+                idProperty,
+                idSystemUser,
+                idLoginHistory,
+                offset,
+                isPublished: element.isPublished,
+              });
+            }
+          }
+        }
         res.status(200).send({
           response: {
             message: resultRecordsetObject.message,
