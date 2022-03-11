@@ -165,6 +165,7 @@ const executePublicToMLM = async (params) => {
     location,
     attributes,
     token = "",
+    isPublished,
   } = params;
   const {
     title,
@@ -240,6 +241,9 @@ const executePublicToMLM = async (params) => {
       }
       if (isEmpty(attributes) === false) {
         body.attributes = attributes;
+      }
+      if (isPublished === false) {
+        body.status = status;
       }
       if (isEmpty(classified) === false) {
         const body = {
