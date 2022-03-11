@@ -11,6 +11,14 @@ const executeSlackLogCatchBackend = require("../actions/slackLogCatchBackend");
 const executeMailTo = require("../actions/sendInformationUser");
 const replaceConditionsDocx = require("../actions/conditions");
 const executeSendSmsToUser = require("../actions/sendSmsToUser");
+const {
+  executeGetTokenMlUser,
+  executeRefreshTokenMlUser,
+  executePublicToMLM,
+  executeGetTokenMl,
+  executeSetAnswerToML,
+  executeGetPromotionPacks,
+} = require("../actions/getTokenMlUser");
 const s3 = new AWS.S3({
   accessKeyId: GLOBAL_CONSTANTS.ACCESS_KEY_ID,
   secretAccessKey: GLOBAL_CONSTANTS.SECRET_ACCESS_KEY,
@@ -2556,6 +2564,169 @@ const executeSendTenantInvitation = async (params, res, url) => {
   }
 };
 
+const executeSetClassified = async (params) => {
+  const {
+    id,
+    category_id,
+    status,
+    permalink,
+    date_created,
+    last_updated,
+    attributes,
+    pictures,
+    idProperty,
+    idApartment,
+    idSystemUser,
+    idLoginHistory,
+    offset,
+  } = params;
+  const jsonServiceResponse = JSON.stringify(params);
+  const jsonAttributes =
+    isEmpty(attributes) === false ? JSON.stringify(attributes) : "[]";
+  const jsonPictures =
+    isEmpty(pictures) === false ? JSON.stringify(pictures) : "[]";
+  const storeProcedure = "mlSch.USPsetClassified";
+  try {
+    const pool = await sql.connect();
+    await pool
+      .request()
+      .input("p_uidIdProperty", sql.NVarChar, idProperty)
+      .input("p_uidIdApartment", sql.NVarChar, idApartment)
+      .input("p_nvcId", sql.NVarChar, id)
+      .input("p_nvcJsonServiceResponse", sql.NVarChar, jsonServiceResponse)
+      .input("p_nvcCategoryId", sql.NVarChar, category_id)
+      .input("p_nvcStatus", sql.NVarChar, status)
+      .input("p_nvcPermalink", sql.NVarChar, permalink)
+      .input("p_datDateCreated", sql.Date, date_created)
+      .input("p_datDateUpdated", sql.Date, last_updated)
+      .input("p_nvcJsonAttributes", sql.NVarChar, jsonAttributes)
+      .input("p_nvcJsonPictures", sql.NVarChar, jsonPictures)
+      .input("p_uidIdSystemUser", sql.NVarChar, idSystemUser)
+      .input("p_uidIdLoginHistory", sql.NVarChar, idLoginHistory)
+      .input("p_chrOffset", sql.Char, offset)
+      .execute(storeProcedure);
+  } catch (err) {
+    executeSlackLogCatchBackend({
+      storeProcedure,
+      error: err,
+      body: params,
+    });
+  }
+};
+
+const handlerPublishedMLM = async (params) => {
+  const {
+    idProperty,
+    idApartment,
+    isPublished,
+    idSystemUser,
+    idLoginHistory,
+    offset,
+  } = params;
+  const storeProcedure = "mlSch.USPgetPropertyAttributes";
+  try {
+    const responsePackage = await executeGetPromotionPacks({
+      idSystemUser,
+      idLoginHistory,
+      offset,
+    });
+    const pool = await sql.connect();
+    const result = await pool
+      .request()
+      .input("p_uidIdProperty", sql.NVarChar, idProperty)
+      .input(
+        "p_nvcJsonPromotionPackageResponse",
+        sql.NVarChar(sql.MAX),
+        responsePackage
+      )
+      .input("p_uidIdApartment", sql.NVarChar, idApartment)
+      .input("p_bitIsPublished", sql.Bit, isPublished)
+      .input("p_uidIdSystemUser", sql.NVarChar, idSystemUser)
+      .input("p_uidIdLoginHistory", sql.NVarChar, idLoginHistory)
+      .input("p_chrOffset", sql.Char, offset)
+      .execute(storeProcedure);
+    const resultRecordsetObject =
+      isNil(result.recordset) === false && isNil(result.recordset[0]) === false
+        ? result.recordset[0]
+        : {};
+    const classified =
+      isEmpty(resultRecordsetObject) === false &&
+      isNil(resultRecordsetObject.classified) === false &&
+      isEmpty(resultRecordsetObject.classified) === false
+        ? JSON.parse(resultRecordsetObject.classified)
+        : {};
+    const pictures =
+      isEmpty(resultRecordsetObject) === false &&
+      isNil(resultRecordsetObject.pictures) === false &&
+      isEmpty(resultRecordsetObject.pictures) === false
+        ? JSON.parse(resultRecordsetObject.pictures)
+        : [];
+    const seller_contact =
+      isEmpty(resultRecordsetObject) === false &&
+      isNil(resultRecordsetObject.seller_contact) === false &&
+      isEmpty(resultRecordsetObject.seller_contact) === false
+        ? JSON.parse(resultRecordsetObject.seller_contact)
+        : {};
+    const location =
+      isEmpty(resultRecordsetObject) === false &&
+      isNil(resultRecordsetObject.location) === false &&
+      isEmpty(resultRecordsetObject.location) === false
+        ? JSON.parse(resultRecordsetObject.location)
+        : {};
+    const attributes =
+      isEmpty(resultRecordsetObject) === false &&
+      isNil(resultRecordsetObject.attributes) === false &&
+      isEmpty(resultRecordsetObject.attributes) === false
+        ? JSON.parse(resultRecordsetObject.attributes)
+        : [];
+    const token = await executeGetTokenMl({
+      token: null,
+      refreshToken: null,
+      tokenType: null,
+      expires: null,
+      userId: null,
+      codeId: null,
+      idSystemUser,
+      idLoginHistory,
+      offset,
+    });
+
+    const responseML = await executePublicToMLM({
+      ...resultRecordsetObject,
+      classified,
+      pictures,
+      seller_contact,
+      location,
+      attributes,
+      token,
+      isPublished,
+    });
+
+    await executeSetClassified({
+      idProperty,
+      idApartment,
+      idSystemUser,
+      idLoginHistory,
+      offset,
+      ...responseML,
+    });
+    return {
+      link:
+        isNil(responseML) === false &&
+        isEmpty(responseML.permalink) === false &&
+        isNil(responseML.permalink) === false
+          ? responseML.permalink
+          : "",
+    };
+  } catch (error) {
+    executeSlackLogCatchBackend({
+      storeProcedure,
+      error: error,
+      body: params,
+    });
+  }
+};
+
 const executeSetApplicant = async (params, res, url) => {
   const {
     idApartment,
@@ -2616,6 +2787,21 @@ const executeSetApplicant = async (params, res, url) => {
               ...element,
               ...configEmailServer,
             });
+          }
+        }
+        if (isEmpty(resultRecordsetObject.sites) === false) {
+          const getToPublicPlatform = JSON.parse(resultRecordsetObject.sites);
+          for (const element of getToPublicPlatform) {
+            if (element.idSite == "MLM") {
+              await handlerPublishedMLM({
+                idApartment,
+                idProperty,
+                idSystemUser,
+                idLoginHistory,
+                offset,
+                isPublished: element.isPublished,
+              });
+            }
           }
         }
         res.status(200).send({
