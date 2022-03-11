@@ -184,7 +184,6 @@ const executePublicToMLM = async (params) => {
       isEmpty(location) === false
         ? await handlerGetLocationObject(location, token)
         : {};
-
     if (operationType == "publish") {
       const body = {
         title,
@@ -246,21 +245,6 @@ const executePublicToMLM = async (params) => {
         body.status = status;
       }
       if (isEmpty(classified) === false) {
-        const body = {
-          title,
-          category_id,
-          price,
-          currency_id,
-          available_quantity,
-          buying_mode: buying_modes,
-          listing_type_id,
-          condition,
-          video_id: null,
-          pictures,
-          seller_contact,
-          location: parseLocation,
-          attributes,
-        };
         if (isNil(title) === false) {
           body.title = title;
         }
@@ -314,6 +298,22 @@ const executePublicToMLM = async (params) => {
         body,
         rejectUnauthorized: false,
       });
+      if (isPublished === false) {
+        await rp({
+          url: `https://api.mercadolibre.com/items/${idClassified}`,
+          method: "PUT",
+          headers: {
+            accept: "application/json",
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          json: true,
+          body: {
+            deleted: "true",
+          },
+          rejectUnauthorized: false,
+        });
+      }
       return response;
     }
   } catch (error) {
