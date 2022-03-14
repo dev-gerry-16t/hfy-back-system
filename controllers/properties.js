@@ -1092,7 +1092,6 @@ const executeSetSubscription = async (params, res, url) => {
         .execute(storeProcedure);
       const resultRecordset = result.recordset;
       const resultRecordsetObject = result.recordset[0];
-      console.log("resultRecordsetObject", resultRecordsetObject);
       if (resultRecordsetObject.stateCode !== 200) {
         //executeSlackLogCatchBackend({
         // storeProcedure,
@@ -1115,7 +1114,6 @@ const executeSetSubscription = async (params, res, url) => {
             idLoginHistory,
             offset,
           });
-          console.log("url", url);
         }
         for (const element of resultRecordset) {
           if (element.canSendEmail === true) {
