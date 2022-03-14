@@ -38,6 +38,7 @@ const {
   executeSetMLMWebhook,
   executeGetPropertyPictures,
 } = require("../actions/getTokenMlUser");
+const executeSetSubscriptionWebhook = require("../actions/subscriptionPlatform");
 
 const executeGetZipCodeGoogle = async (location) => {
   try {
@@ -552,6 +553,22 @@ const ControllerTest = {
         error: error.message,
       });
       res.status(500).send({ error: `${error.message}` });
+    }
+  },
+  webhookStripeSubscription: async (req, res) => {
+    const params = req.body;
+    const stripe = new Stripe(GLOBAL_CONSTANTS.SECRET_KEY_STRIPE);
+    const sig = req.headers["stripe-signature"];
+    try {
+      await stripe.webhooks.constructEvent(
+        req.rawBody,
+        sig,
+        GLOBAL_CONSTANTS.STRIPE_WEBHOOK_SUBSCRIPTION_SECRET
+      );
+      executeSetSubscriptionWebhook(params, GLOBAL_CONSTANTS.OFFSET);
+      res.status(200).send({ message: "received" });
+    } catch (error) {
+      res.status(500).send({ message: error });
     }
   },
   testStripeWebhookConnect: async (req, res) => {
