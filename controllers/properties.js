@@ -988,7 +988,6 @@ const executeGetSubscriptionConfig = async (params) => {
       isEmpty(result.recordset[0]) === false
         ? result.recordset[0]
         : {};
-    console.log("resultRecordsetObject", resultRecordsetObject);
     if (isEmpty(resultRecordsetObject) === false) {
       const {
         customer_id,
@@ -1040,7 +1039,6 @@ const executeGetSubscriptionConfig = async (params) => {
         customer: customerId,
         line_items: [{ price: price_id, quantity: 1 }],
       });
-      console.log('session',session);
       //La url puede seguir activa ver si se puede validar y mostrar una pantalla de continuar con el pago
       return session.url;
     }
@@ -1117,7 +1115,7 @@ const executeSetSubscription = async (params, res, url) => {
             idLoginHistory,
             offset,
           });
-          console.log('url',url);
+          console.log("url", url);
         }
         for (const element of resultRecordset) {
           if (element.canSendEmail === true) {
