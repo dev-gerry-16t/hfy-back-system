@@ -1,5 +1,6 @@
 const sql = require("mssql");
 const AWS = require("aws-sdk");
+const Stripe = require("stripe");
 const Docxtemplater = require("docxtemplater");
 const ImageModule = require("docxtemplater-image-module");
 const PizZip = require("pizzip");
@@ -19,6 +20,7 @@ const {
   executeSetAnswerToML,
   executeGetPromotionPacks,
 } = require("../actions/getTokenMlUser");
+const stripe = new Stripe(GLOBAL_CONSTANTS.SECRET_KEY_STRIPE);
 const s3 = new AWS.S3({
   accessKeyId: GLOBAL_CONSTANTS.ACCESS_KEY_ID,
   secretAccessKey: GLOBAL_CONSTANTS.SECRET_ACCESS_KEY,
@@ -916,6 +918,142 @@ const executeValidateClassified = async (params, res) => {
   }
 };
 
+const executeSetCustomer = async (params) => {
+  const {
+    id,
+    created,
+    jsonServiceResponse,
+    idSystemUser,
+    idLoginHistory,
+    offset,
+  } = params;
+  const storeProcedure = "pymtGwSch.USPsetCustomer";
+  try {
+    const pool = await sql.connect();
+    const result = await pool
+      .request()
+      .input("p_nvcId", sql.NVarChar, id)
+      .input("p_bgiCreated", sql.BigInt, created)
+      .input("p_nvcJsonServiceResponse", sql.NVarChar, jsonServiceResponse)
+      .input("p_uidIdSystemUser", sql.NVarChar, idSystemUser)
+      .input("p_uidIdLoginHistory", sql.NVarChar, idLoginHistory)
+      .input("p_chrOffset", sql.Char, offset)
+      .execute(storeProcedure);
+    const resultRecordsetObject =
+      isEmpty(result.recordset) === false &&
+      isNil(result.recordset[0]) === false &&
+      isEmpty(result.recordset[0]) === false
+        ? result.recordset[0]
+        : {};
+    if (resultRecordsetObject.stateCode !== 200) {
+      executeSlackLogCatchBackend({
+        storeProcedure,
+        error: resultRecordsetObject.errorMessage,
+        body: params,
+      });
+    }
+  } catch (error) {
+    executeSlackLogCatchBackend({
+      storeProcedure,
+      error,
+      body: params,
+    });
+  }
+};
+
+const executeGetSubscriptionConfig = async (params) => {
+  const {
+    idSubscriptionType,
+    idMethod,
+    isActive,
+    idSystemUser,
+    idLoginHistory,
+    offset,
+  } = params;
+  const storeProcedure = "pymtGwSch.USPgetSubscriptionConfig";
+  try {
+    const pool = await sql.connect();
+    const result = await pool
+      .request()
+      .input("p_intIdSubscriptionType", sql.Int, idSubscriptionType)
+      .input("p_intIdMethod", sql.Int, idMethod)
+      .input("p_bitIsActive", sql.Bit, isActive)
+      .input("p_uidIdSystemUser", sql.NVarChar, idSystemUser)
+      .input("p_uidIdLoginHistory", sql.NVarChar, idLoginHistory)
+      .input("p_chrOffset", sql.Char, offset)
+      .execute(storeProcedure);
+    const resultRecordsetObject =
+      isEmpty(result.recordset) === false &&
+      isNil(result.recordset[0]) === false &&
+      isEmpty(result.recordset[0]) === false
+        ? result.recordset[0]
+        : {};
+    console.log("resultRecordsetObject", resultRecordsetObject);
+    if (isEmpty(resultRecordsetObject) === false) {
+      const {
+        customer_id,
+        subscription_id,
+        name,
+        email,
+        product_id,
+        price_id,
+        billing_cycle_anchor,
+        proration_behavior,
+        trial_end,
+        metadata,
+        requiresPymt,
+        isCanceled,
+      } = resultRecordsetObject;
+      let customerId = customer_id;
+
+      if (isNil(customer_id) === true) {
+        const customer = await stripe.customers.create({
+          name,
+          email,
+          metadata:
+            isNil(metadata) === false && isEmpty(metadata) === false
+              ? JSON.parse(metadata)
+              : {},
+        });
+        await executeSetCustomer({
+          id:
+            isNil(customer) === false && isNil(customer.id) === false
+              ? customer.id
+              : null,
+          created:
+            isNil(customer) === false && isNil(customer.created) === false
+              ? customer.created
+              : null,
+          jsonServiceResponse:
+            isEmpty(customer) === false ? JSON.stringify(customer) : "{}",
+          idSystemUser,
+          idLoginHistory,
+          offset,
+        });
+        customerId = customer.id;
+      }
+      //Esto se tiene que controlar desde base de datos
+      const session = await stripe.checkout.sessions.create({
+        success_url: `${GLOBAL_CONSTANTS.PATH_FRONT_URL}/websystem/subscription/success?session_id={CHECKOUT_SESSION_ID}`,
+        cancel_url: `${GLOBAL_CONSTANTS.PATH_FRONT_URL}/websystem/subscription/cancel`,
+        mode: "subscription",
+        customer: customerId,
+        line_items: [{ price: price_id, quantity: 1 }],
+      });
+      console.log('session',session);
+      //La url puede seguir activa ver si se puede validar y mostrar una pantalla de continuar con el pago
+      return session.url;
+    }
+  } catch (error) {
+    executeSlackLogCatchBackend({
+      storeProcedure,
+      error,
+      body: params,
+    });
+    return "";
+  }
+};
+
 const executeSetSubscription = async (params, res, url) => {
   const {
     idSubscriptionType,
@@ -956,6 +1094,7 @@ const executeSetSubscription = async (params, res, url) => {
         .execute(storeProcedure);
       const resultRecordset = result.recordset;
       const resultRecordsetObject = result.recordset[0];
+      console.log("resultRecordsetObject", resultRecordsetObject);
       if (resultRecordsetObject.stateCode !== 200) {
         //executeSlackLogCatchBackend({
         // storeProcedure,
@@ -968,6 +1107,18 @@ const executeSetSubscription = async (params, res, url) => {
           },
         });
       } else {
+        let url = "";
+        if (resultRecordsetObject.requiresSubsConfig === true) {
+          url = await executeGetSubscriptionConfig({
+            idSubscriptionType: resultRecordsetObject.idSubscriptionType,
+            idMethod: resultRecordsetObject.idMethod,
+            isActive: resultRecordsetObject.isActive,
+            idSystemUser,
+            idLoginHistory,
+            offset,
+          });
+          console.log('url',url);
+        }
         for (const element of resultRecordset) {
           if (element.canSendEmail === true) {
             const configEmailServer = JSON.parse(element.jsonEmailServerConfig);
@@ -982,6 +1133,7 @@ const executeSetSubscription = async (params, res, url) => {
             message: resultRecordsetObject.message,
             idProperty: resultRecordsetObject.idProperty,
             idApartment: resultRecordsetObject.idApartment,
+            url,
           },
         });
       }

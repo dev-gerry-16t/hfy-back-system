@@ -30,6 +30,10 @@ router.post("/connect/setMLMWebhook", ControllerTest.setMLMWebhook);
 router.get("/connect/getPropertyPictures", ControllerTest.getPropertyPictures);
 router.post("/testStripeWebhook", ControllerTest.testStripeWebhook);
 router.post(
+  "/webhookStripeSubscription",
+  ControllerTest.webhookStripeSubscription
+);
+router.post(
   "/testStripeWebhookConnect",
   ControllerTest.testStripeWebhookConnect
 );
