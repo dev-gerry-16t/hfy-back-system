@@ -994,14 +994,13 @@ const executeGetSubscriptionConfig = async (params) => {
         subscription_id,
         name,
         email,
-        product_id,
         price_id,
         billing_cycle_anchor,
         proration_behavior,
         trial_end,
         metadata,
-        requiresPymt,
-        isCanceled,
+        collection_method,
+        days_until_due,
       } = resultRecordsetObject;
       let customerId = customer_id;
 
@@ -1031,16 +1030,32 @@ const executeGetSubscriptionConfig = async (params) => {
         });
         customerId = customer.id;
       }
+      if (isNil(subscription_id) === true) {
+        await stripe.subscriptions.create({
+          customer: customerId,
+          items: [
+            {
+              price: price_id,
+            },
+          ],
+          proration_behavior,
+          trial_end,
+          billing_cycle_anchor,
+          days_until_due,
+          collection_method,
+        });
+      }
       //Esto se tiene que controlar desde base de datos
-      const session = await stripe.checkout.sessions.create({
-        success_url: `${GLOBAL_CONSTANTS.PATH_FRONT_URL}/websystem/subscription/success?session_id={CHECKOUT_SESSION_ID}`,
-        cancel_url: `${GLOBAL_CONSTANTS.PATH_FRONT_URL}/websystem/subscription/cancel`,
-        mode: "subscription",
-        customer: customerId,
-        line_items: [{ price: price_id, quantity: 1 }],
-      });
+      // const session = await stripe.checkout.sessions.create({
+      //   success_url: `${GLOBAL_CONSTANTS.PATH_FRONT_URL}/websystem/subscription/success?session_id={CHECKOUT_SESSION_ID}`,
+      //   cancel_url: `${GLOBAL_CONSTANTS.PATH_FRONT_URL}/websystem/subscription/cancel`,
+      //   mode: "subscription",
+      //   customer: customerId,
+      //   line_items: [{ price: price_id, quantity: 1 }],
+      // });
       //La url puede seguir activa ver si se puede validar y mostrar una pantalla de continuar con el pago
-      return session.url;
+      // return session.url;
+      return "";
     }
   } catch (error) {
     executeSlackLogCatchBackend({
@@ -1189,6 +1204,22 @@ const executeGetSuscriptionDetail = async (params, res) => {
   }
 };
 
+const executeCancelSubscription = async (params, res) => {
+  const { name, email, userType, reason, comment, idSubscription } = params;
+  if (isNil(idSubscription) === false && isEmpty(idSubscription) === false) {
+    await stripe.subscriptions.del(idSubscription);
+    res.status(200).send({
+      response: { message: "Tu suscripción se canceló correctamente" },
+    });
+  } else {
+    res.status(500).send({
+      response: { message: "Tu suscripción no pudo cancelarse" },
+    });
+  }
+  try {
+  } catch (error) {}
+};
+
 const ControllerProperties = {
   addPropertyV2: (req, res) => {
     const params = req.body;
@@ -1235,6 +1266,10 @@ const ControllerProperties = {
   setAnswerToML: (req, res) => {
     const params = req.body;
     executeSetAnswerToML(params, res);
+  },
+  cancelSubscription: (req, res) => {
+    const params = req.body;
+    executeCancelSubscription(params, res);
   },
 };
 
