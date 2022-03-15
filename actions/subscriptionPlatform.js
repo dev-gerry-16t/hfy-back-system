@@ -35,6 +35,12 @@ const executeSetSubscriptionWebhook = async (params, offset) => {
         body: params,
       });
     } else {
+      if (resultRecordsetObject.updateSubscription === true) {
+        await stripe.subscriptions.update(
+          resultRecordsetObject.id,
+          JSON.parse(resultRecordsetObject.jsonRequest)
+        );
+      }
       for (const element of resultRecordset) {
         if (element.canSendEmail === true) {
           const configEmailServer = JSON.parse(element.jsonEmailServerConfig);
