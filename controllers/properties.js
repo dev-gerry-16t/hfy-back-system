@@ -20,6 +20,7 @@ const {
   executeSetAnswerToML,
   executeGetPromotionPacks,
 } = require("../actions/getTokenMlUser");
+const { executeSetCustomer } = require("../actions/setCustomerAccount");
 const stripe = new Stripe(GLOBAL_CONSTANTS.SECRET_KEY_STRIPE);
 const s3 = new AWS.S3({
   accessKeyId: GLOBAL_CONSTANTS.ACCESS_KEY_ID,
@@ -914,49 +915,6 @@ const executeValidateClassified = async (params, res) => {
     });
     res.status(500).send({
       response: { message: "Error en el sistema" },
-    });
-  }
-};
-
-const executeSetCustomer = async (params) => {
-  const {
-    id,
-    created,
-    jsonServiceResponse,
-    idSystemUser,
-    idLoginHistory,
-    offset,
-  } = params;
-  const storeProcedure = "pymtGwSch.USPsetCustomer";
-  try {
-    const pool = await sql.connect();
-    const result = await pool
-      .request()
-      .input("p_nvcId", sql.NVarChar, id)
-      .input("p_bgiCreated", sql.BigInt, created)
-      .input("p_nvcJsonServiceResponse", sql.NVarChar, jsonServiceResponse)
-      .input("p_uidIdSystemUser", sql.NVarChar, idSystemUser)
-      .input("p_uidIdLoginHistory", sql.NVarChar, idLoginHistory)
-      .input("p_chrOffset", sql.Char, offset)
-      .execute(storeProcedure);
-    const resultRecordsetObject =
-      isEmpty(result.recordset) === false &&
-      isNil(result.recordset[0]) === false &&
-      isEmpty(result.recordset[0]) === false
-        ? result.recordset[0]
-        : {};
-    if (resultRecordsetObject.stateCode !== 200) {
-      executeSlackLogCatchBackend({
-        storeProcedure,
-        error: resultRecordsetObject.errorMessage,
-        body: params,
-      });
-    }
-  } catch (error) {
-    executeSlackLogCatchBackend({
-      storeProcedure,
-      error,
-      body: params,
     });
   }
 };
