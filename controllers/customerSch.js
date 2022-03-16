@@ -3,6 +3,7 @@ const AWS = require("aws-sdk");
 const Docxtemplater = require("docxtemplater");
 const ImageModule = require("docxtemplater-image-module");
 const PizZip = require("pizzip");
+const Stripe = require("stripe");
 const GLOBAL_CONSTANTS = require("../constants/constants");
 const isNil = require("lodash/isNil");
 const isEmpty = require("lodash/isEmpty");
@@ -19,6 +20,8 @@ const {
   executeSetAnswerToML,
   executeGetPromotionPacks,
 } = require("../actions/getTokenMlUser");
+const { executeSetCustomer } = require("../actions/setCustomerAccount");
+const stripe = new Stripe(GLOBAL_CONSTANTS.SECRET_KEY_STRIPE);
 const s3 = new AWS.S3({
   accessKeyId: GLOBAL_CONSTANTS.ACCESS_KEY_ID,
   secretAccessKey: GLOBAL_CONSTANTS.SECRET_ACCESS_KEY,
@@ -341,7 +344,10 @@ const executeUpdateCustomerAccount = async (params, res, url) => {
           }
         });
         res.status(200).send({
-          response: { message: resultRecordsetObject.message },
+          response: {
+            message: resultRecordsetObject.message,
+            requiresIdentiyVer: resultRecordsetObject.requiresIdentiyVer,
+          },
         });
       }
     }
@@ -1030,6 +1036,31 @@ const executeSetCustomerEmailAddress = async (params, res, url) => {
           response: { message: resultRecordsetObject.message },
         });
       } else {
+        if (resultRecordsetObject.updateGWCustomer == true) {
+          const requestToStripe =
+            isEmpty(resultRecordsetObject.jsonRequest) === false
+              ? JSON.parse(resultRecordsetObject.jsonRequest)
+              : {};
+          const customer = await stripe.customers.update(
+            resultRecordsetObject.id,
+            requestToStripe
+          );
+          await executeSetCustomer({
+            id:
+              isNil(customer) === false && isNil(customer.id) === false
+                ? customer.id
+                : null,
+            created:
+              isNil(customer) === false && isNil(customer.created) === false
+                ? customer.created
+                : null,
+            jsonServiceResponse:
+              isEmpty(customer) === false ? JSON.stringify(customer) : "{}",
+            idSystemUser,
+            idLoginHistory,
+            offset,
+          });
+        }
         resultRecordset.forEach((element) => {
           if (element.canSendEmail === true) {
             const configEmailServer = JSON.parse(element.jsonEmailServerConfig);
