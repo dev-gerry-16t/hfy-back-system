@@ -989,6 +989,22 @@ const executeGetSubscriptionConfig = async (params) => {
         customerId = customer.id;
       }
       if (isNil(subscription_id) === true) {
+        const body = {};
+        if (isNil(proration_behavior) === false) {
+          body.proration_behavior = proration_behavior;
+        }
+        if (isNil(trial_end) === false) {
+          body.trial_end = trial_end;
+        }
+        if (isNil(billing_cycle_anchor) === false) {
+          body.billing_cycle_anchor = billing_cycle_anchor;
+        }
+        if (isNil(days_until_due) === false) {
+          body.days_until_due = days_until_due;
+        }
+        if (isNil(collection_method) === false) {
+          body.collection_method = collection_method;
+        }
         await stripe.subscriptions.create({
           customer: customerId,
           items: [
@@ -996,11 +1012,7 @@ const executeGetSubscriptionConfig = async (params) => {
               price: price_id,
             },
           ],
-          proration_behavior,
-          trial_end,
-          billing_cycle_anchor,
-          days_until_due,
-          collection_method,
+          ...body,
         });
       }
       //Esto se tiene que controlar desde base de datos
