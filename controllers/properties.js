@@ -1015,16 +1015,36 @@ const executeGetSubscriptionConfig = async (params) => {
           ...body,
         });
       }
-      //Esto se tiene que controlar desde base de datos
-      // const session = await stripe.checkout.sessions.create({
-      //   success_url: `${GLOBAL_CONSTANTS.PATH_FRONT_URL}/websystem/subscription/success?session_id={CHECKOUT_SESSION_ID}`,
-      //   cancel_url: `${GLOBAL_CONSTANTS.PATH_FRONT_URL}/websystem/subscription/cancel`,
-      //   mode: "subscription",
-      //   customer: customerId,
-      //   line_items: [{ price: price_id, quantity: 1 }],
-      // });
-      //La url puede seguir activa ver si se puede validar y mostrar una pantalla de continuar con el pago
-      // return session.url;
+      if (isNil(customer_id) === false && isNil(subscription_id) === false) {
+        const body = {};
+        if (isNil(proration_behavior) === false) {
+          body.proration_behavior = proration_behavior;
+        }
+        if (isNil(trial_end) === false) {
+          body.trial_end = trial_end;
+        }
+        if (isNil(billing_cycle_anchor) === false) {
+          body.billing_cycle_anchor = billing_cycle_anchor;
+        }
+        if (isNil(days_until_due) === false) {
+          body.days_until_due = days_until_due;
+        }
+        if (isNil(collection_method) === false) {
+          body.collection_method = collection_method;
+        }
+        await stripe.subscriptions.create({
+          customer: customerId,
+          items: [
+            {
+              price: price_id,
+            },
+          ],
+          ...body,
+        });
+        await stripe.subscriptions.update(subscription_id, {
+          ...body,
+        });
+      }
       return "";
     }
   } catch (error) {
@@ -1175,9 +1195,20 @@ const executeGetSuscriptionDetail = async (params, res) => {
 };
 
 const executeCancelSubscription = async (params, res) => {
-  const { name, email, userType, reason, comment, idSubscription } = params;
+  const {
+    name,
+    email,
+    userType,
+    reason,
+    comment,
+    idSubscription,
+    cancel_at,
+    reactive,
+  } = params;
   if (isNil(idSubscription) === false && isEmpty(idSubscription) === false) {
-    await stripe.subscriptions.del(idSubscription);
+    await stripe.subscriptions.update(idSubscription, {
+      cancel_at,
+    });
     res.status(200).send({
       response: { message: "Tu suscripción se canceló correctamente" },
     });
