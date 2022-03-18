@@ -6,6 +6,7 @@ const PizZip = require("pizzip");
 const isEmpty = require("lodash/isEmpty");
 const isNil = require("lodash/isNil");
 const nodemailer = require("nodemailer");
+const mandrillTransport = require("nodemailer-mandrill-transport");
 const rp = require("request-promise");
 const GLOBAL_CONSTANTS = require("../constants/constants");
 const replaceConditionsDocx = require("../actions/conditions");
@@ -534,17 +535,16 @@ const executeRequestAdvance = async (params, res) => {
 
 const executeMailTo = async (params) => {
   const { receiver, content, user, pass, host, port, subject, sender } = params;
-  const transporter = nodemailer.createTransport({
-    auth: {
-      user,
-      pass,
-    },
-    host,
-    port,
-  });
+  const transporter = nodemailer.createTransport(
+    mandrillTransport({
+      auth: {
+        apiKey: pass,
+      },
+    })
+  );
   const mailOptions = {
     from: sender,
-    to: receiver,
+    bcc: receiver,
     subject,
     html: content,
   };
