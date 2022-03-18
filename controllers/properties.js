@@ -1210,7 +1210,12 @@ const executeCancelSubscription = async (params, res) => {
       cancel_at,
     });
     res.status(200).send({
-      response: { message: "Tu suscripción se canceló correctamente" },
+      response: {
+        message:
+          reactive === true
+            ? "Tu suscripción se activo correctamente"
+            : "Tu suscripción se canceló correctamente",
+      },
     });
   } else {
     res.status(500).send({
