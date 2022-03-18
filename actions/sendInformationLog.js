@@ -1,18 +1,18 @@
 const nodemailer = require("nodemailer");
+const mandrillTransport = require("nodemailer-mandrill-transport");
 
 const executeMailToNotification = async (params) => {
   const { content, subject } = params;
-  const transporter = nodemailer.createTransport({
-    auth: {
-      user: "notificaciones@homify.ai",
-      pass: "5#2i$$14pdh#",
-    },
-    host: "giowm1210.siteground.biz",
-    port: 465,
-  });
+  const transporter = nodemailer.createTransport(
+    mandrillTransport({
+      auth: {
+        apiKey: pass,
+      },
+    })
+  );
   const mailOptions = {
     from: "Backend <notificaciones@homify.ai>",
-    to: "gagonzalez@homify.ai",
+    bcc: "gagonzalez@homify.ai",
     subject,
     html: content,
   };
