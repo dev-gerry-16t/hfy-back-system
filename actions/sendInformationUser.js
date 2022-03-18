@@ -1,69 +1,38 @@
 const sql = require("mssql");
 const nodemailer = require("nodemailer");
-const GLOBAL_CONSTANTS = require("../constants/constants");
+const mandrillTransport = require("nodemailer-mandrill-transport");
 
-const executeEmailSentAES = async (param) => {
-  const {
-    idEmailStatus = 1,
-    idEmailTemplate = 1,
-    idRequestSignUp = null,
-    idUserSender = null,
-    idUserReceiver = null,
-    sender = null,
-    receiver = null,
-    subject = null,
-    content = null,
-    jsonServiceResponse = null,
-    offset = GLOBAL_CONSTANTS.OFFSET,
-    jsonEmailServerConfig = null,
-    idInvitation = null,
-  } = param;
-  try {
-    const pool = await sql.connect();
-    const result = await pool
-      .request()
-      .input("p_intIdEmailStatus", sql.Int, idEmailStatus)
-      .input("p_intIdEmailTemplate", sql.Int, idEmailTemplate)
-      .input("p_nvcIdRequesSignUp", sql.NVarChar, idRequestSignUp)
-      .input("p_nvcIdUserSender", sql.NVarChar, idUserSender)
-      .input("p_nvcIdUserReceiver", sql.NVarChar, idUserReceiver)
-      .input("p_nvcSender", sql.NVarChar, sender)
-      .input("p_nvcReceiver", sql.NVarChar, receiver)
-      .input("p_nvcSubject", sql.NVarChar, subject)
-      .input("p_nvcContent", sql.NVarChar, content)
-      .input("p_nvcJsonServiceResponse", sql.NVarChar, jsonServiceResponse)
-      .input("p_chrOffset", sql.Char, offset)
-      .input("p_nvcIdInvitation", sql.NVarChar, idInvitation)
-      .execute("comSch.USPaddEmailSent");
-    return result;
-  } catch (error) {
-    return error;
-  }
-};
-
-const executeMailTo = async (params) => {
+const executeMailTo = async (params, res) => {
   const { receiver, content, user, pass, host, port, subject, sender } = params;
-  const transporter = nodemailer.createTransport({
-    auth: {
-      user,
-      pass,
-    },
-    host,
-    port,
-  });
+  const transporter = nodemailer.createTransport(
+    mandrillTransport({
+      auth: {
+        apiKey: pass,
+      },
+    })
+  );
   const mailOptions = {
     from: sender,
-    to: receiver,
+    bcc: receiver,
     subject,
     html: content,
   };
-  try {
-    await transporter.sendMail(mailOptions);
-    await executeEmailSentAES(params);
-    console.log("correo enviado");
-  } catch (error) {
-    console.log(`Error al enviar correo: ${error}`);
-  }
+
+  transporter.sendMail(mailOptions, (error, info) => {
+    if (error) {
+      console.log("error", error);
+      res
+        .status(500)
+        .send({ result: "El sistema de envío de correos ha fallado" });
+    } else {
+      res.status(200).send({
+        result: {
+          idRequestPasswordRecovery: params.idRequestPasswordRecovery,
+          message: params.message,
+        },
+      });
+    }
+  });
 };
 
 module.exports = executeMailTo;
