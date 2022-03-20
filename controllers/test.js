@@ -844,7 +844,7 @@ const ControllerTest = {
   getPropertyPictures: async (req, res) => {
     try {
       executeGetPropertyPictures(GLOBAL_CONSTANTS.OFFSET);
-      res.status(200).send({ message: "received" });
+      res.status(200).send({ message: "ok" });
     } catch (error) {}
   },
   testMailToNotification: async (req, res) => {
