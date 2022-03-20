@@ -22,6 +22,7 @@ const {
   executeSentReminders,
 } = require("../actions/dispersionOrder");
 const executeSetWAMessage = require("../actions/setWAMMessage");
+const executeTestMailToNotification = require("../actions/testMailTo");
 const endpointSecret = process.env.END_POINT_SECRET_KEY;
 const executeMailToNotification = require("../actions/sendInformationLog");
 const s3 = new AWS.S3({
@@ -33,6 +34,11 @@ const authToken = GLOBAL_CONSTANTS.TWILIO_AUTH_TOKEN;
 const client = require("twilio")(accountSid, authToken);
 const { getTestMail } = require("./audit");
 const executeSlackLogCatchBackend = require("../actions/slackLogCatchBackend");
+const {
+  executeSetMLMWebhook,
+  executeGetPropertyPictures,
+} = require("../actions/getTokenMlUser");
+const executeSetSubscriptionWebhook = require("../actions/subscriptionPlatform");
 
 const executeGetZipCodeGoogle = async (location) => {
   try {
@@ -265,7 +271,9 @@ const ControllerTest = {
       ) {
         res.send({ error: "No document attachment" });
       } else {
-        const bucketSource = params.bucketSource.toLowerCase();
+        const splitParam = params.bucketSource.split(".");
+        const bucketSource =
+          isNil(splitParam[0]) === false ? splitParam[0].toLowerCase() : "";
         const file = await s3
           .getObject({
             Bucket: bucketSource,
@@ -276,6 +284,7 @@ const ControllerTest = {
         const buff = new Buffer.from(file.Body, "binary");
         res.writeHead(200, {
           "Content-Length": buff.length,
+          "Content-Type": "image/jpeg",
         });
         res.end(buff);
       }
@@ -546,6 +555,22 @@ const ControllerTest = {
       res.status(500).send({ error: `${error.message}` });
     }
   },
+  webhookStripeSubscription: async (req, res) => {
+    const params = req.body;
+    const stripe = new Stripe(GLOBAL_CONSTANTS.SECRET_KEY_STRIPE);
+    const sig = req.headers["stripe-signature"];
+    try {
+      await stripe.webhooks.constructEvent(
+        req.rawBody,
+        sig,
+        GLOBAL_CONSTANTS.STRIPE_WEBHOOK_SUBSCRIPTION_SECRET
+      );
+      executeSetSubscriptionWebhook(params, GLOBAL_CONSTANTS.OFFSET);
+      res.status(200).send({ message: "received" });
+    } catch (error) {
+      res.status(500).send({ message: error });
+    }
+  },
   testStripeWebhookConnect: async (req, res) => {
     const payment = req.body;
     //console.log("payment", JSON.stringify(payment, null, 2));
@@ -808,6 +833,25 @@ const ControllerTest = {
       console.log("error", error);
       res.status(200).send({ message: "error", error: JSON.stringify(error) });
     }
+  },
+  setMLMWebhook: async (req, res) => {
+    try {
+      const params = req.body;
+      executeSetMLMWebhook(params, GLOBAL_CONSTANTS.OFFSET);
+      res.status(200).send({ message: "received" });
+    } catch (error) {}
+  },
+  getPropertyPictures: async (req, res) => {
+    try {
+      executeGetPropertyPictures(GLOBAL_CONSTANTS.OFFSET);
+      res.status(200).send({ message: "received" });
+    } catch (error) {}
+  },
+  testMailToNotification: async (req, res) => {
+    try {
+      executeTestMailToNotification({});
+      res.status(200).send({ message: "received" });
+    } catch (error) {}
   },
 };
 

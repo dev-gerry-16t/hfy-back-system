@@ -160,7 +160,7 @@ const executeRequestSignUpPSU = async (param, res, ip) => {
     captchaToken,
     idContact = null,
   } = param;
-  
+
   try {
     const responseGoogle = await rp({
       url: `https://www.google.com/recaptcha/api/siteverify`,

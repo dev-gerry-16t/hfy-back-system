@@ -925,12 +925,19 @@ const executeGetAmountForGWTransaction = async (params, res) => {
       .execute("paymentSch.USPgetAmountForGWTransaction");
     const resultRecordset = result.recordset[0];
     if (resultRecordset.canBeProcess === true) {
-      const payment = await stripe.paymentIntents.create({
+      const body = {
         payment_method_types,
         amount: resultRecordset.amount,
         description: resultRecordset.description,
         currency: resultRecordset.currency,
-      });
+      };
+      if (
+        isEmpty(resultRecordset) === false &&
+        isNil(resultRecordset.customer) === false
+      ) {
+        body.customer = resultRecordset.customer;
+      }
+      const payment = await stripe.paymentIntents.create(body);
       await executeAddGWTransaction({
         idOrderPayment: idOrderPayment,
         serviceIdPI: payment.id,
@@ -1025,7 +1032,7 @@ const executeGetAmountForGWTransactionCard = async (params, res) => {
     const resultRecordset = result.recordset[0];
     if (resultRecordset.canBeProcess === true) {
       //Creo un intento de pago sin confirmar
-      const payment = await stripe.paymentIntents.create({
+      const body = {
         payment_method,
         payment_method_types,
         amount: resultRecordset.amount,
@@ -1039,8 +1046,14 @@ const executeGetAmountForGWTransactionCard = async (params, res) => {
           },
         },
         metadata: { idOrderPayment },
-      });
-
+      };
+      if (
+        isEmpty(resultRecordset) === false &&
+        isNil(resultRecordset.customer) === false
+      ) {
+        body.customer = resultRecordset.customer;
+      }
+      const payment = await stripe.paymentIntents.create(body);
       //Evaluamos si existe pago a plasos
       const catalogOptionsAvailable =
         payment.payment_method_options.card.installments.available_plans;
