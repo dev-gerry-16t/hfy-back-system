@@ -961,7 +961,6 @@ const executeGetSubscriptionConfig = async (params) => {
         days_until_due,
       } = resultRecordsetObject;
       let customerId = customer_id;
-
       if (isNil(customer_id) === true) {
         const customer = await stripe.customers.create({
           name,
@@ -1032,15 +1031,17 @@ const executeGetSubscriptionConfig = async (params) => {
         if (isNil(collection_method) === false) {
           body.collection_method = collection_method;
         }
-        await stripe.subscriptions.create({
-          customer: customerId,
-          items: [
+        if (isNil(price_id) === false) {
+          const subscription = await stripe.subscriptions.retrieve(
+            subscription_id
+          );
+          body.items = [
             {
+              id: subscription.items.data[0].id,
               price: price_id,
             },
-          ],
-          ...body,
-        });
+          ];
+        }
         await stripe.subscriptions.update(subscription_id, {
           ...body,
         });
@@ -1064,12 +1065,30 @@ const executeSetSubscription = async (params, res, url) => {
     isTrial = null,
     isCanceled = null,
     acceptedCode = null,
+    requiresPymt = null,
+    idCustomerStripe = null,
+    returnToUrl = null,
     idLoginHistory,
     offset = GLOBAL_CONSTANTS.OFFSET,
   } = params;
   const { idSystemUser } = url;
   const storeProcedure = "subscriptionSch.USPsetSubscription";
   try {
+    if (requiresPymt === true) {
+      const session = await stripe.billingPortal.sessions.create({
+        customer: idCustomerStripe,
+        return_url: `${GLOBAL_CONSTANTS.PATH_FRONT_URL}${returnToUrl}`,
+      });
+      res.status(200).send({
+        response: {
+          message: "Para esta acción se requiere de un método de pago",
+          idProperty: null,
+          idApartment: null,
+          url: session.url,
+        },
+      });
+      return true;
+    }
     if (
       isNil(idSystemUser) === true ||
       isNil(idLoginHistory) === true ||

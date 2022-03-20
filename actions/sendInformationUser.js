@@ -58,7 +58,7 @@ const executeMailTo = async (params) => {
     html: content,
   };
   try {
-    await transporter.sendMail(mailOptions);
+    const response = await transporter.sendMail(mailOptions);
     await executeEmailSentAES(params);
     console.log("correo enviado");
   } catch (error) {
