@@ -620,6 +620,8 @@ const executeGetPropertyPictures = async (offset) => {
           isNil(resultRecordsetObject.hasMore) === false
             ? resultRecordsetObject.hasMore
             : "";
+      } else {
+        hasMore = false;
       }
     }
   } catch (err) {
