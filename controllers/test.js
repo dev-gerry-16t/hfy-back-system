@@ -39,6 +39,7 @@ const {
   executeGetPropertyPictures,
 } = require("../actions/getTokenMlUser");
 const executeSetSubscriptionWebhook = require("../actions/subscriptionPlatform");
+const executeMailTo = require("../actions/sendInformationUser");
 
 const executeGetZipCodeGoogle = async (location) => {
   try {
@@ -875,8 +876,30 @@ const ControllerTest = {
         .input("p_nvcComment", sql.NVarChar, comment)
         .input("p_chrOffset", sql.Char, GLOBAL_CONSTANTS.OFFSET)
         .execute("landingSch.USPaddExternalProspect");
-      console.log("result", result);
-      res.status(200).send({ message: "received" });
+      const resultRecordsetObject = result.recordset[0];
+      if (resultRecordsetObject.stateCode !== 200) {
+        executeSlackLogCatchBackend({
+        storeProcedure,
+        error: resultRecordsetObject.errorMessage,
+        });
+        res.status(resultRecordsetObject.stateCode).send({
+          response: {
+            message: resultRecordsetObject.message,
+            errorMessage: resultRecordsetObject.errorMessage,
+          },
+        });
+      } else {
+        for (const element of resultRecordset) {
+          if (element.canSendEmail === true) {
+            const configEmailServer = JSON.parse(element.jsonEmailServerConfig);
+            await executeMailTo({
+              ...element,
+              ...configEmailServer,
+            });
+          }
+        }
+      }
+      res.status(200).send({ message: "Lead received" });
     } catch (error) {
       executeSlackLogCatchBackend({
         storeProcedure: "landingSch.USPaddExternalProspect",
