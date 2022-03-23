@@ -877,6 +877,7 @@ const ControllerTest = {
         console.log('result',result);
       res.status(200).send({ message: "received" });
     } catch (error) {
+      console.log('error',error);
       executeSlackLogCatchBackend({
         storeProcedure: "landingSch.USPaddExternalProspect",
         error: error,
