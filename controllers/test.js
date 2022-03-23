@@ -864,6 +864,7 @@ const ControllerTest = {
       comment = null,
     } = params;
     try {
+      const pool = await sql.connect();
       const result = await pool
         .request()
         .input("p_nvcGivenName", sql.NVarChar, givenName)
@@ -874,15 +875,15 @@ const ControllerTest = {
         .input("p_nvcComment", sql.NVarChar, comment)
         .input("p_chrOffset", sql.Char, GLOBAL_CONSTANTS.OFFSET)
         .execute("landingSch.USPaddExternalProspect");
-        console.log('result',result);
+      console.log("result", result);
       res.status(200).send({ message: "received" });
     } catch (error) {
-      console.log('error',error);
       executeSlackLogCatchBackend({
         storeProcedure: "landingSch.USPaddExternalProspect",
         error: error,
         body: params,
       });
+      res.status(500).send({ message: "Not lead submit", error });
     }
   },
 };
