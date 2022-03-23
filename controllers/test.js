@@ -853,6 +853,37 @@ const ControllerTest = {
       res.status(200).send({ message: "received" });
     } catch (error) {}
   },
+  addExternalProspect: async (req, res) => {
+    const params = req.body;
+    const {
+      givenName,
+      lastName = null,
+      phoneNumber = null,
+      emailAddress = null,
+      rentAmount = null,
+      comment = null,
+    } = params;
+    try {
+      const result = await pool
+        .request()
+        .input("p_nvcGivenName", sql.NVarChar, givenName)
+        .input("p_nvcLastName", sql.NVarChar, lastName)
+        .input("p_nvcPhoneNumber", sql.NVarChar, phoneNumber)
+        .input("p_nvcEmailAddress", sql.NVarChar, emailAddress)
+        .input("p_decRentAmount", sql.NVarChar, rentAmount)
+        .input("p_nvcComment", sql.NVarChar, comment)
+        .input("p_chrOffset", sql.Char, GLOBAL_CONSTANTS.OFFSET)
+        .execute("landingSch.USPaddExternalProspect");
+        console.log('result',result);
+      res.status(200).send({ message: "received" });
+    } catch (error) {
+      executeSlackLogCatchBackend({
+        storeProcedure: "landingSch.USPaddExternalProspect",
+        error: error,
+        body: params,
+      });
+    }
+  },
 };
 
 module.exports = ControllerTest;
