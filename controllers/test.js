@@ -877,6 +877,7 @@ const ControllerTest = {
         .input("p_chrOffset", sql.Char, GLOBAL_CONSTANTS.OFFSET)
         .execute("landingSch.USPaddExternalProspect");
       const resultRecordsetObject = result.recordset[0];
+      const resultRecordset = result.recordset;
       if (resultRecordsetObject.stateCode !== 200) {
         executeSlackLogCatchBackend({
           storeProcedure: "landingSch.USPaddExternalProspect",
