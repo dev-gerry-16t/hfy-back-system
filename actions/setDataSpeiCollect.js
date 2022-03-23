@@ -24,7 +24,7 @@ const executeSetDispersionOrder = async (params) => {
     for (const element of resultRecordset) {
       if (element.canSendEmail === true) {
         const configEmailServer = JSON.parse(element.jsonEmailServerConfig);
-        await executeMailTo({
+         executeMailTo({
           ...element,
           ...configEmailServer,
         });
