@@ -879,8 +879,8 @@ const ControllerTest = {
       const resultRecordsetObject = result.recordset[0];
       if (resultRecordsetObject.stateCode !== 200) {
         executeSlackLogCatchBackend({
-        storeProcedure,
-        error: resultRecordsetObject.errorMessage,
+          storeProcedure: "landingSch.USPaddExternalProspect",
+          error: resultRecordsetObject.errorMessage,
         });
         res.status(resultRecordsetObject.stateCode).send({
           response: {
@@ -901,7 +901,7 @@ const ControllerTest = {
       }
       res.status(200).send({ message: "Lead received" });
     } catch (error) {
-      console.log('error',error);
+      console.log("error", error);
       executeSlackLogCatchBackend({
         storeProcedure: "landingSch.USPaddExternalProspect",
         error: error,
