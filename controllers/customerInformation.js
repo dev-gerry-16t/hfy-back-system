@@ -673,7 +673,6 @@ const executeGetConfigForCollAndDisp = async (params, res) => {
       .input("p_chrOffset", sql.Char, offset)
       .execute("stpSch.USPgetConfigForCollAndDisp");
     const resultRecordset = result.recordset;
-
     const { empresa, fechaOperacion, estado, url } = resultRecordset[0];
     let bodyRequest = {};
     let cadenaOriginal = "";
@@ -712,14 +711,18 @@ const executeGetConfigForCollAndDisp = async (params, res) => {
 
     res.status(200).send({ response: "Ok" });
   } catch (err) {
-    executeMailToNotification({
-      subject: "Catch",
-      content: `
-      <div>
-        ${err}
-      Action: stpSch.USPgetConfigForCollAndDisp
-      </div>
-      `,
+    await rp({
+      url: GLOBAL_CONSTANTS.URL_SLACK_MESSAGE,
+      method: "POST",
+      headers: {
+        encoding: "UTF-8",
+        "Content-Type": "application/json",
+      },
+      json: true,
+      body: {
+        text: `${err}`,
+      },
+      rejectUnauthorized: false,
     });
     res.status(500).send({
       response: {
