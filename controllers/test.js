@@ -896,11 +896,13 @@ const ControllerTest = {
         });
       } else {
         for (const element of resultRecordset) {
-          const configEmailServer = JSON.parse(element.jsonEmailServerConfig);
-          await executeMailTo({
-            ...element,
-            ...configEmailServer,
-          });
+          if (element.canSendEmail === true) {
+            const configEmailServer = JSON.parse(element.jsonEmailServerConfig);
+            await executeMailTo({
+              ...element,
+              ...configEmailServer,
+            });
+          }
         }
       }
       return res.status(200).send({ message: "Lead received" });
