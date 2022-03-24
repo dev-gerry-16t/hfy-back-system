@@ -877,7 +877,11 @@ const ControllerTest = {
           sql.Decimal(19),
           isEmpty(rentAmount) === false ? Number(rentAmount) : null
         )
-        .input("p_nvcComment", sql.NVarChar, comment)
+        .input(
+          "p_nvcComment",
+          sql.NVarChar,
+          isEmpty(comment) === false ? comment : null
+        )
         .input("p_chrOffset", sql.Char, GLOBAL_CONSTANTS.OFFSET)
         .execute("landingSch.USPaddExternalProspect");
       const resultRecordsetObject = result.recordset[0];
