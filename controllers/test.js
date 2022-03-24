@@ -875,7 +875,7 @@ const ControllerTest = {
         .input(
           "p_decRentAmount",
           sql.Decimal(19),
-          isEmpty(rentAmount) === true ? rentAmount : null
+          isEmpty(rentAmount) === false ? Number(rentAmount) : null
         )
         .input("p_nvcComment", sql.NVarChar, comment)
         .input("p_chrOffset", sql.Char, GLOBAL_CONSTANTS.OFFSET)
