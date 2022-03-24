@@ -72,6 +72,19 @@ const executeGetDispersionOrder = async (req, res) => {
       );
       const orderPay = { ...bodyRequest, firma: crypto.getSign() };
       //console.log("orderPay", JSON.stringify(orderPay, null, 2));
+      await rp({
+        url: GLOBAL_CONSTANTS.URL_SLACK_MESSAGE,
+        method: "POST",
+        headers: {
+          encoding: "UTF-8",
+          "Content-Type": "application/json",
+        },
+        json: true,
+        body: {
+          text: `${JSON.stringify(orderPay, null, 2)}`,
+        },
+        rejectUnauthorized: false,
+      });
       const response = await rp({
         url,
         method: "PUT",
@@ -84,18 +97,6 @@ const executeGetDispersionOrder = async (req, res) => {
         rejectUnauthorized: false,
       });
       //console.log("response", JSON.stringify(response, null, 2));
-      executeMailToNotification({
-        subject: "Body",
-        content: `
-        <div>
-        <div>Petición</div><br/>
-          ${JSON.stringify(orderPay, null, 2)}<br/><br/>
-          <div>Respuesta de stp</div><br/>
-          ${JSON.stringify(response, null, 2)}<br/>
-        Action: stpSch.USPgetDispersionOrder
-        </div>
-        `,
-      });
       await executeSetDispersionOrder({
         idDispersionOrder,
         jsonServiceResponse: JSON.stringify(response),
@@ -104,14 +105,18 @@ const executeGetDispersionOrder = async (req, res) => {
       });
     }
   } catch (err) {
-    executeMailToNotification({
-      subject: "Catch",
-      content: `
-      <div>
-        ${err}
-      Action: stpSch.USPgetDispersionOrder
-      </div>
-      `,
+    await rp({
+      url: GLOBAL_CONSTANTS.URL_SLACK_MESSAGE,
+      method: "POST",
+      headers: {
+        encoding: "UTF-8",
+        "Content-Type": "application/json",
+      },
+      json: true,
+      body: {
+        text: err,
+      },
+      rejectUnauthorized: false,
     });
     throw err;
   }
