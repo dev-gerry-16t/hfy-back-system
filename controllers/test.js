@@ -872,7 +872,11 @@ const ControllerTest = {
         .input("p_nvcLastName", sql.NVarChar, lastName)
         .input("p_nvcPhoneNumber", sql.NVarChar, phoneNumber)
         .input("p_nvcEmailAddress", sql.NVarChar, emailAddress)
-        .input("p_decRentAmount", sql.Decimal(19), rentAmount)
+        .input(
+          "p_decRentAmount",
+          sql.Decimal(19),
+          isEmpty(rentAmount) === false ? Number(rentAmount) : null
+        )
         .input("p_nvcComment", sql.NVarChar, comment)
         .input("p_chrOffset", sql.Char, GLOBAL_CONSTANTS.OFFSET)
         .execute("landingSch.USPaddExternalProspect");
