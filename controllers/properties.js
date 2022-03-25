@@ -1245,6 +1245,33 @@ const executeCancelSubscription = async (params, res) => {
   } catch (error) {}
 };
 
+const executeRequestPolicy = async (params, res) => {
+  const { content } = params;
+
+  try {
+    await executeMailTo({
+      receiver: "ejimenez@homify.ai,asgomez@homify.ai",
+      content,
+      pass: GLOBAL_CONSTANTS.KEY_MANDRILL,
+      subject: "Solicitud de póliza jurídica",
+      sender: "Homify <no-reply@homify.ai>",
+    });
+
+    res.status(200).send({
+      response: {
+        message: "Información enviada correctamente",
+      },
+    });
+  } catch (error) {
+    res.status(500).send({
+      response: {
+        message: "No se pudo enviar tu información",
+        errorMessage: error,
+      },
+    });
+  }
+};
+
 const ControllerProperties = {
   addPropertyV2: (req, res) => {
     const params = req.body;
@@ -1295,6 +1322,10 @@ const ControllerProperties = {
   cancelSubscription: (req, res) => {
     const params = req.body;
     executeCancelSubscription(params, res);
+  },
+  requestPolicy: (req, res) => {
+    const params = req.body;
+    executeRequestPolicy(params, res);
   },
 };
 
