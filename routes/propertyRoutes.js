@@ -28,5 +28,6 @@ router.put(
 router.post("/getSuscriptionDetail", ControllerProperties.getSuscriptionDetail);
 router.post("/setAnswerToML", ControllerProperties.setAnswerToML);
 router.post("/cancelSubscription", ControllerProperties.cancelSubscription);
+router.post("/requestPolicy", ControllerProperties.requestPolicy);
 
 module.exports = router;
