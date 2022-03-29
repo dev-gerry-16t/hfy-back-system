@@ -26,7 +26,7 @@ const ControllerTest = {
     });
   },
   testPath: (req, res) => {
-    console.log("Welcome to backend test, conection is successfully", sql);
+    console.log("Welcome to backend test, conection is successfully");
     res.status(200).send({
       message: `Bienvenido al Backend homify :) ${GLOBAL_CONSTANTS.VERSION}`,
     });
