@@ -510,7 +510,7 @@ const executeGetTokenMlWithUserId = async (params) => {
 };
 
 const executeSetMLMWebhook = async (params, offset) => {
-  const { resource, user_id, topic } = params;
+  const { resource, user_id, topic = null } = params;
   const storeProcedure = "mlSch.USPsetMLMWebhook";
   try {
     const token = await executeGetTokenMl({ offset, userId: user_id });
@@ -522,6 +522,11 @@ const executeSetMLMWebhook = async (params, offset) => {
       },
       json: true,
       rejectUnauthorized: false,
+    });
+    executeSlackLogCatchBackend({
+      storeProcedure,
+      error: "No es un error, es para trackear un 404",
+      body: response,
     });
     const pool = await sql.connect();
     const result = await pool
