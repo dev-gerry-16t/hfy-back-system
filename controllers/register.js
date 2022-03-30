@@ -1,8 +1,5 @@
 const sql = require("mssql");
-const nodemailer = require("nodemailer");
-const mandrillTransport = require("nodemailer-mandrill-transport");
 const rp = require("request-promise");
-const ERROR_SQL = require("../constants/errors");
 const executeMailToV2 = require("../actions/sendInformationUser");
 const GLOBAL_CONSTANTS = require("../constants/constants");
 const executeSlackLogCatchBackend = require("../actions/slackLogCatchBackend");
@@ -22,27 +19,6 @@ const executeRegister = async (params, res) => {
     console.log("ERROR", err);
     // ... error checks
   }
-};
-
-const executeMailTo = async (params) => {
-  const { receiver, content, user, pass, host, port, subject, sender } = params;
-  const transporter = nodemailer.createTransport(
-    mandrillTransport({
-      auth: {
-        apiKey: pass,
-      },
-    })
-  );
-  const mailOptions = {
-    from: sender,
-    bcc: receiver,
-    subject,
-    html: content,
-  };
-
-  transporter.sendMail(mailOptions, (error, info) => {
-    console.log("error mail", error);
-  });
 };
 
 const executeCustomerTypeGAC = async (param, res) => {
@@ -85,58 +61,6 @@ const executeEndorsementTypeGAE = async (param, res) => {
         res.status(500).send({ result: "Error en los parametros" });
       } else {
         res.status(200).send({ result: result.recordset });
-      }
-    });
-  } catch (error) {}
-};
-
-const executeEmailSentAES = async (param) => {
-  const {
-    idEmailStatus = 1,
-    idEmailTemplate = 1,
-    idRequestSignUp,
-    idUserSender,
-    idUserReceiver = null,
-    sender,
-    receiver,
-    subject,
-    content,
-    jsonServiceResponse,
-    offset = process.env.OFFSET,
-    jsonEmailServerConfig,
-    idInvitation,
-  } = param;
-  const configEmailServer = JSON.parse(jsonEmailServerConfig);
-  try {
-    const request = new sql.Request();
-    request.input("p_intIdEmailStatus", sql.Int, idEmailStatus);
-    request.input("p_intIdEmailTemplate", sql.Int, idEmailTemplate);
-    request.input("p_nvcIdRequesSignUp", sql.NVarChar, idRequestSignUp);
-    request.input("p_nvcIdUserSender", sql.NVarChar, idUserSender);
-    request.input("p_nvcIdUserReceiver", sql.NVarChar, idUserReceiver);
-    request.input("p_nvcSender", sql.NVarChar, sender);
-    request.input("p_nvcReceiver", sql.NVarChar, receiver);
-    request.input("p_nvcSubject", sql.NVarChar, subject);
-    request.input("p_nvcContent", sql.NVarChar, content);
-    request.input(
-      "p_nvcJsonServiceResponse",
-      sql.NVarChar,
-      jsonServiceResponse
-    );
-    request.input("p_chrOffset", sql.Char, offset);
-    request.input("p_nvcIdInvitation", sql.NVarChar, idInvitation);
-    await request.execute("comSch.USPaddEmailSent", async (err, result) => {
-      if (err) {
-        console.log("err", err);
-      } else if (result) {
-        await executeMailTo({
-          sender,
-          receiver,
-          content,
-          subject,
-          offset,
-          ...configEmailServer,
-        });
       }
     });
   } catch (error) {}
@@ -199,29 +123,28 @@ const executeRequestSignUpPSU = async (param, res, ip) => {
         });
         res.status(500).send({});
       } else {
-        const resultRecordset = result.recordset[0];
-        if (resultRecordset.stateCode !== 200) {
-          executeSlackLogCatchBackend({
-            storeProcedure: "authSch.USPrequestSignUp",
-            error: resultRecordset.errorMessage,
-          });
-          res.status(resultRecordset.stateCode).send({
+        const resultRecordset = result.recordset;
+        const resultRecordsetObject = result.recordset[0];
+        if (resultRecordsetObject.stateCode !== 200) {
+          res.status(resultRecordsetObject.stateCode).send({
             response: {
-              message: resultRecordset.message,
-              idRequestSignUp: resultRecordset.idRequestSignUp,
+              message: resultRecordsetObject.message,
+              idRequestSignUp: resultRecordsetObject.idRequestSignUp,
             },
           });
         } else {
-          const objectResponseDataBase = {
-            ...result.recordset[0],
-            offset,
-            idInvitation,
-            jsonServiceResponse: result.recordset[0].stateCode,
-          };
-          await executeEmailSentAES(objectResponseDataBase);
+          for (const element of resultRecordset) {
+            const configEmailServer = JSON.parse(element.jsonEmailServerConfig);
+            await executeMailToV2({
+              ...element,
+              ...configEmailServer,
+              idInvitation,
+              offset,
+            });
+          }
           res.status(200).send({
             result: {
-              idRequestSignUp: result.recordset[0].idRequestSignUp,
+              idRequestSignUp: resultRecordsetObject.idRequestSignUp,
             },
           });
         }
@@ -306,9 +229,6 @@ const ControllerRegister = {
   register: (req, res) => {
     const params = req.body;
     executeRegister(params, res);
-  },
-  mailto: (req, res) => {
-    executeMailTo(res).catch(console.error);
   },
   customerType: (req, res) => {
     const params = req.body;

@@ -73,7 +73,6 @@ router.get(
   ControllerTest.downloadFiles
 );
 router.post("/uploadBucket", ControllerTest.upload);
-router.get("/mailto", ControllerRegister.mailto);
 //Login
 router.post("/systemUser/validateLogin", ControllerLogin.login);
 router.post(
