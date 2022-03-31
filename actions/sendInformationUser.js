@@ -1,12 +1,15 @@
 const sql = require("mssql");
 const nodemailer = require("nodemailer");
-const GLOBAL_CONSTANTS = require("../constants/constants");
 const mandrillTransport = require("nodemailer-mandrill-transport");
+const isNil = require("lodash/isNil");
+const isEmpty = require("lodash/isEmpty");
+const GLOBAL_CONSTANTS = require("../constants/constants");
+const executeSlackLogCatchBackend = require("./slackLogCatchBackend");
 
 const executeEmailSentAES = async (param) => {
   const {
-    idEmailStatus = 1,
-    idEmailTemplate = 1,
+    idEmailStatus = null,
+    idEmailTemplate = null,
     idRequestSignUp = null,
     idUserSender = null,
     idUserReceiver = null,
@@ -14,9 +17,7 @@ const executeEmailSentAES = async (param) => {
     receiver = null,
     subject = null,
     content = null,
-    jsonServiceResponse = null,
     offset = GLOBAL_CONSTANTS.OFFSET,
-    jsonEmailServerConfig = null,
     idInvitation = null,
   } = param;
   try {
@@ -32,37 +33,77 @@ const executeEmailSentAES = async (param) => {
       .input("p_nvcReceiver", sql.NVarChar, receiver)
       .input("p_nvcSubject", sql.NVarChar, subject)
       .input("p_nvcContent", sql.NVarChar, content)
-      .input("p_nvcJsonServiceResponse", sql.NVarChar, jsonServiceResponse)
+      .input("p_nvcJsonServiceResponse", sql.NVarChar, null)
       .input("p_chrOffset", sql.Char, offset)
       .input("p_nvcIdInvitation", sql.NVarChar, idInvitation)
       .execute("comSch.USPaddEmailSent");
-    return result;
+    const resultRecordsetObject =
+      isEmpty(result.recordset) === false &&
+      isNil(result.recordset[0]) === false &&
+      isEmpty(result.recordset[0]) === false
+        ? result.recordset[0]
+        : {};
+    if (isEmpty(resultRecordsetObject) === false) {
+      if (resultRecordsetObject.stateCode !== 200) {
+        executeSlackLogCatchBackend({
+          storeProcedure: "comSch.USPaddEmailSent",
+          error: resultRecordsetObject.errorMessage,
+          body: params,
+        });
+      } else {
+        return resultRecordsetObject;
+      }
+    } else {
+      throw "No se encontraron parámetros de salida en el USP comSch.USPaddEmailSent";
+    }
   } catch (error) {
-    return error;
+    executeSlackLogCatchBackend({
+      storeProcedure: "comSch.USPaddEmailSent",
+      error,
+      body: params,
+    });
   }
 };
 
 const executeMailTo = async (params) => {
-  const { receiver, content, user, pass, host, port, subject, sender } = params;
-  const transporter = nodemailer.createTransport(
-    mandrillTransport({
-      auth: {
-        apiKey: pass,
-      },
-    })
-  );
-  const mailOptions = {
-    from: sender,
-    bcc: receiver,
-    subject,
-    html: content,
-  };
+  const { receiver, content, pass, subject, sender, tags = null } = params;
   try {
-    const response = await transporter.sendMail(mailOptions);
-    await executeEmailSentAES(params);
-    console.log("correo enviado");
+    const { idEmailSent } = await executeEmailSentAES(params);
+    const transporter = nodemailer.createTransport(
+      mandrillTransport({
+        auth: {
+          apiKey: pass,
+        },
+      })
+    );
+    const headers = {};
+
+    if (isNil(idEmailSent) === false) {
+      headers["X-MC-Metadata"] = {
+        idEmailSent,
+      };
+    }
+    if (isNil(tags) === false) {
+      headers["X-MC-Tags"] = tags;
+    }
+    const mailOptions = {
+      from: sender,
+      bcc: receiver,
+      subject,
+      html: content,
+      mandrillOptions: {
+        message: {
+          headers,
+        },
+      },
+    };
+    await transporter.sendMail(mailOptions);
   } catch (error) {
-    console.log(`Error al enviar correo: ${error}`);
+    executeSlackLogCatchBackend({
+      storeProcedure: "Nodemailer or mandrill error",
+      error,
+      body: params,
+    });
   }
 };
 

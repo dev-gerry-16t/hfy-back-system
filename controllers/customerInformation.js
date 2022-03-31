@@ -5,8 +5,6 @@ const ImageModule = require("docxtemplater-image-module");
 const PizZip = require("pizzip");
 const isEmpty = require("lodash/isEmpty");
 const isNil = require("lodash/isNil");
-const nodemailer = require("nodemailer");
-const mandrillTransport = require("nodemailer-mandrill-transport");
 const rp = require("request-promise");
 const GLOBAL_CONSTANTS = require("../constants/constants");
 const replaceConditionsDocx = require("../actions/conditions");
@@ -533,79 +531,6 @@ const executeRequestAdvance = async (params, res) => {
   }
 };
 
-const executeMailTo = async (params) => {
-  const { receiver, content, user, pass, host, port, subject, sender } = params;
-  const transporter = nodemailer.createTransport(
-    mandrillTransport({
-      auth: {
-        apiKey: pass,
-      },
-    })
-  );
-  const mailOptions = {
-    from: sender,
-    bcc: receiver,
-    subject,
-    html: content,
-  };
-
-  transporter.sendMail(mailOptions, (error, info) => {
-    console.log("error mail", error);
-  });
-};
-
-const executeEmailSentAES = async (param) => {
-  const {
-    idEmailStatus = 1,
-    idEmailTemplate = 1,
-    idRequestSignUp,
-    idUserSender,
-    idUserReceiver = null,
-    sender,
-    receiver,
-    subject,
-    content,
-    jsonServiceResponse,
-    offset = process.env.OFFSET,
-    jsonEmailServerConfig,
-    idInvitation,
-  } = param;
-  const configEmailServer = JSON.parse(jsonEmailServerConfig);
-  try {
-    const request = new sql.Request();
-    request.input("p_intIdEmailStatus", sql.Int, idEmailStatus);
-    request.input("p_intIdEmailTemplate", sql.Int, idEmailTemplate);
-    request.input("p_nvcIdRequesSignUp", sql.NVarChar, idRequestSignUp);
-    request.input("p_nvcIdUserSender", sql.NVarChar, idUserSender);
-    request.input("p_nvcIdUserReceiver", sql.NVarChar, idUserReceiver);
-    request.input("p_nvcSender", sql.NVarChar, sender);
-    request.input("p_nvcReceiver", sql.NVarChar, receiver);
-    request.input("p_nvcSubject", sql.NVarChar, subject);
-    request.input("p_nvcContent", sql.NVarChar, content);
-    request.input(
-      "p_nvcJsonServiceResponse",
-      sql.NVarChar,
-      jsonServiceResponse
-    );
-    request.input("p_chrOffset", sql.Char, offset);
-    request.input("p_nvcIdInvitation", sql.NVarChar, idInvitation);
-    await request.execute("comSch.USPaddEmailSent", async (err, result) => {
-      if (err) {
-        console.log("err", err);
-      } else if (result) {
-        await executeMailTo({
-          sender,
-          receiver,
-          content,
-          subject,
-          offset,
-          ...configEmailServer,
-        });
-      }
-    });
-  } catch (error) {}
-};
-
 const executeSendTenantInvitation = async (params, res) => {
   const {
     idCustomer,
@@ -638,26 +563,30 @@ const executeSendTenantInvitation = async (params, res) => {
           console.log("err", err);
           res.status(500).send({ response: "Error en los parametros" });
         } else {
-          const resultRecordset = result.recordset[0];
-          if (resultRecordset.stateCode !== 200) {
-            res.status(resultRecordset.stateCode).send({
+          const resultRecordset = result.recordset;
+          const resultRecordsetObject = result.recordset[0];
+          if (resultRecordsetObject.stateCode !== 200) {
+            res.status(resultRecordsetObject.stateCode).send({
               response: {
-                message: resultRecordset.message,
-                idInvitation: resultRecordset.idInvitation,
+                message: resultRecordsetObject.message,
+                idInvitation: resultRecordsetObject.idInvitation,
               },
             });
           } else {
-            const objectResponseDataBase = {
-              ...result.recordset[0],
-              offset,
-              jsonServiceResponse: result.recordset[0].stateCode,
-            };
-            await executeEmailSentAES(objectResponseDataBase);
+            for (const element of resultRecordset) {
+              const configEmailServer = JSON.parse(
+                element.jsonEmailServerConfig
+              );
+              await executeMailToV2({
+                ...element,
+                ...configEmailServer,
+              });
+            }
             res.status(200).send({
               result: {
-                idInvitation: resultRecordset.idInvitation,
-                idUserSender: resultRecordset.idUserSender,
-                message: resultRecordset.message,
+                idInvitation: resultRecordsetObject.idInvitation,
+                idUserSender: resultRecordsetObject.idUserSender,
+                message: resultRecordsetObject.message,
               },
             });
           }

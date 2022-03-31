@@ -2,7 +2,6 @@ const nodemailer = require("nodemailer");
 var mandrillTransport = require("nodemailer-mandrill-transport");
 
 const executeTestMailToNotification = async (params) => {
-  console.log("params", params);
   const { content = "<strong>HOLA Mundo</strong>", subject = "TEST" } = params;
 
   // const transporter = nodemailer.createTransport({
@@ -25,15 +24,12 @@ const executeTestMailToNotification = async (params) => {
     const transport = nodemailer.createTransport(
       mandrillTransport({
         auth: {
-          apiKey: "pkcHX8AIJA2Yg-p65CLpzw",
+          apiKey: "",
         },
       })
     );
     await transport.sendMail(mailOptions);
-    console.log("ok");
-  } catch (error) {
-    console.log(`Error al enviar correo: ${error}`);
-  }
+  } catch (error) {}
 };
 
 module.exports = executeTestMailToNotification;

@@ -1,84 +1,54 @@
 const sql = require("mssql");
-const nodemailer = require("nodemailer");
-const mandrillTransport = require("nodemailer-mandrill-transport");
-
-const executeMailTo = async (params, res) => {
-  const { receiver, content, user, pass, host, port, subject, sender } = params;
-  const transporter = nodemailer.createTransport(
-    mandrillTransport({
-      auth: {
-        apiKey: pass,
-      },
-    })
-  );
-  const mailOptions = {
-    from: sender,
-    bcc: receiver,
-    subject,
-    html: content,
-  };
-
-  transporter.sendMail(mailOptions, (error, info) => {
-    if (error) {
-      console.log("error", error);
-      res
-        .status(500)
-        .send({ result: "El sistema de envío de correos ha fallado" });
-    } else {
-      res.status(200).send({
-        result: {
-          idRequestPasswordRecovery: params.idRequestPasswordRecovery,
-          message: params.message,
-        },
-      });
-    }
-  });
-};
+const executeMailTo = require("../actions/sendInformationUser");
+const executeSlackLogCatchBackend = require("../actions/slackLogCatchBackend");
 
 const executeRequestRecoveryPass = async (params, res) => {
   const { offset = process.env.OFFSET, userName } = params;
+  const storeProcedure = "authSch.USPrequestPasswordRecovery";
+
   try {
-    const request = new sql.Request();
-    request.input("p_nvcUsername", sql.VarChar, userName);
-    request.input("p_chrOffset", sql.Char, offset);
-    request.execute("authSch.USPrequestPasswordRecovery", (err, result) => {
-      if (err) {
-        res.status(500).send({ result: "Error en el sistema" });
-      } else {
-        const resultRecorset = result.recordset[0];
-        if (resultRecorset.stateCode !== 200) {
-          res.status(resultRecorset.stateCode).send({
-            response: {
-              message: resultRecorset.message,
-            },
+    const pool = await sql.connect();
+    const result = await pool
+      .request()
+      .input("p_nvcUsername", sql.VarChar, userName)
+      .input("p_chrOffset", sql.Char, offset)
+      .execute(storeProcedure);
+    const resultRecordset = result.recordset;
+    const resultRecordsetObject = result.recordset[0];
+
+    if (resultRecordsetObject.stateCode !== 200) {
+      res.status(resultRecordsetObject.stateCode).send({
+        response: {
+          message: resultRecordsetObject.message,
+        },
+      });
+    } else {
+      for (const element of resultRecordset) {
+        if (element.canSendEmail === true) {
+          const configEmailServer = JSON.parse(element.jsonEmailServerConfig);
+          await executeMailTo({
+            ...element,
+            ...configEmailServer,
           });
-        } else {
-          if (resultRecorset.canSendEmail === true) {
-            const configEmailServer = JSON.parse(
-              resultRecorset.jsonEmailServerConfig
-            );
-            executeMailTo(
-              {
-                ...resultRecorset,
-                ...configEmailServer,
-              },
-              res
-            );
-          } else if (resultRecorset.canSendEmail === false) {
-            res.status(200).send({
-              result: {
-                idRequestPasswordRecovery:
-                  resultRecorset.idRequestPasswordRecovery,
-                message: resultRecorset.message,
-              },
-            });
-          }
         }
       }
-    });
+      res.status(200).send({
+        result: {
+          idRequestPasswordRecovery:
+            resultRecordsetObject.idRequestPasswordRecovery,
+          message: resultRecordsetObject.message,
+        },
+      });
+    }
   } catch (err) {
-    console.log("ERROR", err);
-    // ... error checks
+    executeSlackLogCatchBackend({
+      storeProcedure,
+      error: err,
+      body: params,
+    });
+    res.status(500).send({
+      response: { message: "Error en el sistema" },
+    });
   }
 };
 
