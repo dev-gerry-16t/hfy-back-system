@@ -850,6 +850,12 @@ const ControllerTest = {
       const url = "https://api.homify.ai/api/connect/setMailchimpWebhook";
       const headerSignature = req.headers["x-mandrill-signature"];
       const signature = validator.makeSignature(key, url, params);
+      const jsonServiceResponse =
+        isEmpty(params) === false &&
+        isNil(params.mandrill_events) === false &&
+        isEmpty(params.mandrill_events) === false
+          ? params.mandrill_events
+          : "[]";
 
       if (headerSignature === signature) {
         const pool = await sql.connect();
@@ -858,7 +864,7 @@ const ControllerTest = {
           .input(
             "p_nvcJsonServiceResponse",
             sql.NVarChar(sql.MAX),
-            JSON.stringify(params)
+            jsonServiceResponse
           )
           .input("p_chrOffset", sql.Char, GLOBAL_CONSTANTS.OFFSET)
           .execute("comSch.USPsetMailchimpWebhook");
