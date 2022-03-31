@@ -63,12 +63,14 @@ const ControllerTest = {
         });
         const { stateCode, message } = response;
         if (stateCode === 200) {
-          res.status(stateCode).send({ mensaje: message });
+          return res.status(stateCode).send({ mensaje: message });
         } else {
-          res.status(stateCode).send({ message });
+          return res.status(stateCode).send({ message });
         }
       } else {
-        res.status(400).send({ mensaje: "Error en los parámetros de entrada" });
+        return res
+          .status(400)
+          .send({ mensaje: "Error en los parámetros de entrada" });
       }
     } catch (error) {
       res.status(400).send({ mensaje: "Error de servidor" });
