@@ -76,15 +76,15 @@ const executeMailTo = async (params) => {
         },
       })
     );
-    const headers = {};
+    const message = {};
 
     if (isNil(idEmailSent) === false) {
-      headers["X-MC-Metadata"] = {
+      message.metadata = {
         idEmailSent,
       };
     }
-    if (isNil(tags) === false) {
-      headers["X-MC-Tags"] = tags;
+    if (isNil(tags) === false && isEmpty(tags) === false) {
+      message.tags = JSON.parse(tags);
     }
     const mailOptions = {
       from: sender,
@@ -92,9 +92,7 @@ const executeMailTo = async (params) => {
       subject,
       html: content,
       mandrillOptions: {
-        message: {
-          headers,
-        },
+        message,
       },
     };
     await transporter.sendMail(mailOptions);
