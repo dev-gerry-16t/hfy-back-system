@@ -1458,7 +1458,8 @@ const executeGetUserCoincidences = async (params, res) => {
   const {
     idSystemUser,
     idLoginHistory,
-    topIndex,
+    jsonConditions = null,
+    pagination = null,
     offset = GLOBAL_CONSTANTS.OFFSET,
   } = params;
   const storeProcedure = "customerSch.USPgetUserCoincidences";
@@ -1466,7 +1467,6 @@ const executeGetUserCoincidences = async (params, res) => {
     if (
       isNil(idSystemUser) === true ||
       isNil(idLoginHistory) === true ||
-      isNil(topIndex) === true ||
       isNil(offset) === true
     ) {
       res.status(400).send({
@@ -1480,7 +1480,8 @@ const executeGetUserCoincidences = async (params, res) => {
         .request()
         .input("p_uidIdSystemUser", sql.NVarChar, idSystemUser)
         .input("p_uidIdLoginHistory", sql.NVarChar, idLoginHistory)
-        .input("p_intTopIndex", sql.Int, topIndex)
+        .input("p_nvcJsonConditions", sql.NVarChar(sql.MAX), jsonConditions)
+        .input("p_nvcPagination", sql.NVarChar(sql.MAX), pagination)
         .input("p_chrOffset", sql.Char, offset)
         .execute(storeProcedure);
       const resultRecordset = result.recordset;
