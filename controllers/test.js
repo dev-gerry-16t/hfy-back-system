@@ -1,5 +1,6 @@
 const sql = require("mssql");
 const rp = require("request-promise");
+const validator = require("mandrill-webhook-validator");
 const isEmpty = require("lodash/isEmpty");
 const isNil = require("lodash/isNil");
 //const imageThumbnail = require("image-thumbnail");
@@ -841,6 +842,42 @@ const ControllerTest = {
       executeSetMLMWebhook(params, GLOBAL_CONSTANTS.OFFSET);
       res.status(200).send({ message: "received" });
     } catch (error) {}
+  },
+  setMailchimpWebhook: async (req, res) => {
+    const params = req.body;
+    try {
+      const key = GLOBAL_CONSTANTS.WEBHOOK_PASS_MANDRILL;
+      const url = "https://api.homify.ai/api/connect/setMailchimpWebhook";
+      const headerSignature = req.headers["x-mandrill-signature"];
+      const signature = validator.makeSignature(key, url, params);
+
+      if (headerSignature === signature) {
+        const pool = await sql.connect();
+        const result = await pool
+          .request()
+          .input(
+            "p_nvcJsonServiceResponse",
+            sql.NVarChar(sql.MAX),
+            JSON.stringify(params)
+          )
+          .input("p_chrOffset", sql.Char, GLOBAL_CONSTANTS.OFFSET)
+          .execute("comSch.USPsetMailchimpWebhook");
+        const resultRecordsetObject = result.recordset[0];
+        if (resultRecordsetObject.stateCode !== 200) {
+          return res
+            .status(resultRecordsetObject.stateCode)
+            .send({ message: resultRecordsetObject.message });
+        }
+      }
+      res.status(200).send({ message: "received" });
+    } catch (error) {
+      executeSlackLogCatchBackend({
+        storeProcedure: "comSch.USPsetMailchimpWebhook",
+        error: error,
+        body: params,
+      });
+      res.status(500).send({ message: "received" });
+    }
   },
   getPropertyPictures: async (req, res) => {
     try {

@@ -27,6 +27,7 @@ router.get("/sendWhatsappTwilio", ControllerTest.sendWhatsappTwilio);
 router.post("/testStripe", ControllerTest.testStripe);
 router.post("/connect/matiWebhookHomify", ControllerTest.matiWebhookHomify);
 router.post("/connect/setMLMWebhook", ControllerTest.setMLMWebhook);
+router.post("/connect/setMailchimpWebhook", ControllerTest.setMailchimpWebhook);
 router.get("/connect/getPropertyPictures", ControllerTest.getPropertyPictures);
 router.post("/testStripeWebhook", ControllerTest.testStripeWebhook);
 router.post("/addExternalProspect", ControllerTest.addExternalProspect);
@@ -73,7 +74,6 @@ router.get(
   ControllerTest.downloadFiles
 );
 router.post("/uploadBucket", ControllerTest.upload);
-router.get("/mailto", ControllerRegister.mailto);
 //Login
 router.post("/systemUser/validateLogin", ControllerLogin.login);
 router.post(

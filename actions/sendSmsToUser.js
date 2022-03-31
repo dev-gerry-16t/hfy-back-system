@@ -1,5 +1,3 @@
-const sql = require("mssql");
-const nodemailer = require("nodemailer");
 const GLOBAL_CONSTANTS = require("../constants/constants");
 const accountSid = GLOBAL_CONSTANTS.TWILIO_ACCOUNT_SID;
 const authToken = GLOBAL_CONSTANTS.TWILIO_AUTH_TOKEN;
