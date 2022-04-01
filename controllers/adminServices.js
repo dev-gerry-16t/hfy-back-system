@@ -1869,14 +1869,16 @@ const executeGetLegalContractCoincidences = async (params, res) => {
   const {
     idSystemUser,
     idLoginHistory,
-    topIndex,
+    jsonConditions = null,
+    pagination = null,
     offset = GLOBAL_CONSTANTS.OFFSET,
   } = params;
   try {
     const request = new sql.Request();
     request.input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser);
     request.input("p_nvcIdLoginHistory", sql.NVarChar, idLoginHistory);
-    request.input("p_intTopIndex", sql.NVarChar, topIndex);
+    request.input("p_nvcJsonConditions", sql.NVarChar(sql.MAX), jsonConditions);
+    request.input("p_nvcPagination", sql.NVarChar(sql.MAX), pagination);
     request.input("p_chrOffset", sql.Char, offset);
     request.execute(
       "customerSch.USPgetLegalContractCoincidences",
