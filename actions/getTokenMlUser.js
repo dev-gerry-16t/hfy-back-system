@@ -4,6 +4,7 @@ const isNil = require("lodash/isNil");
 const isEmpty = require("lodash/isEmpty");
 const executeSlackLogCatchBackend = require("./slackLogCatchBackend");
 const GLOBAL_CONSTANTS = require("../constants/constants");
+const executeMailTo = require("./sendInformationUser");
 
 const executeGetTokenMlUser = async (params) => {
   const { appId, clientSecret, codeId, redirectUrl } = params;
@@ -537,12 +538,22 @@ const executeSetMLMWebhook = async (params, offset) => {
       .input("p_bitWasFound", sql.Bit, null)
       .input("p_chrOffset", sql.Char, offset)
       .execute(storeProcedure);
+    const resultRecordset = result.recordset;
     const resultRecordsetObject =
       isEmpty(result.recordset) === false &&
       isNil(result.recordset[0]) === false &&
       isEmpty(result.recordset[0]) === false
         ? result.recordset[0]
         : {};
+    for (const element of resultRecordset) {
+      if (element.canSendEmail === true) {
+        const configEmailServer = JSON.parse(element.jsonEmailServerConfig);
+        executeMailTo({
+          ...element,
+          ...configEmailServer,
+        });
+      }
+    }
     return resultRecordsetObject;
   } catch (err) {
     executeSlackLogCatchBackend({
