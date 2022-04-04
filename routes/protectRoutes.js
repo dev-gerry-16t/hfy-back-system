@@ -393,6 +393,10 @@ router.put(
   ControllerAdmin.updateProspectInvitation
 );
 router.post("/admin/getTransactions", ControllerAdmin.getTransactions);
+router.put(
+  "/admin/updateProspect/:idInvitation",
+  ControllerAdmin.updateProspect
+);
 //Admin//
 
 // Lead//
