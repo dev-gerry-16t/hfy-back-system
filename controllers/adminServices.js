@@ -10,6 +10,7 @@ const isEmpty = require("lodash/isEmpty");
 const executeMailTo = require("../actions/sendInformationUser");
 const replaceConditionsDocx = require("../actions/conditions");
 const { executeSetCustomerAccount } = require("../actions/setCustomerAccount");
+const executeSlackLogCatchBackend = require("../actions/slackLogCatchBackend");
 const s3 = new AWS.S3({
   accessKeyId: GLOBAL_CONSTANTS.ACCESS_KEY_ID,
   secretAccessKey: GLOBAL_CONSTANTS.SECRET_ACCESS_KEY,
@@ -2044,6 +2045,62 @@ const executeUpdateProspectInvitation = async (params, res, url) => {
   }
 };
 
+const executeUpdateProspect = async (params, res, url) => {
+  const {
+    idProspectParent = null,
+    emailAddress = null,
+    requestResend = null,
+    isActive = null,
+    idSystemUser,
+    idLoginHistory,
+    offset = GLOBAL_CONSTANTS.OFFSET,
+  } = params;
+  const { idInvitation } = url;
+  const storeProcedure = "customerSch.USPupdateProspect";
+  try {
+    const pool = await sql.connect();
+    const result = await pool
+      .request()
+      .input("p_uidIdInvitation", sql.NVarChar, idInvitation)
+      .input("p_uidIdProspectParent", sql.NVarChar, idProspectParent)
+      .input("p_nvcEmailAddress", sql.NVarChar, emailAddress)
+      .input("p_bitRequestResend", sql.Bit, requestResend)
+      .input("p_bitIsActive", sql.Bit, isActive)
+      .input("p_uidIdSystemUser", sql.NVarChar, idSystemUser)
+      .input("p_uidIdLoginHistory", sql.NVarChar, idLoginHistory)
+      .input("p_chrOffset", sql.Char, offset)
+      .execute(storeProcedure);
+    const resultRecordset = result.recordset;
+    if (resultRecordset[0].stateCode !== 200) {
+      res.status(resultRecordset[0].stateCode).send({
+        response: { message: resultRecordset[0].message },
+      });
+    } else {
+      for (const element of resultRecordset) {
+        if (element.canSendEmail === true) {
+          const configEmailServer = JSON.parse(element.jsonEmailServerConfig);
+          executeMailTo({
+            ...element,
+            ...configEmailServer,
+          });
+        }
+      }
+      res.status(200).send({
+        response: { message: resultRecordset[0].message },
+      });
+    }
+  } catch (err) {
+    executeSlackLogCatchBackend({
+      storeProcedure,
+      error: err,
+      body: params,
+    });
+    res.status(500).send({
+      response: { message: "Error en los parametros", messageType: `${err}` },
+    });
+  }
+};
+
 const executeGetTransactions = async (params, res) => {
   const {
     idSystemUser,
@@ -2189,6 +2246,11 @@ const ControllerAdmin = {
   getTransactions: (req, res) => {
     const params = req.body;
     executeGetTransactions(params, res);
+  },
+  updateProspect: (req, res) => {
+    const params = req.body;
+    const url = req.params; //idInvitation
+    executeUpdateProspect(params, res, url);
   },
 };
 
