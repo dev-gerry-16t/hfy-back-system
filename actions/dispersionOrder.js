@@ -72,19 +72,6 @@ const executeGetDispersionOrder = async (req, res) => {
       );
       const orderPay = { ...bodyRequest, firma: crypto.getSign() };
       //console.log("orderPay", JSON.stringify(orderPay, null, 2));
-      await rp({
-        url: GLOBAL_CONSTANTS.URL_SLACK_MESSAGE,
-        method: "POST",
-        headers: {
-          encoding: "UTF-8",
-          "Content-Type": "application/json",
-        },
-        json: true,
-        body: {
-          text: `${JSON.stringify(orderPay, null, 2)}`,
-        },
-        rejectUnauthorized: false,
-      });
       const response = await rp({
         url,
         method: "PUT",

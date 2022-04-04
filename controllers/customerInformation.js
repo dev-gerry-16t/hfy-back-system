@@ -694,27 +694,6 @@ const executeGetConfigForCollAndDisp = async (params, res) => {
     );
     const orderPay = { ...bodyRequest, estado, firma: crypto.getSign() };
     //console.log("orderPay", orderPay);
-    await rp({
-      url: GLOBAL_CONSTANTS.URL_SLACK_MESSAGE,
-      method: "POST",
-      headers: {
-        encoding: "UTF-8",
-        "Content-Type": "application/json",
-      },
-      json: true,
-      body: {
-        text: `
-        USPgetConfigForCollAndDisp: 
-        
-        OrderPay: 
-        ${JSON.stringify(orderPay, null, 2)}
-
-        cadenaOriginal:
-        ${cadenaOriginal}
-        `,
-      },
-      rejectUnauthorized: false,
-    });
     const response = await rp({
       url,
       method: "POST",
