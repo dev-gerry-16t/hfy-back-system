@@ -949,17 +949,19 @@ const ControllerTest = {
         },
       },
     };
-     await rp({
-      url: "https://api.hsforms.com/submissions/v3/integration/submit/21737012/d96244e0-06e3-4534-bfd4-650cd008cad1",
-      method: "POST",
-      headers: {
-        encoding: "UTF-8",
-        "Content-Type": "application/json",
-      },
-      json: true,
-      body: dataSendToHubspot,
-      rejectUnauthorized: false,
-    });
+    try {
+      await rp({
+        url: "https://api.hsforms.com/submissions/v3/integration/submit/21737012/d96244e0-06e3-4534-bfd4-650cd008cad1",
+        method: "POST",
+        headers: {
+          encoding: "UTF-8",
+          "Content-Type": "application/json",
+        },
+        json: true,
+        body: dataSendToHubspot,
+        rejectUnauthorized: false,
+      });
+    } catch (error) {}
     try {
       const pool = await sql.connect();
       const result = await pool
