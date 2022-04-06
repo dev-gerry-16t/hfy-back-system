@@ -907,6 +907,59 @@ const ControllerTest = {
       rentAmount = null,
       comment = null,
     } = params;
+    const dataSendToHubspot = {
+      submittedAt: new Date().getTime(),
+      fields: [
+        {
+          objectTypeId: "0-1",
+          name: "firstname",
+          value: givenName,
+        },
+        {
+          objectTypeId: "0-1",
+          name: "lastname",
+          value: lastName,
+        },
+        {
+          objectTypeId: "0-1",
+          name: "email",
+          value: emailAddress,
+        },
+        {
+          objectTypeId: "0-1",
+          name: "phone",
+          value: phoneNumber,
+        },
+        {
+          objectTypeId: "0-1",
+          name: "renta",
+          value: rentAmount,
+        },
+        {
+          objectTypeId: "0-1",
+          name: "descripcion",
+          value: comment,
+        },
+      ],
+      legalConsentOptions: {
+        // Include this object when GDPR options are enabled
+        consent: {
+          consentToProcess: true,
+          text: "I agree to allow Segurent (RENTAL PAYMENTS SA CV) to store and process my personal data.",
+        },
+      },
+    };
+     await rp({
+      url: "https://api.hsforms.com/submissions/v3/integration/submit/21737012/d96244e0-06e3-4534-bfd4-650cd008cad1",
+      method: "POST",
+      headers: {
+        encoding: "UTF-8",
+        "Content-Type": "application/json",
+      },
+      json: true,
+      body: dataSendToHubspot,
+      rejectUnauthorized: false,
+    });
     try {
       const pool = await sql.connect();
       const result = await pool
