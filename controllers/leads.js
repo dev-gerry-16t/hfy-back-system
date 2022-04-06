@@ -28,6 +28,67 @@ const executeAddLandingProspect = async (params, res, ip) => {
     scheduleAt = null,
     comment = null,
   } = params;
+  const dataSendToHubspot = {
+    submittedAt: new Date().getTime(),
+    fields: [
+      {
+        objectTypeId: "0-1",
+        name: "tipo_de_usuario",
+        value: isNil(idProspectType) === false ? idProspectType : "",
+      },
+      {
+        objectTypeId: "0-1",
+        name: "firstname",
+        value: isNil(givenName) === false ? givenName : "",
+      },
+      {
+        objectTypeId: "0-1",
+        name: "lastname",
+        value: isNil(lastName) === false ? lastName : "",
+      },
+      {
+        objectTypeId: "0-1",
+        name: "email",
+        value: isNil(emailAddress) === false ? emailAddress : "",
+      },
+      {
+        objectTypeId: "0-1",
+        name: "mobilephone",
+        value: isNil(phoneNumber) === false ? phoneNumber : "",
+      },
+      {
+        objectTypeId: "0-1",
+        name: "monto_renta",
+        value: isNil(budgeAmount) === false ? budgeAmount : "",
+      },
+      {
+        objectTypeId: "0-1",
+        name: "poliza",
+        value: isNil(idPolicy) === false ? idPolicy : "",
+      },
+    ],
+    legalConsentOptions: {
+      // Include this object when GDPR options are enabled
+      consent: {
+        consentToProcess: true,
+        text: "I agree to allow Homify (RENTAL PAYMENTS SA CV) to store and process my personal data.",
+      },
+    },
+  };
+  try {
+    await rp({
+      url: "https://api.hsforms.com/submissions/v3/integration/submit/21737012/cda20a03-c259-4547-838a-25c2e5f843cf",
+      method: "POST",
+      headers: {
+        encoding: "UTF-8",
+        "Content-Type": "application/json",
+      },
+      json: true,
+      body: dataSendToHubspot,
+      rejectUnauthorized: false,
+    });
+  } catch (error) {}
+
   try {
     const responseGoogle = await rp({
       url: `https://www.google.com/recaptcha/api/siteverify`,
