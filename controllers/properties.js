@@ -100,8 +100,8 @@ const executeSetClassified = async (params) => {
       .input("p_nvcCategoryId", sql.NVarChar, category_id)
       .input("p_nvcStatus", sql.NVarChar, status)
       .input("p_nvcPermalink", sql.NVarChar, permalink)
-      .input("p_datDateCreated", sql.Date, date_created)
-      .input("p_datDateUpdated", sql.Date, last_updated)
+      .input("p_datDateCreated", sql.DateTime, date_created)
+      .input("p_datDateUpdated", sql.DateTime, last_updated)
       .input("p_nvcJsonAttributes", sql.NVarChar, jsonAttributes)
       .input("p_nvcJsonPictures", sql.NVarChar, jsonPictures)
       .input("p_uidIdSystemUser", sql.NVarChar, idSystemUser)
@@ -203,13 +203,6 @@ const handlerPublishedMLM = async (params) => {
       attributes,
       token,
       isPublished,
-    });
-
-    executeSlackLogCatchBackend({
-      storeProcedure,
-      error:
-        "No es un error es para ver las fechas que llegan en date_created y last_updated",
-      body: responseML,
     });
 
     await executeSetClassified({
