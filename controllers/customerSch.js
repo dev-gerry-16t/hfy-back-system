@@ -2630,8 +2630,8 @@ const executeSetClassified = async (params) => {
       .input("p_nvcCategoryId", sql.NVarChar, category_id)
       .input("p_nvcStatus", sql.NVarChar, status)
       .input("p_nvcPermalink", sql.NVarChar, permalink)
-      .input("p_datDateCreated", sql.Date, date_created)
-      .input("p_datDateUpdated", sql.Date, last_updated)
+      .input("p_datDateCreated", sql.DateTime, date_created)
+      .input("p_datDateUpdated", sql.DateTime, last_updated)
       .input("p_nvcJsonAttributes", sql.NVarChar, jsonAttributes)
       .input("p_nvcJsonPictures", sql.NVarChar, jsonPictures)
       .input("p_uidIdSystemUser", sql.NVarChar, idSystemUser)
@@ -2743,6 +2743,7 @@ const handlerPublishedMLM = async (params) => {
       offset,
       ...responseML,
     });
+    
     return {
       link:
         isNil(responseML) === false &&
