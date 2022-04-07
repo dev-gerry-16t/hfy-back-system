@@ -524,11 +524,6 @@ const executeSetMLMWebhook = async (params, offset) => {
       json: true,
       rejectUnauthorized: false,
     });
-    executeSlackLogCatchBackend({
-      storeProcedure,
-      error: "No es un error, es para trackear un 404",
-      body: response,
-    });
     const pool = await sql.connect();
     const result = await pool
       .request()
