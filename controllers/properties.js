@@ -205,6 +205,13 @@ const handlerPublishedMLM = async (params) => {
       isPublished,
     });
 
+    executeSlackLogCatchBackend({
+      storeProcedure,
+      error:
+        "No es un error es para ver las fechas que llegan en date_created y last_updated",
+      body: responseML,
+    });
+
     await executeSetClassified({
       idProperty,
       idApartment,
