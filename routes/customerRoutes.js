@@ -108,6 +108,26 @@ router.put(
   ControllerCustomerSch.setPropertyDocument
 );
 router.post("/property/getPropertyById", ControllerCustomerSch.getPropertyById);
+router.post(
+  "/property/getPropertyPictures",
+  ControllerCustomerSch.getPropertyPictures
+);
+router.post(
+  "/property/getApplicantsByProperty",
+  ControllerCustomerSch.getApplicantsByProperty
+);
+router.post(
+  "/property/getAmenitiesByProperty",
+  ControllerCustomerSch.getAmenitiesByProperty
+);
+router.post(
+  "/property/getDocumentsByProperty",
+  ControllerCustomerSch.getDocumentsByProperty
+);
+router.post(
+  "/property/getAdvisersInProperty",
+  ControllerCustomerSch.getAdvisersInProperty
+);
 router.put(
   "/property/updateProperty/:idProperty",
   ControllerCustomerSch.updateProperty
