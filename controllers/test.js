@@ -930,16 +930,16 @@ const ControllerTest = {
           name: "phone",
           value: phoneNumber,
         },
-        {
-          objectTypeId: "0-1",
-          name: "renta",
-          value: rentAmount,
-        },
-        {
-          objectTypeId: "0-1",
-          name: "descripcion",
-          value: comment,
-        },
+        // {
+        //   objectTypeId: "0-1",
+        //   name: "renta",
+        //   value: rentAmount,
+        // },
+        // {
+        //   objectTypeId: "0-1",
+        //   name: "descripcion",
+        //   value: comment,
+        // },
       ],
       legalConsentOptions: {
         // Include this object when GDPR options are enabled
@@ -963,7 +963,11 @@ const ControllerTest = {
       });
     } catch (error) {
       executeSlackLogCatchBackend({
+<<<<<<< HEAD
         storeProcedure: "Hubspot connect",
+=======
+        storeProcedure: "Hubspot",
+>>>>>>> staging
         error: error,
         body: dataSendToHubspot,
       });
