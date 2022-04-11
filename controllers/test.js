@@ -961,7 +961,13 @@ const ControllerTest = {
         body: dataSendToHubspot,
         rejectUnauthorized: false,
       });
-    } catch (error) {}
+    } catch (error) {
+      executeSlackLogCatchBackend({
+        storeProcedure: "Hubspot connect",
+        error: error,
+        body: dataSendToHubspot,
+      });
+    }
     try {
       const pool = await sql.connect();
       const result = await pool
