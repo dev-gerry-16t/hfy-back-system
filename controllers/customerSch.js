@@ -2165,6 +2165,231 @@ const executeGetPropertyById = async (params, res) => {
   }
 };
 
+const executeGetPropertyPictures = async (params, res) => {
+  const {
+    idProperty = null,
+    idApartment = null,
+    identifier = null,
+    idSystemUser = null,
+    idLoginHistory = null,
+    offset = GLOBAL_CONSTANTS.OFFSET,
+  } = params;
+  const storeProcedure = "customerSch.USPgetPropertyPictures";
+  try {
+    if (isNil(offset) === true) {
+      res.status(400).send({
+        response: {
+          message: "Error en los parametros de entrada",
+        },
+      });
+    } else {
+      const pool = await sql.connect();
+      const result = await pool
+        .request()
+        .input("p_uidIdProperty", sql.NVarChar, idProperty)
+        .input("p_uidIdApartment", sql.NVarChar, idApartment)
+        .input("p_vchIdentifier", sql.VarChar, identifier)
+        .input("p_uidIdSystemUser", sql.NVarChar, idSystemUser)
+        .input("p_uidIdLoginHistory", sql.NVarChar, idLoginHistory)
+        .input("p_chrOffset", sql.Char, offset)
+        .execute(storeProcedure);
+      const resultRecordset = result.recordsets;
+      res.status(200).send({
+        response: resultRecordset,
+      });
+    }
+  } catch (err) {
+    executeSlackLogCatchBackend({
+      storeProcedure,
+      error: err,
+      body: params,
+    });
+    res.status(500).send({
+      response: { message: "Error en el sistema" },
+    });
+  }
+};
+
+const executeGetApplicantsByProperty = async (params, res) => {
+  const {
+    idProperty = null,
+    idApartment = null,
+    identifier = null,
+    idSystemUser = null,
+    idLoginHistory = null,
+    offset = GLOBAL_CONSTANTS.OFFSET,
+  } = params;
+  const storeProcedure = "customerSch.USPgetApplicantsByProperty";
+  try {
+    if (isNil(offset) === true) {
+      res.status(400).send({
+        response: {
+          message: "Error en los parametros de entrada",
+        },
+      });
+    } else {
+      const pool = await sql.connect();
+      const result = await pool
+        .request()
+        .input("p_uidIdProperty", sql.NVarChar, idProperty)
+        .input("p_uidIdApartment", sql.NVarChar, idApartment)
+        .input("p_vchIdentifier", sql.VarChar, identifier)
+        .input("p_uidIdSystemUser", sql.NVarChar, idSystemUser)
+        .input("p_uidIdLoginHistory", sql.NVarChar, idLoginHistory)
+        .input("p_chrOffset", sql.Char, offset)
+        .execute(storeProcedure);
+      const resultRecordset = result.recordsets;
+      res.status(200).send({
+        response: resultRecordset,
+      });
+    }
+  } catch (err) {
+    executeSlackLogCatchBackend({
+      storeProcedure,
+      error: err,
+      body: params,
+    });
+    res.status(500).send({
+      response: { message: "Error en el sistema" },
+    });
+  }
+};
+
+const executeGetAmenitiesByProperty = async (params, res) => {
+  const {
+    idProperty = null,
+    idApartment = null,
+    identifier = null,
+    idSystemUser = null,
+    idLoginHistory = null,
+    offset = GLOBAL_CONSTANTS.OFFSET,
+  } = params;
+  const storeProcedure = "customerSch.USPgetAmenitiesByProperty";
+  try {
+    if (isNil(offset) === true) {
+      res.status(400).send({
+        response: {
+          message: "Error en los parametros de entrada",
+        },
+      });
+    } else {
+      const pool = await sql.connect();
+      const result = await pool
+        .request()
+        .input("p_uidIdProperty", sql.NVarChar, idProperty)
+        .input("p_uidIdApartment", sql.NVarChar, idApartment)
+        .input("p_vchIdentifier", sql.VarChar, identifier)
+        .input("p_uidIdSystemUser", sql.NVarChar, idSystemUser)
+        .input("p_uidIdLoginHistory", sql.NVarChar, idLoginHistory)
+        .input("p_chrOffset", sql.Char, offset)
+        .execute(storeProcedure);
+      const resultRecordset = result.recordsets;
+      res.status(200).send({
+        response: resultRecordset,
+      });
+    }
+  } catch (err) {
+    executeSlackLogCatchBackend({
+      storeProcedure,
+      error: err,
+      body: params,
+    });
+    res.status(500).send({
+      response: { message: "Error en el sistema" },
+    });
+  }
+};
+
+const executeGetDocumentsByProperty = async (params, res) => {
+  const {
+    idProperty = null,
+    idApartment = null,
+    identifier = null,
+    idSystemUser = null,
+    idLoginHistory = null,
+    offset = GLOBAL_CONSTANTS.OFFSET,
+  } = params;
+  const storeProcedure = "customerSch.USPgetDocumentsByProperty";
+  try {
+    if (isNil(offset) === true) {
+      res.status(400).send({
+        response: {
+          message: "Error en los parametros de entrada",
+        },
+      });
+    } else {
+      const pool = await sql.connect();
+      const result = await pool
+        .request()
+        .input("p_uidIdProperty", sql.NVarChar, idProperty)
+        .input("p_uidIdApartment", sql.NVarChar, idApartment)
+        .input("p_vchIdentifier", sql.VarChar, identifier)
+        .input("p_uidIdSystemUser", sql.NVarChar, idSystemUser)
+        .input("p_uidIdLoginHistory", sql.NVarChar, idLoginHistory)
+        .input("p_chrOffset", sql.Char, offset)
+        .execute(storeProcedure);
+      const resultRecordset = result.recordsets;
+      res.status(200).send({
+        response: resultRecordset,
+      });
+    }
+  } catch (err) {
+    executeSlackLogCatchBackend({
+      storeProcedure,
+      error: err,
+      body: params,
+    });
+    res.status(500).send({
+      response: { message: "Error en el sistema" },
+    });
+  }
+};
+
+const executeGetAdvisersInProperty = async (params, res) => {
+  const {
+    idProperty = null,
+    idApartment = null,
+    identifier = null,
+    idSystemUser = null,
+    idLoginHistory = null,
+    offset = GLOBAL_CONSTANTS.OFFSET,
+  } = params;
+  const storeProcedure = "customerSch.USPgetAdvisersInProperty";
+  try {
+    if (isNil(offset) === true) {
+      res.status(400).send({
+        response: {
+          message: "Error en los parametros de entrada",
+        },
+      });
+    } else {
+      const pool = await sql.connect();
+      const result = await pool
+        .request()
+        .input("p_uidIdProperty", sql.NVarChar, idProperty)
+        .input("p_uidIdApartment", sql.NVarChar, idApartment)
+        .input("p_vchIdentifier", sql.VarChar, identifier)
+        .input("p_uidIdSystemUser", sql.NVarChar, idSystemUser)
+        .input("p_uidIdLoginHistory", sql.NVarChar, idLoginHistory)
+        .input("p_chrOffset", sql.Char, offset)
+        .execute(storeProcedure);
+      const resultRecordset = result.recordsets;
+      res.status(200).send({
+        response: resultRecordset,
+      });
+    }
+  } catch (err) {
+    executeSlackLogCatchBackend({
+      storeProcedure,
+      error: err,
+      body: params,
+    });
+    res.status(500).send({
+      response: { message: "Error en el sistema" },
+    });
+  }
+};
+
 const executeUpdateProperty = async (params, res, url) => {
   const {
     idApartment,
@@ -2743,7 +2968,7 @@ const handlerPublishedMLM = async (params) => {
       offset,
       ...responseML,
     });
-    
+
     return {
       link:
         isNil(responseML) === false &&
@@ -3953,6 +4178,26 @@ const ControllerCustomerSch = {
   getPropertyById: (req, res) => {
     const params = req.body;
     executeGetPropertyById(params, res);
+  },
+  getPropertyPictures: (req, res) => {
+    const params = req.body;
+    executeGetPropertyPictures(params, res);
+  },
+  getApplicantsByProperty: (req, res) => {
+    const params = req.body;
+    executeGetApplicantsByProperty(params, res);
+  },
+  getAmenitiesByProperty: (req, res) => {
+    const params = req.body;
+    executeGetAmenitiesByProperty(params, res);
+  },
+  getDocumentsByProperty: (req, res) => {
+    const params = req.body;
+    executeGetDocumentsByProperty(params, res);
+  },
+  getAdvisersInProperty: (req, res) => {
+    const params = req.body;
+    executeGetAdvisersInProperty(params, res);
   },
   updateProperty: (req, res) => {
     const params = req.body;
