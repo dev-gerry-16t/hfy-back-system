@@ -963,11 +963,7 @@ const ControllerTest = {
       });
     } catch (error) {
       executeSlackLogCatchBackend({
-<<<<<<< HEAD
-        storeProcedure: "Hubspot connect",
-=======
         storeProcedure: "Hubspot",
->>>>>>> staging
         error: error,
         body: dataSendToHubspot,
       });
