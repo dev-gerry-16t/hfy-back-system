@@ -118,6 +118,8 @@ router.post("/leads/catalog/getAllCountries", ControllerLeads.getAllCountries);
 router.get("/testMailToNotification", ControllerTest.testMailToNotification);
 //customersch//
 router.post("/property/getPropertyById", ControllerCustomerSch.getPropertyById);
+router.post("/property/getPropertyPictures", ControllerCustomerSch.getPropertyPictures);
+router.post("/property/getAmenitiesByProperty", ControllerCustomerSch.getAmenitiesByProperty);
 router.put(
   "/invitation/processInvitation/:idInvitation",
   ControllerCustomerSch.processInvitation
