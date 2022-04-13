@@ -214,21 +214,28 @@ const executePublicToMLM = async (params) => {
         body,
         rejectUnauthorized: false,
       });
-
-      const responseDescription = await rp({
-        url: `https://api.mercadolibre.com/items/${response.id}/description`,
-        method: "POST",
-        headers: {
-          accept: "application/json",
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        json: true,
-        body: {
-          plain_text: description,
-        },
-        rejectUnauthorized: false,
-      });
+      try {
+        await rp({
+          url: `https://api.mercadolibre.com/items/${response.id}/description`,
+          method: "POST",
+          headers: {
+            accept: "application/json",
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          json: true,
+          body: {
+            plain_text: description,
+          },
+          rejectUnauthorized: false,
+        });
+      } catch (error) {
+        executeSlackLogCatchBackend({
+          storeProcedure: "Description MLM",
+          error,
+          body: response,
+        });
+      }
 
       return response;
     } else if (operationType == "update") {
