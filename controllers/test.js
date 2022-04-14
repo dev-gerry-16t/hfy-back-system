@@ -898,6 +898,7 @@ const ControllerTest = {
     } catch (error) {}
   },
   addExternalProspect: async (req, res) => {
+    const ip = req.header("x-forwarded-for") || req.connection.remoteAddress;
     const params = req.body;
     const {
       givenName,
@@ -965,7 +966,7 @@ const ControllerTest = {
       executeSlackLogCatchBackend({
         storeProcedure: "Hubspot",
         error: error,
-        body: dataSendToHubspot,
+        body: `${dataSendToHubspot} IP:${ip}`,
       });
     }
     try {
@@ -994,7 +995,7 @@ const ControllerTest = {
         executeSlackLogCatchBackend({
           storeProcedure: "landingSch.USPaddExternalProspect",
           error: resultRecordsetObject.errorMessage,
-          body: params,
+          body: `${params} IP:${ip}`,
         });
         return res.status(resultRecordsetObject.stateCode).send({
           response: {
@@ -1018,7 +1019,7 @@ const ControllerTest = {
       executeSlackLogCatchBackend({
         storeProcedure: "landingSch.USPaddExternalProspect",
         error: error,
-        body: params,
+        body: `${params} IP:${ip}`,
       });
       res.status(500).send({ message: "Not lead submit", error });
     }
