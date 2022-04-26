@@ -9,6 +9,7 @@ const isNil = require("lodash/isNil");
 const isEmpty = require("lodash/isEmpty");
 const isString = require("lodash/isString");
 const executeSlackLogCatchBackend = require("../actions/slackLogCatchBackend");
+const smtpTransporter = require("../actions/smtpTransport");
 const executeMailTo = require("../actions/sendInformationUser");
 const replaceConditionsDocx = require("../actions/conditions");
 const executeSendSmsToUser = require("../actions/sendSmsToUser");
@@ -1249,15 +1250,14 @@ const executeRequestPolicy = async (params, res) => {
   const { content } = params;
 
   try {
-    await executeMailTo({
-      receiver:
+    await smtpTransporter.sendMail({
+      from: "Homify <no-reply@homify.ai>",
+      bcc:
         GLOBAL_CONSTANTS.APP_ENVIRONMENT === "Prod"
           ? "ejimenez@homify.ai,asgomez@homify.ai,rpando@homify.ai"
           : "gagonzalez@homify.ai,lnhinojosa@homify.ai",
-      content,
-      pass: GLOBAL_CONSTANTS.KEY_MANDRILL,
       subject: "Solicitud de póliza jurídica",
-      sender: "Homify <no-reply@homify.ai>",
+      html: content,
     });
 
     res.status(200).send({

@@ -1,19 +1,11 @@
 const sql = require("mssql");
-const nodemailer = require("nodemailer");
-const mandrillTransport = require("nodemailer-mandrill-transport");
 const isNil = require("lodash/isNil");
 const isEmpty = require("lodash/isEmpty");
 const GLOBAL_CONSTANTS = require("../constants/constants");
 const executeSlackLogCatchBackend = require("./slackLogCatchBackend");
-const smtpTransporter = nodemailer.createTransport(
-  mandrillTransport({
-    auth: {
-      apiKey: GLOBAL_CONSTANTS.KEY_MANDRILL,
-    },
-  })
-);
+const smtpTransporter = require("./smtpTransport");
 
-const executeEmailSentAES = async (param) => {
+const executeEmailSentAES = async (params) => {
   const {
     idEmailStatus = null,
     idEmailTemplate = null,
@@ -26,7 +18,7 @@ const executeEmailSentAES = async (param) => {
     content = null,
     offset = GLOBAL_CONSTANTS.OFFSET,
     idInvitation = null,
-  } = param;
+  } = params;
   try {
     const pool = await sql.connect();
     const result = await pool
