@@ -69,7 +69,7 @@ const executeMailTo = async (params) => {
   const { receiver, content, pass, subject, sender, tags = null } = params;
   try {
     const { idEmailSent } = await executeEmailSentAES(params);
-    const transporter = nodemailer.createTransport(
+    const transporter = await nodemailer.createTransport(
       mandrillTransport({
         auth: {
           apiKey: pass,
