@@ -1250,7 +1250,10 @@ const executeRequestPolicy = async (params, res) => {
 
   try {
     await executeMailTo({
-      receiver: "ejimenez@homify.ai,asgomez@homify.ai",
+      receiver:
+        GLOBAL_CONSTANTS.APP_ENVIRONMENT === "Prod"
+          ? "ejimenez@homify.ai,asgomez@homify.ai,rpando@homify.ai"
+          : "gagonzalez@homify.ai,lnhinojosa@homify.ai",
       content,
       pass: GLOBAL_CONSTANTS.KEY_MANDRILL,
       subject: "Solicitud de póliza jurídica",

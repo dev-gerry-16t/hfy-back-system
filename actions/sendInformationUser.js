@@ -5,6 +5,13 @@ const isNil = require("lodash/isNil");
 const isEmpty = require("lodash/isEmpty");
 const GLOBAL_CONSTANTS = require("../constants/constants");
 const executeSlackLogCatchBackend = require("./slackLogCatchBackend");
+const smtpTransporter = nodemailer.createTransport(
+  mandrillTransport({
+    auth: {
+      apiKey: GLOBAL_CONSTANTS.KEY_MANDRILL,
+    },
+  })
+);
 
 const executeEmailSentAES = async (param) => {
   const {
@@ -69,13 +76,6 @@ const executeMailTo = async (params) => {
   const { receiver, content, pass, subject, sender, tags = null } = params;
   try {
     const { idEmailSent } = await executeEmailSentAES(params);
-    const transporter = nodemailer.createTransport(
-      mandrillTransport({
-        auth: {
-          apiKey: pass,
-        },
-      })
-    );
     const message = {};
 
     if (isNil(idEmailSent) === false) {
@@ -95,8 +95,9 @@ const executeMailTo = async (params) => {
         message,
       },
     };
-    await transporter.sendMail(mailOptions);
+    await smtpTransporter.sendMail(mailOptions);
   } catch (error) {
+    console.log(error);
     executeSlackLogCatchBackend({
       storeProcedure: "Nodemailer or mandrill error",
       error,
