@@ -1,12 +1,11 @@
 const sql = require("mssql");
-const nodemailer = require("nodemailer");
-const mandrillTransport = require("nodemailer-mandrill-transport");
 const isNil = require("lodash/isNil");
 const isEmpty = require("lodash/isEmpty");
 const GLOBAL_CONSTANTS = require("../constants/constants");
 const executeSlackLogCatchBackend = require("./slackLogCatchBackend");
+const smtpTransporter = require("./smtpTransport");
 
-const executeEmailSentAES = async (param) => {
+const executeEmailSentAES = async (params) => {
   const {
     idEmailStatus = null,
     idEmailTemplate = null,
@@ -19,7 +18,7 @@ const executeEmailSentAES = async (param) => {
     content = null,
     offset = GLOBAL_CONSTANTS.OFFSET,
     idInvitation = null,
-  } = param;
+  } = params;
   try {
     const pool = await sql.connect();
     const result = await pool
@@ -69,13 +68,6 @@ const executeMailTo = async (params) => {
   const { receiver, content, pass, subject, sender, tags = null } = params;
   try {
     const { idEmailSent } = await executeEmailSentAES(params);
-    const transporter = await nodemailer.createTransport(
-      mandrillTransport({
-        auth: {
-          apiKey: pass,
-        },
-      })
-    );
     const message = {};
 
     if (isNil(idEmailSent) === false) {
@@ -95,8 +87,9 @@ const executeMailTo = async (params) => {
         message,
       },
     };
-    await transporter.sendMail(mailOptions);
+    await smtpTransporter.sendMail(mailOptions);
   } catch (error) {
+    console.log(error);
     executeSlackLogCatchBackend({
       storeProcedure: "Nodemailer or mandrill error",
       error,
