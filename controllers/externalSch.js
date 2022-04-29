@@ -53,10 +53,11 @@ const executeSetRequest = async (params, res, url) => {
       const resultRecordset = result.recordset;
       const resultRecordsetObject = result.recordset[0];
       if (resultRecordsetObject.stateCode !== 200) {
-        //executeSlackLogCatchBackend({
-        // storeProcedure,
-        //error: resultRecordsetObject.errorMessage,
-        // });
+        executeSlackLogCatchBackend({
+          storeProcedure,
+          error: resultRecordsetObject.errorMessage,
+          body: params,
+        });
         res.status(resultRecordsetObject.stateCode).send({
           response: { message: resultRecordsetObject.message },
         });
@@ -73,9 +74,98 @@ const executeSetRequest = async (params, res, url) => {
         res.status(200).send({
           response: {
             message: resultRecordsetObject.message,
+            idRequest: resultRecordsetObject.idRequest,
           },
         });
       }
+    }
+  } catch (err) {
+    executeSlackLogCatchBackend({
+      storeProcedure,
+      error: err,
+      body: params,
+    });
+    res.status(500).send({
+      response: { message: "Error en el sistema" },
+    });
+  }
+};
+
+const executeGetRequestById = async (params, res) => {
+  const { idRequest, idSystemUser, idLoginHistory, offset = null } = params;
+  const storeProcedure = "externalSch.USPgetRequestById";
+  try {
+    if (
+      isNil(idRequest) === true ||
+      isNil(idSystemUser) === true ||
+      isNil(idLoginHistory) === true ||
+      isNil(offset) === true
+    ) {
+      res.status(400).send({
+        response: {
+          message: "Error en los parametros de entrada",
+        },
+      });
+    } else {
+      const pool = await sql.connect();
+      const result = await pool
+        .request()
+        .input("p_uidIdRequest", sql.NVarChar, idRequest)
+        .input("p_uidIdSystemUser", sql.NVarChar, idSystemUser)
+        .input("p_uidIdLoginHistory", sql.NVarChar, idLoginHistory)
+        .input("p_chrOffset", sql.Char, offset)
+        .execute(storeProcedure);
+      const resultRecordset = result.recordsets;
+      res.status(200).send({
+        response: resultRecordset,
+      });
+    }
+  } catch (err) {
+    executeSlackLogCatchBackend({
+      storeProcedure,
+      error: err,
+      body: params,
+    });
+    res.status(500).send({
+      response: { message: "Error en el sistema" },
+    });
+  }
+};
+
+const executeGetRequestCoincidences = async (params, res) => {
+  const {
+    idSystemUser,
+    idLoginHistory,
+    jsonConditions = null,
+    pagination = null,
+    offset = GLOBAL_CONSTANTS.OFFSET,
+  } = params;
+  const storeProcedure = "externalSch.USPgetRequestCoincidences";
+  try {
+    if (
+      isNil(idSystemUser) === true ||
+      isNil(idLoginHistory) === true ||
+      isNil(offset) === true
+    ) {
+      res.status(400).send({
+        response: {
+          message: "Error en los parametros de entrada",
+        },
+      });
+    } else {
+      const pool = await sql.connect();
+      const result = await pool
+        .request()
+        .input("p_uidIdSystemUser", sql.NVarChar, idSystemUser)
+        .input("p_uidIdLoginHistory", sql.NVarChar, idLoginHistory)
+        .input("p_nvcJsonConditions", sql.NVarChar(sql.MAX), jsonConditions)
+        .input("p_nvcPagination", sql.NVarChar(256), pagination)
+        .input("p_chrOffset", sql.Char, offset)
+        .execute(storeProcedure);
+      const resultRecordset = result.recordset;
+      res.status(200).send({
+        response: resultRecordset,
+      });
     }
   } catch (err) {
     executeSlackLogCatchBackend({
@@ -94,6 +184,14 @@ const ControllerExternalSch = {
     const params = req.body;
     const url = req.params; //idSystemUser
     executeSetRequest(params, res, url);
+  },
+  getRequestById: (req, res) => {
+    const params = req.body;
+    executeGetRequestById(params, res);
+  },
+  getRequestCoincidences: (req, res) => {
+    const params = req.body;
+    executeGetRequestCoincidences(params, res);
   },
 };
 
