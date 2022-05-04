@@ -91,6 +91,220 @@ const executeSetRequest = async (params, res, url) => {
   }
 };
 
+const executeSetTenant = async (params, res, url, ip) => {
+  const {
+    idUserInRequest,
+    givenName,
+    lastName,
+    mothersMaidenName,
+    idCountryNationality,
+    taxId,
+    citizenId,
+    idType,
+    idTypeNumber,
+    street,
+    streetNumber,
+    suite,
+    idZipCode,
+    neighborhood,
+    isConfirmed,
+    idSystemUser,
+    idLoginHistory,
+    offset = GLOBAL_CONSTANTS.OFFSET,
+  } = params;
+  const { idRequest } = url;
+  const storeProcedure = "externalSch.USPsetTenant";
+
+  try {
+    if (
+      isNil(idUserInRequest) === true ||
+      isNil(idRequest) === true ||
+      isNil(offset) === true
+    ) {
+      res.status(400).send({
+        response: {
+          message: "Error en los parametros de entrada",
+        },
+      });
+    } else {
+      const pool = await sql.connect();
+      const result = await pool
+        .request()
+        .input("p_uidIdRequest", sql.NVarChar, idRequest)
+        .input("p_uidIdUserInRequest", sql.NVarChar, idUserInRequest)
+        .input("p_nvcGivenName", sql.NVarChar, givenName)
+        .input("p_nvcLastName", sql.NVarChar, lastName)
+        .input("p_nvcMothersMaidenName", sql.NVarChar, mothersMaidenName)
+        .input("p_intIdCountryNationality", sql.Int, idCountryNationality)
+        .input("p_nvcTaxId", sql.NVarChar, taxId)
+        .input("p_nvcCitizenId", sql.NVarChar, citizenId)
+        .input("p_intIdType", sql.Int, idType)
+        .input("p_nvcIdTypeNumber", sql.NVarChar, idTypeNumber)
+        .input("p_nvcStreet", sql.NVarChar, street)
+        .input("p_nvcStreetNumber", sql.NVarChar, streetNumber)
+        .input("p_nvcSuite", sql.NVarChar, suite)
+        .input("p_intIdZipCode", sql.Int, idZipCode)
+        .input("p_nvcNeighborhood", sql.NVarChar, neighborhood)
+        .input("p_bitIsConfirmed", sql.Bit, isConfirmed)
+        .input("p_vchIp", sql.VarChar, ip)
+        .input("p_uidIdSystemUser", sql.NVarChar, idSystemUser)
+        .input("p_uidIdLoginHistory", sql.NVarChar, idLoginHistory)
+        .input("p_chrOffset", sql.Char, offset)
+        .execute(storeProcedure);
+      const resultRecordset = result.recordset;
+      const resultRecordsetObject = result.recordset[0];
+      if (resultRecordsetObject.stateCode !== 200) {
+        executeSlackLogCatchBackend({
+          storeProcedure,
+          error: resultRecordsetObject.errorMessage,
+          body: params,
+        });
+        res.status(resultRecordsetObject.stateCode).send({
+          response: { message: resultRecordsetObject.message },
+        });
+      } else {
+        for (const element of resultRecordset) {
+          if (element.canSendEmail === true) {
+            const configEmailServer = JSON.parse(element.jsonEmailServerConfig);
+            await executeMailTo({
+              ...element,
+              ...configEmailServer,
+            });
+          }
+        }
+        res.status(200).send({
+          response: {
+            message: resultRecordsetObject.message,
+            idRequest: resultRecordsetObject.idRequest,
+          },
+        });
+      }
+    }
+  } catch (err) {
+    executeSlackLogCatchBackend({
+      storeProcedure,
+      error: err,
+      body: params,
+    });
+    res.status(500).send({
+      response: { message: "Error en el sistema" },
+    });
+  }
+};
+
+const executeSetOwner = async (params, res, url, ip) => {
+  const {
+    idUserInRequest,
+    givenName,
+    lastName,
+    mothersMaidenName,
+    idCountryNationality,
+    taxId,
+    citizenId,
+    idType,
+    idTypeNumber,
+    street,
+    streetNumber,
+    suite,
+    idZipCode,
+    neighborhood,
+    isInCash,
+    idBank,
+    bankBranch,
+    accountHolder,
+    accountNumber,
+    clabeNumber,
+    isConfirmed,
+    idSystemUser,
+    idLoginHistory,
+    offset = GLOBAL_CONSTANTS.OFFSET,
+  } = params;
+  const { idRequest } = url;
+  const storeProcedure = "externalSch.USPsetOwner";
+
+  try {
+    if (
+      isNil(idUserInRequest) === true ||
+      isNil(idRequest) === true ||
+      isNil(offset) === true
+    ) {
+      res.status(400).send({
+        response: {
+          message: "Error en los parametros de entrada",
+        },
+      });
+    } else {
+      const pool = await sql.connect();
+      const result = await pool
+        .request()
+        .input("p_uidIdRequest", sql.NVarChar, idRequest)
+        .input("p_uidIdUserInRequest", sql.NVarChar, idUserInRequest)
+        .input("p_nvcGivenName", sql.NVarChar, givenName)
+        .input("p_nvcLastName", sql.NVarChar, lastName)
+        .input("p_nvcMothersMaidenName", sql.NVarChar, mothersMaidenName)
+        .input("p_intIdCountryNationality", sql.Int, idCountryNationality)
+        .input("p_nvcTaxId", sql.NVarChar, taxId)
+        .input("p_nvcCitizenId", sql.NVarChar, citizenId)
+        .input("p_intIdType", sql.Int, idType)
+        .input("p_nvcIdTypeNumber", sql.NVarChar, idTypeNumber)
+        .input("p_nvcStreet", sql.NVarChar, street)
+        .input("p_nvcStreetNumber", sql.NVarChar, streetNumber)
+        .input("p_nvcSuite", sql.NVarChar, suite)
+        .input("p_intIdZipCode", sql.Int, idZipCode)
+        .input("p_nvcNeighborhood", sql.NVarChar, neighborhood)
+        .input("p_bitIsInCash", sql.Bit, isInCash)
+        .input("p_uidIdBank", sql.NVarChar, idBank)
+        .input("p_nvcBankBranch", sql.NVarChar, bankBranch)
+        .input("p_nvcAccountHolder", sql.NVarChar, accountHolder)
+        .input("p_nvcAccountNumber", sql.NVarChar, accountNumber)
+        .input("p_nvcClabeNumber", sql.NVarChar, clabeNumber)
+        .input("p_bitIsConfirmed", sql.Bit, isConfirmed)
+        .input("p_vchIp", sql.VarChar, ip)
+        .input("p_uidIdSystemUser", sql.NVarChar, idSystemUser)
+        .input("p_uidIdLoginHistory", sql.NVarChar, idLoginHistory)
+        .input("p_chrOffset", sql.Char, offset)
+        .execute(storeProcedure);
+      const resultRecordset = result.recordset;
+      const resultRecordsetObject = result.recordset[0];
+      if (resultRecordsetObject.stateCode !== 200) {
+        executeSlackLogCatchBackend({
+          storeProcedure,
+          error: resultRecordsetObject.errorMessage,
+          body: params,
+        });
+        res.status(resultRecordsetObject.stateCode).send({
+          response: { message: resultRecordsetObject.message },
+        });
+      } else {
+        for (const element of resultRecordset) {
+          if (element.canSendEmail === true) {
+            const configEmailServer = JSON.parse(element.jsonEmailServerConfig);
+            await executeMailTo({
+              ...element,
+              ...configEmailServer,
+            });
+          }
+        }
+        res.status(200).send({
+          response: {
+            message: resultRecordsetObject.message,
+            idRequest: resultRecordsetObject.idRequest,
+          },
+        });
+      }
+    }
+  } catch (err) {
+    executeSlackLogCatchBackend({
+      storeProcedure,
+      error: err,
+      body: params,
+    });
+    res.status(500).send({
+      response: { message: "Error en el sistema" },
+    });
+  }
+};
+
 const executeGetRequestById = async (params, res) => {
   const { idRequest, idSystemUser, idLoginHistory, offset = null } = params;
   const storeProcedure = "externalSch.USPgetRequestById";
@@ -179,6 +393,149 @@ const executeGetRequestCoincidences = async (params, res) => {
   }
 };
 
+const executeGetTenantById = async (params, res) => {
+  const {
+    idRequest,
+    idUserInRequest,
+    idSystemUser = null,
+    idLoginHistory = null,
+    offset = GLOBAL_CONSTANTS.OFFSET,
+  } = params;
+  const storeProcedure = "externalSch.USPgetTenantById";
+  try {
+    if (
+      isNil(idRequest) === true ||
+      isNil(idUserInRequest) === true ||
+      isNil(offset) === true
+    ) {
+      res.status(400).send({
+        response: {
+          message: "Error en los parametros de entrada",
+        },
+      });
+    } else {
+      const pool = await sql.connect();
+      const result = await pool
+        .request()
+        .input("p_uidIdRequest", sql.NVarChar, idRequest)
+        .input("p_uidIdUserInRequest", sql.NVarChar, idUserInRequest)
+        .input("p_uidIdSystemUser", sql.NVarChar, idSystemUser)
+        .input("p_uidIdLoginHistory", sql.NVarChar, idLoginHistory)
+        .input("p_chrOffset", sql.Char, offset)
+        .execute(storeProcedure);
+      const resultRecordset = result.recordsets;
+      res.status(200).send({
+        response: resultRecordset,
+      });
+    }
+  } catch (err) {
+    executeSlackLogCatchBackend({
+      storeProcedure,
+      error: err,
+      body: params,
+    });
+    res.status(500).send({
+      response: { message: "Error en el sistema" },
+    });
+  }
+};
+
+const executeGetOwnerById = async (params, res) => {
+  const {
+    idRequest,
+    idUserInRequest,
+    idSystemUser = null,
+    idLoginHistory = null,
+    offset = GLOBAL_CONSTANTS.OFFSET,
+  } = params;
+  const storeProcedure = "externalSch.USPgetOwnerById";
+  try {
+    if (
+      isNil(idRequest) === true ||
+      isNil(idUserInRequest) === true ||
+      isNil(offset) === true
+    ) {
+      res.status(400).send({
+        response: {
+          message: "Error en los parametros de entrada",
+        },
+      });
+    } else {
+      const pool = await sql.connect();
+      const result = await pool
+        .request()
+        .input("p_uidIdRequest", sql.NVarChar, idRequest)
+        .input("p_uidIdUserInRequest", sql.NVarChar, idUserInRequest)
+        .input("p_uidIdSystemUser", sql.NVarChar, idSystemUser)
+        .input("p_uidIdLoginHistory", sql.NVarChar, idLoginHistory)
+        .input("p_chrOffset", sql.Char, offset)
+        .execute(storeProcedure);
+      const resultRecordset = result.recordsets;
+      res.status(200).send({
+        response: resultRecordset,
+      });
+    }
+  } catch (err) {
+    executeSlackLogCatchBackend({
+      storeProcedure,
+      error: err,
+      body: params,
+    });
+    res.status(500).send({
+      response: { message: "Error en el sistema" },
+    });
+  }
+};
+
+const executeValidateProperties = async (params, res) => {
+  const {
+    idRequest,
+    idUserInRequest,
+    identifier = null,
+    idSystemUser = null,
+    idLoginHistory = null,
+    offset = GLOBAL_CONSTANTS.OFFSET,
+  } = params;
+  const storeProcedure = "externalSch.USPvalidateProperties";
+  try {
+    if (
+      isNil(idRequest) === true ||
+      isNil(idUserInRequest) === true ||
+      isNil(offset) === true
+    ) {
+      res.status(400).send({
+        response: {
+          message: "Error en los parametros de entrada",
+        },
+      });
+    } else {
+      const pool = await sql.connect();
+      const result = await pool
+        .request()
+        .input("p_uidIdRequest", sql.NVarChar, idRequest)
+        .input("p_uidIdUserInRequest", sql.NVarChar, idUserInRequest)
+        .input("p_intIdentifier", sql.Int, identifier)
+        .input("p_uidIdSystemUser", sql.NVarChar, idSystemUser)
+        .input("p_uidIdLoginHistory", sql.NVarChar, idLoginHistory)
+        .input("p_chrOffset", sql.Char, offset)
+        .execute(storeProcedure);
+      const resultRecordset = result.recordsets;
+      res.status(200).send({
+        response: resultRecordset,
+      });
+    }
+  } catch (err) {
+    executeSlackLogCatchBackend({
+      storeProcedure,
+      error: err,
+      body: params,
+    });
+    res.status(500).send({
+      response: { message: "Error en el sistema" },
+    });
+  }
+};
+
 const ControllerExternalSch = {
   setRequest: (req, res) => {
     const params = req.body;
@@ -192,6 +549,38 @@ const ControllerExternalSch = {
   getRequestCoincidences: (req, res) => {
     const params = req.body;
     executeGetRequestCoincidences(params, res);
+  },
+  getTenantById: (req, res) => {
+    const params = req.body;
+    executeGetTenantById(params, res);
+  },
+  getOwnerById: (req, res) => {
+    const params = req.body;
+    executeGetOwnerById(params, res);
+  },
+  setTenant: (req, res) => {
+    const params = req.body;
+    const url = req.params; //idRequest
+    const ip = req.header("x-forwarded-for") || req.connection.remoteAddress;
+    let ipPublic = "";
+    if (ip) {
+      ipPublic = ip.split(",")[0];
+    }
+    executeSetTenant(params, res, url, ipPublic);
+  },
+  setOwner: (req, res) => {
+    const params = req.body;
+    const url = req.params; //idRequest
+    const ip = req.header("x-forwarded-for") || req.connection.remoteAddress;
+    let ipPublic = "";
+    if (ip) {
+      ipPublic = ip.split(",")[0];
+    }
+    executeSetOwner(params, res, url, ipPublic);
+  },
+  validateProperties: (req, res) => {
+    const params = req.body;
+    executeValidateProperties(params, res);
   },
 };
 
