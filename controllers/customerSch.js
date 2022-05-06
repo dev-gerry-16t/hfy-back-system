@@ -3623,21 +3623,21 @@ const executeGetDocumentProperties = async (params, res, url, ip) => {
       const pool = await sql.connect();
       const result = await pool
         .request()
-        .input("p_uidIdRequest", sql.NVarChar, idUserInRequest)
-        .input("p_uidIdUserInRequest", sql.NVarChar, idRequest)
+        .input("p_uidIdRequest", sql.NVarChar, idRequest)
+        .input("p_uidIdUserInRequest", sql.NVarChar, idUserInRequest)
         .input("p_intType", sql.Int, type)
         .input("p_uidIdSystemUser", sql.NVarChar, idSystemUser)
         .input("p_uidIdLoginHistory", sql.NVarChar, idLoginHistory)
         .input("p_chrOffset", sql.Char, offset)
         .execute(storeProcedure);
-        
+
       const responseObject =
         isEmpty(result) === false &&
         isEmpty(result.recordset) === false &&
         isNil(result.recordset[0]) === false
           ? result.recordset[0]
           : {};
-
+      console.log("responseObject", responseObject);
       let resultRecordset = [];
       if (type === 4 || type === 5) {
         resultRecordset = result.recordsets[1];
