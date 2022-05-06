@@ -9,6 +9,7 @@ const ControllerLeads = require("../controllers/leads");
 const ControllerCatalogs = require("../controllers/catalogs");
 const ControllerCustomer = require("../controllers/customerInformation");
 const ControllerCustomerSch = require("../controllers/customerSch");
+const ControllerExternalSch = require("../controllers/externalSch");
 const router = express.Router();
 router.get("/", ControllerTest.test);
 router.get("/test", ControllerTest.testPath);
@@ -51,6 +52,7 @@ router.get(
   "/customer/getConfigForCollAndDisp",
   ControllerCustomer.getConfigForCollAndDisp
 );
+router.post("/customer/getAdressZipCode", ControllerCustomer.getAdressZipCode);
 router.get("/viewFile/:idDocument/:bucketSource", ControllerTest.viewFiles);
 router.get(
   "/viewVideo/:idDocument/:bucketSource/:type",
@@ -118,12 +120,45 @@ router.post("/leads/catalog/getAllCountries", ControllerLeads.getAllCountries);
 router.get("/testMailToNotification", ControllerTest.testMailToNotification);
 //customersch//
 router.post("/property/getPropertyById", ControllerCustomerSch.getPropertyById);
-router.post("/property/getPropertyPictures", ControllerCustomerSch.getPropertyPictures);
-router.post("/property/getAmenitiesByProperty", ControllerCustomerSch.getAmenitiesByProperty);
+router.post(
+  "/property/getPropertyPictures",
+  ControllerCustomerSch.getPropertyPictures
+);
+router.post(
+  "/property/getAmenitiesByProperty",
+  ControllerCustomerSch.getAmenitiesByProperty
+);
 router.put(
   "/invitation/processInvitation/:idInvitation",
   ControllerCustomerSch.processInvitation
 );
 //customersch//
+
+//Catalogs//
+router.post("/catalogs/getAllIDTypes", ControllerCatalogs.getAllIDTypes);
+//Catalogs//
+
+//External//
+router.post("/external/getTenantById", ControllerExternalSch.getTenantById);
+router.post("/external/getOwnerById", ControllerExternalSch.getOwnerById);
+router.put("/external/setTenant/:idRequest", ControllerExternalSch.setTenant);
+router.put("/external/setOwner/:idRequest", ControllerExternalSch.setOwner);
+router.post(
+  "/external/validateProperties",
+  ControllerExternalSch.validateProperties
+);
+router.put(
+  "/external/getDocumentProperties/:idRequest",
+  ControllerCustomerSch.getDocumentProperties
+);
+router.post(
+  "/request/getRequestDocuments",
+  ControllerExternalSch.getRequestDocuments
+);
+router.put(
+  "/request/signDocument/:idRequest",
+  ControllerExternalSch.signDocument
+);
+//External//
 
 module.exports = router;
