@@ -3390,6 +3390,35 @@ const executeAddContractDocumentV2 = async (params) => {
   }
 };
 
+const executeAddExternalDocumentV2 = async (params, ip) => {
+  const {
+    idRequest,
+    idSystemUser,
+    idLoginHistory,
+    offset = GLOBAL_CONSTANTS.OFFSET,
+    idDocument,
+  } = params;
+  try {
+    const pool = await sql.connect();
+    const result = await pool
+      .request()
+      .input("p_uidIdRequest", sql.NVarChar, idRequest)
+      .input("p_uidIdDocument", sql.NVarChar, idDocument)
+      .input("p_vchIp", sql.VarChar, ip)
+      .input("p_uidIdSystemUser", sql.NVarChar, idSystemUser)
+      .input("p_uidIdLoginHistory", sql.NVarChar, idLoginHistory)
+      .input("p_chrOffset", sql.Char, offset)
+      .execute("externalSch.USPaddExternalDocument");
+    const resultRecordset = result.recordset;
+    if (resultRecordset[0].stateCode !== 200) {
+      throw new Error(resultRecordset[0].message);
+    }
+    return result;
+  } catch (err) {
+    throw err;
+  }
+};
+
 const executeGenerateDocument = async (params, res, url) => {
   const {
     idDocument,
@@ -3549,6 +3578,185 @@ const executeGenerateDocument = async (params, res, url) => {
     }
   } catch (err) {
     executeSlackLogCatchBackend({
+      storeProcedure,
+      error: JSON.stringify(err, null, 2),
+    });
+    res.status(500).send({
+      response: { message: "Error en el sistema" },
+    });
+  }
+};
+
+const executeGetDocumentProperties = async (params, res, url, ip) => {
+  const {
+    idUserInRequest = null,
+    idDocument,
+    idPreviousDocument = null,
+    idDocumentType,
+    bucketSource,
+    previousBucketSource = null,
+    canGenerateDocument,
+    type,
+    idSystemUser,
+    idLoginHistory,
+    offset = GLOBAL_CONSTANTS.OFFSET,
+  } = params;
+  const { idRequest } = url;
+  const storeProcedure = "externalSch.USPgetDocumentProperties";
+
+  try {
+    if (
+      isNil(idRequest) === true ||
+      isNil(idDocument) === true ||
+      isNil(idDocumentType) === true ||
+      isNil(bucketSource) === true ||
+      isNil(type) === true ||
+      isNil(offset) === true ||
+      isNil(canGenerateDocument) === true
+    ) {
+      res.status(400).send({
+        response: {
+          message: "Error en los parametros de entrada",
+        },
+      });
+    } else {
+      const pool = await sql.connect();
+      const result = await pool
+        .request()
+        .input("p_uidIdRequest", sql.NVarChar, idUserInRequest)
+        .input("p_uidIdUserInRequest", sql.NVarChar, idRequest)
+        .input("p_intType", sql.Int, type)
+        .input("p_uidIdSystemUser", sql.NVarChar, idSystemUser)
+        .input("p_uidIdLoginHistory", sql.NVarChar, idLoginHistory)
+        .input("p_chrOffset", sql.Char, offset)
+        .execute(storeProcedure);
+        
+      const responseObject =
+        isEmpty(result) === false &&
+        isEmpty(result.recordset) === false &&
+        isNil(result.recordset[0]) === false
+          ? result.recordset[0]
+          : {};
+
+      let resultRecordset = [];
+      if (type === 4 || type === 5) {
+        resultRecordset = result.recordsets[1];
+      } else {
+        resultRecordset = result.recordset;
+      }
+
+      if (canGenerateDocument === true) {
+        const file = await s3
+          .getObject({
+            Bucket: bucketSource,
+            Key: idDocument,
+          })
+          .promise();
+        const buff = new Buffer.from(file.Body, "binary");
+        let objectParams = {};
+        if (type === 4 || type === 5) {
+          objectParams = {
+            payments: isNil(resultRecordset) === false ? resultRecordset : [],
+          };
+        } else {
+          objectParams =
+            isNil(resultRecordset[0]) === false ? resultRecordset[0] : {};
+        }
+        const dataAddDocument = await executeAddDocumentv2({
+          idCustomer: null,
+          idSystemUser:
+            isEmpty(responseObject) === false
+              ? responseObject.idSystemUser
+              : null,
+          idLoginHistory,
+          offset,
+          documentName: null,
+          extension: "docx",
+          preview: null,
+          thumbnail: null,
+          idDocumentType,
+        });
+        const resultObjectAddDocument = dataAddDocument[0];
+        if (resultObjectAddDocument.stateCode !== 200) {
+          executeSlackLogCatchBackend({
+            body: params,
+            storeProcedure,
+            error: resultObjectAddDocument.errorMessage,
+          });
+          res.status(resultObjectAddDocument.stateCode).send({
+            response: { message: resultObjectAddDocument.message },
+          });
+        } else {
+          const zip = new PizZip(buff);
+          let doc;
+          const imageModule = new ImageModule(imageOpts);
+          doc = await new Docxtemplater(zip, {
+            modules: [imageModule],
+            parser: replaceConditionsDocx,
+            nullGetter: () => {
+              return "";
+            },
+          });
+          await doc.setData(objectParams);
+          await doc.render();
+          const fileDocument = await doc
+            .getZip()
+            .generate({ type: "nodebuffer" });
+          const newBucketSorce =
+            isNil(resultObjectAddDocument) === false &&
+            isNil(resultObjectAddDocument.bucketSource) === false
+              ? resultObjectAddDocument.bucketSource.toLowerCase()
+              : bucket.toLowerCase();
+          const newIdDocument = resultObjectAddDocument.idDocument;
+          const params2 = {
+            Bucket: newBucketSorce,
+            Key: newIdDocument,
+            Body: fileDocument,
+          };
+          await s3.upload(params2).promise();
+          await executeAddExternalDocumentV2(
+            {
+              idRequest,
+              idSystemUser,
+              idLoginHistory,
+              offset,
+              idDocument: newIdDocument,
+            },
+            ip
+          );
+          if (
+            isNil(idPreviousDocument) === false &&
+            isNil(previousBucketSource) === false
+          ) {
+            const params1 = {
+              Bucket: previousBucketSource,
+              Key: idPreviousDocument,
+            };
+            await s3.deleteObject(params1).promise();
+          }
+          res.status(200).send({
+            response: {
+              url: `/api/viewFilesDocx/${newIdDocument}/${newBucketSorce}`,
+              newIdDocument,
+              newBucketSorce,
+              message: "Tu documento está listo para poder ser revisado",
+            },
+          });
+        }
+      } else {
+        res.status(200).send({
+          response: {
+            url: `/api/viewFilesDocx/${idDocument}/${bucketSource}`,
+            newIdDocument: idDocument,
+            newBucketSorce: bucketSource,
+            message: "Tu documento está listo para poder ser revisado",
+          },
+        });
+      }
+    }
+  } catch (err) {
+    executeSlackLogCatchBackend({
+      body: params,
       storeProcedure,
       error: JSON.stringify(err, null, 2),
     });
@@ -4243,6 +4451,16 @@ const ControllerCustomerSch = {
     const params = req.body;
     const url = req.params; //idContract
     executeGenerateDocument(params, res, url);
+  },
+  getDocumentProperties: (req, res) => {
+    const params = req.body;
+    const url = req.params; //idRequest
+    const ip = req.header("x-forwarded-for") || req.connection.remoteAddress;
+    let ipPublic = "";
+    if (ip) {
+      ipPublic = ip.split(",")[0];
+    }
+    executeGetDocumentProperties(params, res, url, ipPublic);
   },
   deactivateCustomerDocument: (req, res) => {
     const params = req.body;

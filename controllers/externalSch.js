@@ -536,6 +536,173 @@ const executeValidateProperties = async (params, res) => {
   }
 };
 
+const executeGetRequestDocuments = async (params, res) => {
+  const {
+    idRequest,
+    idUserInRequest,
+    idSystemUser = null,
+    idLoginHistory = null,
+    offset = GLOBAL_CONSTANTS.OFFSET,
+  } = params;
+  const storeProcedure = "externalSch.USPgetRequestDocuments";
+  try {
+    if (isNil(idRequest) === true || isNil(offset) === true) {
+      res.status(400).send({
+        response: {
+          message: "Error en los parametros de entrada",
+        },
+      });
+    } else {
+      const pool = await sql.connect();
+      const result = await pool
+        .request()
+        .input("p_uidIdRequest", sql.NVarChar, idRequest)
+        .input("p_uidIdUserInRequest", sql.NVarChar, idUserInRequest)
+        .input("p_uidIdSystemUser", sql.NVarChar, idSystemUser)
+        .input("p_uidIdLoginHistory", sql.NVarChar, idLoginHistory)
+        .input("p_chrOffset", sql.Char, offset)
+        .execute(storeProcedure);
+      const resultRecordset = result.recordsets;
+      res.status(200).send({
+        response: resultRecordset,
+      });
+    }
+  } catch (err) {
+    executeSlackLogCatchBackend({
+      storeProcedure,
+      error: err,
+      body: params,
+    });
+    res.status(500).send({
+      response: { message: "Error en el sistema" },
+    });
+  }
+};
+
+const executeSignDocument = async (params, res, url, ip) => {
+  const {
+    idUserInRequest = null,
+    signature,
+    type,
+    idSystemUser,
+    idLoginHistory,
+    offset = GLOBAL_CONSTANTS.OFFSET,
+  } = params;
+  const { idRequest } = url;
+  const storeProcedure = "externalSch.USPsignDocument";
+
+  try {
+    if (
+      isNil(idRequest) === true ||
+      isNil(signature) === true ||
+      isNil(type) === true ||
+      isNil(offset) === true
+    ) {
+      res.status(400).send({
+        response: {
+          message: "Error en los parametros de entrada",
+        },
+      });
+    } else {
+      const pool = await sql.connect();
+      const result = await pool
+        .request()
+        .input("p_uidIdRequest", sql.NVarChar, idRequest)
+        .input("p_uidIdUserInRequest", sql.NVarChar, idUserInRequest)
+        .input("p_vchSignature", sql.VarChar, signature)
+        .input("p_intType", sql.Int, type)
+        .input("p_vchIp", sql.VarChar, ip)
+        .input("p_uidIdSystemUser", sql.NVarChar, idSystemUser)
+        .input("p_uidIdLoginHistory", sql.NVarChar, idLoginHistory)
+        .input("p_chrOffset", sql.Char, offset)
+        .execute(storeProcedure);
+      const resultRecordset = result.recordset;
+      const resultRecordsetObject = result.recordset[0];
+      if (resultRecordsetObject.stateCode !== 200) {
+        executeSlackLogCatchBackend({
+          storeProcedure,
+          error: resultRecordsetObject.errorMessage,
+          body: params,
+        });
+        res.status(resultRecordsetObject.stateCode).send({
+          response: { message: resultRecordsetObject.message },
+        });
+      } else {
+        for (const element of resultRecordset) {
+          if (element.canSendEmail === true) {
+            const configEmailServer = JSON.parse(element.jsonEmailServerConfig);
+            await executeMailTo({
+              ...element,
+              ...configEmailServer,
+            });
+          }
+        }
+        res.status(200).send({
+          response: {
+            message: resultRecordsetObject.message,
+            idRequest: resultRecordsetObject.idRequest,
+          },
+        });
+      }
+    }
+  } catch (err) {
+    executeSlackLogCatchBackend({
+      storeProcedure,
+      error: err,
+      body: params,
+    });
+    res.status(500).send({
+      response: { message: "Error en el sistema" },
+    });
+  }
+};
+
+const executeIsOPPaid = async (params, res) => {
+  const {
+    idOrderPayment,
+    idSystemUser,
+    idLoginHistory ,
+    offset = GLOBAL_CONSTANTS.OFFSET,
+  } = params;
+  const storeProcedure = "paymentSch.USPisOPPaid";
+  try {
+    if (
+      isNil(idOrderPayment) === true ||
+      isNil(idSystemUser) === true ||
+      isNil(idLoginHistory) === true ||
+      isNil(offset) === true
+    ) {
+      res.status(400).send({
+        response: {
+          message: "Error en los parametros de entrada",
+        },
+      });
+    } else {
+      const pool = await sql.connect();
+      const result = await pool
+        .request()
+        .input("p_uidIdOrderPayment", sql.NVarChar, idOrderPayment)
+        .input("p_uidIdSystemUser", sql.NVarChar, idSystemUser)
+        .input("p_uidIdLoginHistory", sql.NVarChar, idLoginHistory)
+        .input("p_chrOffset", sql.Char, offset)
+        .execute(storeProcedure);
+      const resultRecordset = result.recordsets;
+      res.status(200).send({
+        response: resultRecordset,
+      });
+    }
+  } catch (err) {
+    executeSlackLogCatchBackend({
+      storeProcedure,
+      error: err,
+      body: params,
+    });
+    res.status(500).send({
+      response: { message: "Error en el sistema" },
+    });
+  }
+};
+
 const ControllerExternalSch = {
   setRequest: (req, res) => {
     const params = req.body;
@@ -581,6 +748,24 @@ const ControllerExternalSch = {
   validateProperties: (req, res) => {
     const params = req.body;
     executeValidateProperties(params, res);
+  },
+  getRequestDocuments: (req, res) => {
+    const params = req.body;
+    executeGetRequestDocuments(params, res);
+  },
+  signDocument: (req, res) => {
+    const params = req.body;
+    const url = req.params; //idRequest
+    const ip = req.header("x-forwarded-for") || req.connection.remoteAddress;
+    let ipPublic = "";
+    if (ip) {
+      ipPublic = ip.split(",")[0];
+    }
+    executeSignDocument(params, res, url, ipPublic);
+  },
+  isOPPaid: (req, res) => {
+    const params = req.body;
+    executeIsOPPaid(params, res);
   },
 };
 

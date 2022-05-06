@@ -147,6 +147,18 @@ router.post(
   "/external/validateProperties",
   ControllerExternalSch.validateProperties
 );
+router.put(
+  "/external/getDocumentProperties/:idRequest",
+  ControllerCustomerSch.getDocumentProperties
+);
+router.post(
+  "/request/getRequestDocuments",
+  ControllerExternalSch.getRequestDocuments
+);
+router.put(
+  "/request/signDocument/:idRequest",
+  ControllerExternalSch.signDocument
+);
 //External//
 
 module.exports = router;
