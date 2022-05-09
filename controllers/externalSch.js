@@ -16,6 +16,7 @@ const executeSetRequest = async (params, res, url) => {
     idApartment = null,
     jsonProperty = null,
     requiresLegalAdvice = null,
+    isActive = null,
     idLoginHistory,
     offset = GLOBAL_CONSTANTS.OFFSET,
   } = params;
@@ -46,6 +47,7 @@ const executeSetRequest = async (params, res, url) => {
         .input("p_uidIdApartment", sql.NVarChar, idApartment)
         .input("p_nvcJsonProperty", sql.NVarChar, jsonProperty)
         .input("p_bitRequiresLegalAdvice", sql.Bit, requiresLegalAdvice)
+        .input("p_bitIsActive", sql.Bit, isActive)
         .input("p_uidIdSystemUser", sql.NVarChar, idSystemUser)
         .input("p_uidIdLoginHistory", sql.NVarChar, idLoginHistory)
         .input("p_chrOffset", sql.Char, offset)
@@ -661,7 +663,7 @@ const executeIsOPPaid = async (params, res) => {
   const {
     idOrderPayment,
     idSystemUser,
-    idLoginHistory ,
+    idLoginHistory,
     offset = GLOBAL_CONSTANTS.OFFSET,
   } = params;
   const storeProcedure = "paymentSch.USPisOPPaid";
