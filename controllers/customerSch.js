@@ -3637,7 +3637,6 @@ const executeGetDocumentProperties = async (params, res, url, ip) => {
         isNil(result.recordset[0]) === false
           ? result.recordset[0]
           : {};
-      console.log("responseObject", responseObject);
       let resultRecordset = [];
       if (type === 4 || type === 5) {
         resultRecordset = result.recordsets[1];
