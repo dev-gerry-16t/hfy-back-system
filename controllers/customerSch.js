@@ -4264,6 +4264,48 @@ const executeGetAdviserRanking = async (params, res) => {
   }
 };
 
+const executeTrackEvent = async (params, res, ip) => {
+  const {
+    idSystemUser = null,
+    idLoginHistory = null,
+    type,
+    offset = GLOBAL_CONSTANTS.OFFSET,
+  } = params;
+  const storeProcedure = "customerSch.USPtrackEvent";
+  try {
+    if (isNil(offset) === true || isNil(type) === true || isNil(ip) === true) {
+      res.status(400).send({
+        response: {
+          message: "Error en los parametros de entrada",
+        },
+      });
+    } else {
+      const pool = await sql.connect();
+      const result = await pool
+        .request()
+        .input("p_uidIdSystemUser", sql.NVarChar, idSystemUser)
+        .input("p_uidIdLoginHistory", sql.NVarChar, idLoginHistory)
+        .input("p_intType", sql.Int, type)
+        .input("p_vchIp", sql.NVarChar, ip)
+        .input("p_chrOffset", sql.Char, offset)
+        .execute(storeProcedure);
+      const resultRecordset = result.recordsets;
+      res.status(200).send({
+        response: { message: "ok" },
+      });
+    }
+  } catch (err) {
+    executeSlackLogCatchBackend({
+      storeProcedure,
+      error: err,
+      body: params,
+    });
+    res.status(500).send({
+      response: { message: "Error en el sistema" },
+    });
+  }
+};
+
 const ControllerCustomerSch = {
   getCustomerTimeLine: (req, res) => {
     const params = req.body;
@@ -4505,6 +4547,15 @@ const ControllerCustomerSch = {
   getAdviserRanking: (req, res) => {
     const params = req.body;
     executeGetAdviserRanking(params, res);
+  },
+  trackEvent: (req, res) => {
+    const params = req.body;
+    const ip = req.header("x-forwarded-for") || req.connection.remoteAddress;
+    let ipPublic = "";
+    if (ip) {
+      ipPublic = ip.split(",")[0];
+    }
+    executeTrackEvent(params, res, ipPublic);
   },
 };
 
