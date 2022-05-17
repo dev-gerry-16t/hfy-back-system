@@ -132,6 +132,10 @@ router.put(
   "/invitation/processInvitation/:idInvitation",
   ControllerCustomerSch.processInvitation
 );
+router.post(
+  "/event/trackEvent",
+  ControllerCustomerSch.trackEvent
+);
 //customersch//
 
 //Catalogs//
