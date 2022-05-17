@@ -26,10 +26,58 @@ const executeGetOrderPaymentById = async (params, res) => {
     } else {
       const pool = await sql.connect();
       const result = await pool
-        .request()        
+        .request()
         .input("p_uidIdOrderPayment", sql.NVarChar, idOrderPayment)
         .input("p_uidIdSystemUser", sql.NVarChar, idSystemUser)
         .input("p_uidIdLoginHistory", sql.NVarChar, idLoginHistory)
+        .input("p_chrOffset", sql.Char, offset)
+        .execute(storeProcedure);
+      const resultRecordset = result.recordsets;
+      res.status(200).send({
+        response: resultRecordset,
+      });
+    }
+  } catch (err) {
+    executeSlackLogCatchBackend({
+      storeProcedure,
+      error: err,
+      body: params,
+    });
+    res.status(500).send({
+      response: { message: "Error en el sistema" },
+    });
+  }
+};
+
+const executeGetServiceFee = async (params, res) => {
+  const {
+    idSystemUser,
+    idLoginHistory,
+    offset = GLOBAL_CONSTANTS.OFFSET,
+    type,
+    filterBy = null,
+  } = params;
+  const storeProcedure = "paymentSch.USPgetServiceFee";
+  try {
+    if (
+      isNil(idSystemUser) === true ||
+      isNil(idLoginHistory) === true ||
+      isNil(type) === true ||
+      isNil(offset) === true
+    ) {
+      res.status(400).send({
+        response: {
+          message: "Error en los parametros de entrada",
+        },
+      });
+    } else {
+      const pool = await sql.connect();
+      const result = await pool
+        .request()
+        .input("p_uidIdSystemUser", sql.NVarChar, idSystemUser)
+        .input("p_uidIdLoginHistory", sql.NVarChar, idLoginHistory)
+        .input("p_intType", sql.Int, type)
+        .input("p_nvcFilterBy", sql.NVarChar, filterBy)
         .input("p_chrOffset", sql.Char, offset)
         .execute(storeProcedure);
       const resultRecordset = result.recordsets;
@@ -53,6 +101,10 @@ const ControllerPaymentSch = {
   getOrderPaymentById: (req, res) => {
     const params = req.body;
     executeGetOrderPaymentById(params, res);
+  },
+  getServiceFee: (req, res) => {
+    const params = req.body;
+    executeGetServiceFee(params, res);
   },
 };
 

@@ -176,6 +176,10 @@ router.post(
   "/orderPayment/getOrderPaymentById",
   ControllerPaymentSch.getOrderPaymentById
 );
+router.post(
+  "/payment/getServiceFee",
+  ControllerPaymentSch.getServiceFee
+);
 router.put(
   "/invitation/processInvitation/:idInvitation",
   ControllerCustomerSch.processInvitation

@@ -24,6 +24,7 @@ sql.connect(CONFIG, (err, res) => {
 const projectRoutes = require("./routes/routes");
 const protectRoutes = require("./routes/protectRoutes");
 const customerRoutes = require("./routes/customerRoutes");
+const externalRoutes = require("./routes/externalRoutes");
 const propertyRoutes = require("./routes/propertyRoutes");
 
 const port = process.env.PORT || GLOBAL_CONSTANTS.PORT;
@@ -55,6 +56,7 @@ app.use("/api", projectRoutes);
 app.use("/apiAccess", verifyToken, protectRoutes);
 app.use("/customer", verifyToken, customerRoutes);
 app.use("/property", verifyToken, propertyRoutes);
+app.use("/external", verifyToken, externalRoutes);
 
 app.listen(port, () => {
   console.log(
