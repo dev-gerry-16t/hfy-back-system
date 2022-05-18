@@ -180,6 +180,7 @@ const executeAddDocument = async (params) => {
     type,
     resource,
     idVerificationProcess,
+    idProperty = null,
   } = params;
 
   try {
@@ -203,6 +204,7 @@ const executeAddDocument = async (params) => {
     const pool = await sql.connect();
     const result = await pool
       .request()
+      .input("p_uidIdProperty", sql.NVarChar, idProperty)
       .input("p_nvcIdCustomer", sql.NVarChar, idCustomer)
       .input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser)
       .input("p_nvcIdLoginHistory", sql.NVarChar, idLoginHistory)
