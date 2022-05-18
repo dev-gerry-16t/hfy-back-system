@@ -3337,12 +3337,14 @@ const executeAddDocumentv2 = async (params) => {
     thumbnail = null,
     idDocumentType,
     bucket = "",
+    idProperty = null,
   } = params;
 
   try {
     const pool = await sql.connect();
     const result = await pool
       .request()
+      .input("p_uidIdProperty", sql.NVarChar, idProperty)
       .input("p_nvcIdCustomer", sql.NVarChar, idCustomer)
       .input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser)
       .input("p_nvcIdLoginHistory", sql.NVarChar, idLoginHistory)
@@ -4358,7 +4360,7 @@ const executeGetDocRequiredByProperty = async (params, res) => {
 const executeAddPropertyDocument = async (params, res, url) => {
   const {
     idProperty,
-    IdApartment,
+    idApartment,
     idSystemUser,
     idLoginHistory,
     offset = GLOBAL_CONSTANTS.OFFSET,
@@ -4368,7 +4370,7 @@ const executeAddPropertyDocument = async (params, res, url) => {
   try {
     if (
       isNil(idProperty) === true ||
-      isNil(IdApartment) === true ||
+      isNil(idApartment) === true ||
       isNil(idDocument) === true ||
       isNil(idSystemUser) === true ||
       isNil(idLoginHistory) === true ||
@@ -4384,7 +4386,7 @@ const executeAddPropertyDocument = async (params, res, url) => {
       const result = await pool
         .request()
         .input("p_uidIdProperty", sql.NVarChar, idProperty)
-        .input("p_uidIdApartment", sql.NVarChar, IdApartment)
+        .input("p_uidIdApartment", sql.NVarChar, idApartment)
         .input("p_uidIdDocument", sql.NVarChar, idDocument)
         .input("p_uidIdSystemUser", sql.NVarChar, idSystemUser)
         .input("p_uidIdLoginHistory", sql.NVarChar, idLoginHistory)
