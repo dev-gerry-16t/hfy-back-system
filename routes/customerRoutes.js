@@ -176,10 +176,7 @@ router.post(
   "/orderPayment/getOrderPaymentById",
   ControllerPaymentSch.getOrderPaymentById
 );
-router.post(
-  "/payment/getServiceFee",
-  ControllerPaymentSch.getServiceFee
-);
+router.post("/payment/getServiceFee", ControllerPaymentSch.getServiceFee);
 router.put(
   "/invitation/processInvitation/:idInvitation",
   ControllerCustomerSch.processInvitation
@@ -201,6 +198,18 @@ router.post("/loginHistory/getUserStats", ControllerCustomerSch.getUserStats);
 router.post(
   "/customer/getAdviserRanking",
   ControllerCustomerSch.getAdviserRanking
+);
+router.post(
+  "/propertyDocument/getDocRequiredByProperty",
+  ControllerCustomerSch.getDocRequiredByProperty
+);
+router.put(
+  "/propertyDocument/addPropertyDocument/:idDocument",
+  ControllerCustomerSch.addPropertyDocument
+);
+router.put(
+  "/propertyDocument/deactivatePropertyDocument/:idDocument",
+  ControllerCustomerSch.deactivatePropertyDocument
 );
 
 module.exports = router;

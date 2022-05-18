@@ -4306,6 +4306,191 @@ const executeTrackEvent = async (params, res, ip) => {
   }
 };
 
+const executeGetDocRequiredByProperty = async (params, res) => {
+  const {
+    idProperty,
+    idApartment,
+    idSystemUser,
+    idLoginHistory,
+    offset = GLOBAL_CONSTANTS.OFFSET,
+  } = params;
+  const storeProcedure = "customerSch.USPgetDocRequiredByProperty";
+  try {
+    if (
+      isNil(idProperty) === true ||
+      isNil(idApartment) === true ||
+      isNil(idSystemUser) === true ||
+      isNil(idLoginHistory) === true ||
+      isNil(offset) === true
+    ) {
+      res.status(400).send({
+        response: {
+          message: "Error en los parametros de entrada",
+        },
+      });
+    } else {
+      const pool = await sql.connect();
+      const result = await pool
+        .request()
+        .input("p_uidIdProperty", sql.NVarChar, idProperty)
+        .input("p_uidIdApartment", sql.NVarChar, idApartment)
+        .input("p_uidIdSystemUser", sql.NVarChar, idSystemUser)
+        .input("p_uidIdLoginHistory", sql.NVarChar, idLoginHistory)
+        .input("p_chrOffset", sql.Char, offset)
+        .execute(storeProcedure);
+      const resultRecordset = result.recordsets;
+      res.status(200).send({
+        response: resultRecordset,
+      });
+    }
+  } catch (err) {
+    executeSlackLogCatchBackend({
+      storeProcedure,
+      error: err,
+      body: params,
+    });
+    res.status(500).send({
+      response: { message: "Error en el sistema" },
+    });
+  }
+};
+
+const executeAddPropertyDocument = async (params, res, url) => {
+  const {
+    idProperty,
+    IdApartment,
+    idSystemUser,
+    idLoginHistory,
+    offset = GLOBAL_CONSTANTS.OFFSET,
+  } = params;
+  const { idDocument } = url;
+  const storeProcedure = "customerSch.USPaddPropertyDocument";
+  try {
+    if (
+      isNil(idProperty) === true ||
+      isNil(IdApartment) === true ||
+      isNil(idDocument) === true ||
+      isNil(idSystemUser) === true ||
+      isNil(idLoginHistory) === true ||
+      isNil(offset) === true
+    ) {
+      res.status(400).send({
+        response: {
+          message: "Error en los parametros de entrada",
+        },
+      });
+    } else {
+      const pool = await sql.connect();
+      const result = await pool
+        .request()
+        .input("p_uidIdProperty", sql.NVarChar, idProperty)
+        .input("p_uidIdApartment", sql.NVarChar, IdApartment)
+        .input("p_uidIdDocument", sql.NVarChar, idDocument)
+        .input("p_uidIdSystemUser", sql.NVarChar, idSystemUser)
+        .input("p_uidIdLoginHistory", sql.NVarChar, idLoginHistory)
+        .input("p_chrOffset", sql.Char, offset)
+        .execute(storeProcedure);
+      const resultRecordsetObject = result.recordset[0];
+      if (resultRecordsetObject.stateCode !== 200) {
+        //executeSlackLogCatchBackend({
+        // storeProcedure,
+        //error: resultRecordsetObject.errorMessage,
+        // });
+        res.status(resultRecordsetObject.stateCode).send({
+          response: { message: resultRecordsetObject.message },
+        });
+      } else {
+        res.status(200).send({
+          response: { message: resultRecordsetObject.message },
+        });
+      }
+    }
+  } catch (err) {
+    executeSlackLogCatchBackend({
+      storeProcedure,
+      error: err,
+      body: params,
+    });
+    res.status(500).send({
+      response: { message: "Error en el sistema" },
+    });
+  }
+};
+
+const executeDeactivatePropertyDocument = async (params, res, url) => {
+  const {
+    idProperty,
+    idApartment,
+    bucketSource,
+    idSystemUser,
+    idLoginHistory,
+    offset = GLOBAL_CONSTANTS.OFFSET,
+  } = params;
+  const { idDocument } = url;
+  const storeProcedure = "customerSch.USPdeactivatePropertyDocument";
+
+  try {
+    if (
+      isNil(idProperty) === true ||
+      isNil(idApartment) === true ||
+      isNil(bucketSource) === true ||
+      isNil(idDocument) === true ||
+      isNil(idSystemUser) === true ||
+      isNil(idLoginHistory) === true ||
+      isNil(offset) === true
+    ) {
+      res.status(400).send({
+        response: {
+          message: "Error en los parametros de entrada",
+        },
+      });
+    } else {
+      const pool = await sql.connect();
+      const result = await pool
+        .request()
+        .input("p_uidIdProperty", sql.NVarChar, idProperty)
+        .input("p_uidIdApartment", sql.NVarChar, idApartment)
+        .input("p_uidIdDocument", sql.NVarChar, idDocument)
+        .input("p_uidIdSystemUser", sql.NVarChar, idSystemUser)
+        .input("p_uidIdLoginHistory", sql.NVarChar, idLoginHistory)
+        .input("p_chrOffset", sql.Char, offset)
+        .execute(storeProcedure);
+      const resultRecordset = result.recordset;
+      const resultRecordsetObject = result.recordset[0];
+      if (resultRecordsetObject.stateCode !== 200) {
+        //executeSlackLogCatchBackend({
+        // storeProcedure,
+        //error: resultRecordsetObject.errorMessage,
+        // });
+        res.status(resultRecordsetObject.stateCode).send({
+          response: { message: resultRecordsetObject.message },
+        });
+      } else {
+        const params1 = {
+          Bucket: bucketSource,
+          Key: idDocument,
+        };
+        await s3.deleteObject(params1).promise();
+        res.status(200).send({
+          response: {
+            message: resultRecordsetObject.message,
+            idContract: resultRecordsetObject.idContract,
+          },
+        });
+      }
+    }
+  } catch (err) {
+    executeSlackLogCatchBackend({
+      storeProcedure,
+      error: err,
+      body: params,
+    });
+    res.status(500).send({
+      response: { message: "Error en el sistema" },
+    });
+  }
+};
+
 const ControllerCustomerSch = {
   getCustomerTimeLine: (req, res) => {
     const params = req.body;
@@ -4556,6 +4741,20 @@ const ControllerCustomerSch = {
       ipPublic = ip.split(",")[0];
     }
     executeTrackEvent(params, res, ipPublic);
+  },
+  getDocRequiredByProperty: (req, res) => {
+    const params = req.body;
+    executeGetDocRequiredByProperty(params, res);
+  },
+  addPropertyDocument: (req, res) => {
+    const params = req.body;
+    const url = req.params; //idDocument
+    executeAddPropertyDocument(params, res, url);
+  },
+  deactivatePropertyDocument: (req, res) => {
+    const params = req.body;
+    const url = req.params; //idDocument
+    executeDeactivatePropertyDocument(params, res, url);
   },
 };
 
