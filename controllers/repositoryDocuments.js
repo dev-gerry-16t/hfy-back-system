@@ -20,11 +20,14 @@ const executeAddDocument = async (params, res, file) => {
     thumbnail,
     bucket = "",
     idDocumentType,
+    idProperty = null,
   } = params;
+
   const fileName = documentName.split(".");
   const fileType = fileName[fileName.length - 1];
   try {
     const request = new sql.Request();
+    request.input("p_uidIdProperty", sql.NVarChar, idProperty);
     request.input("p_nvcIdCustomer", sql.NVarChar, idCustomer);
     request.input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser);
     request.input("p_nvcIdLoginHistory", sql.NVarChar, idLoginHistory);

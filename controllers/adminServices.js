@@ -757,12 +757,14 @@ const executeAddDocument = async (resultGet, params, dataParams, file, res) => {
     preview = null,
     thumbnail = null,
     bucket = "",
+    idProperty = null,
   } = params;
 
   const { idPreviousDocument, idDocumentType } = resultGet;
 
   try {
     const request = new sql.Request();
+    request.input("p_uidIdProperty", sql.NVarChar, idProperty);
     request.input("p_nvcIdCustomer", sql.NVarChar, idCustomer);
     request.input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser);
     request.input("p_nvcIdLoginHistory", sql.NVarChar, idLoginHistory);
@@ -868,6 +870,7 @@ const executeAddDocumentv2 = async (resultGet, params) => {
     preview = null,
     thumbnail = null,
     bucket = "",
+    idProperty = null,
   } = params;
 
   const { idPreviousDocument, idDocumentType } = resultGet;
@@ -876,6 +879,7 @@ const executeAddDocumentv2 = async (resultGet, params) => {
     const pool = await sql.connect();
     const result = await pool
       .request()
+      .input("p_uidIdProperty", sql.NVarChar, idProperty)
       .input("p_nvcIdCustomer", sql.NVarChar, idCustomer)
       .input("p_nvcIdSystemUser", sql.NVarChar, idSystemUser)
       .input("p_nvcIdLoginHistory", sql.NVarChar, idLoginHistory)
