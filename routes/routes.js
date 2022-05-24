@@ -32,6 +32,7 @@ router.post("/connect/setMailchimpWebhook", ControllerTest.setMailchimpWebhook);
 router.get("/connect/getPropertyPictures", ControllerTest.getPropertyPictures);
 router.post("/testStripeWebhook", ControllerTest.testStripeWebhook);
 router.post("/addExternalProspect", ControllerTest.addExternalProspect);
+router.post("/addExternalProspectV2", ControllerTest.addExternalProspectV2);
 router.post(
   "/webhookStripeSubscription",
   ControllerTest.webhookStripeSubscription
