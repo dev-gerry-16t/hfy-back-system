@@ -1024,6 +1024,89 @@ const ControllerTest = {
       res.status(500).send({ message: "Not lead submit", error });
     }
   },
+  addExternalProspectV2: async (req, res) => {
+    const ip = req.header("x-forwarded-for") || req.connection.remoteAddress;
+    const params = req.body;
+    const {
+      givenName,
+      lastName = null,
+      phoneNumber = null,
+      emailAddress = null,
+      rentAmount = null,
+      comment = null,
+    } = params;
+    const dataSendToHubspot = {
+      submittedAt: new Date().getTime(),
+      fields: [
+        {
+          objectTypeId: "0-1",
+          name: "firstname",
+          value: givenName,
+        },
+        {
+          objectTypeId: "0-1",
+          name: "lastname",
+          value: lastName,
+        },
+        {
+          objectTypeId: "0-1",
+          name: "email",
+          value: emailAddress,
+        },
+        {
+          objectTypeId: "0-1",
+          name: "phone",
+          value: phoneNumber,
+        },
+        // {
+        //   objectTypeId: "0-1",
+        //   name: "renta",
+        //   value: rentAmount,
+        // },
+        // {
+        //   objectTypeId: "0-1",
+        //   name: "descripcion",
+        //   value: comment,
+        // },
+      ],
+      legalConsentOptions: {
+        // Include this object when GDPR options are enabled
+        consent: {
+          consentToProcess: true,
+          text: "I agree to allow Segurent (RENTAL PAYMENTS SA CV) to store and process my personal data.",
+        },
+      },
+    };
+    try {
+      await rp({
+        url: "https://api.hsforms.com/submissions/v3/integration/submit/21737012/fa5043ff-a14b-4f86-9ee6-2673305084ed",
+        method: "POST",
+        headers: {
+          encoding: "UTF-8",
+          "Content-Type": "application/json",
+        },
+        json: true,
+        body: dataSendToHubspot,
+        rejectUnauthorized: false,
+      });
+      return res.status(200).send({
+        response: {
+          message: "Información enviada con exito",
+        },
+      });
+    } catch (error) {
+      executeSlackLogCatchBackend({
+        storeProcedure: "Hubspot",
+        error: error,
+        body: `${dataSendToHubspot} IP:${ip}`,
+      });
+      return res.status(500).send({
+        response: {
+          message: "Información incompleta, intenta nuevamente",
+        },
+      });
+    }
+  },
 };
 
 module.exports = ControllerTest;
