@@ -42,6 +42,7 @@ app.use(
       req.rawBody = buf.toString();
     },
     strict: false,
+    limit:"50mb"
   })
 );
 app.use(cors());

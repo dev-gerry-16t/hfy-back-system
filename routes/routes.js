@@ -14,6 +14,7 @@ const router = express.Router();
 router.get("/", ControllerTest.test);
 router.get("/test", ControllerTest.testPath);
 router.get("/testMail/:idEmailTemplate", ControllerTest.testMail);
+router.post("/compareFace", ControllerTest.compareFace);
 router.post("/whatsapp", ControllerTest.whatsapp);
 router.post(
   "/getPropertiesOfEasyBroker",

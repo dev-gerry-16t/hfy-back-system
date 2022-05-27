@@ -172,6 +172,60 @@ const ControllerTest = {
   testMail: (req, res) => {
     getTestMail(req, res);
   },
+  compareFace: async (req, res) => {
+    const params = req.body;
+    const file = req.file;
+    console.log("ok");
+    try {
+      AWS.config.update({ region: "us-east-2" });
+      const client = new AWS.Rekognition();
+      const paramsFile = {
+        SourceImage: {
+          S3Object: {
+            Bucket: "test.facial.recognition",
+            Name: "image_source.jpg",
+          },
+        },
+        TargetImage: {
+          Bytes: file.buffer,
+        },
+        SimilarityThreshold: 70,
+      };
+      client.compareFaces(paramsFile, function (err, response) {
+        console.log("compare", response);
+        if (err) {
+          res.status(500).send({
+            message: error.stack,
+          });
+        } else {
+          if (isEmpty(response.FaceMatches) === false) {
+            response.FaceMatches.forEach((data) => {
+              let position = data.Face.BoundingBox;
+              let similarity = data.Similarity;
+              console.log(
+                `The face at: ${position.Left}, ${position.Top} matches with ${similarity} % confidence`
+              );
+              res.status(200).send({
+                result: similarity,
+              });
+            });
+          }
+          if (isEmpty(response.UnmatchedFaces) === false) {
+            response.UnmatchedFaces.forEach((data) => {
+              res.status(200).send({
+                result: "No es la misma persona",
+              });
+            });
+          }
+        }
+      });
+    } catch (error) {
+      console.log("error", error);
+      res.status(500).send({
+        message: "fail",
+      });
+    }
+  },
   test: (req, res) => {
     res.status(200).send({
       message: `Bienvenido al Backend homify :) ${GLOBAL_CONSTANTS.VERSION}`,
