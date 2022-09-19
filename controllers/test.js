@@ -169,6 +169,29 @@ const getPropertiesOfEasyBrokerId = async (params) => {
 };
 
 const ControllerTest = {
+  getContactHubspotById: async (req, res) => {
+    try {
+      const responseMaps = await rp({
+        url: `https://api.hubapi.com/crm/v3/objects/deals/8892407191/?hapikey=a96b5c0b-c1ae-438c-bedf-19390499145e`,
+        method: "GET",
+        headers: {
+          encoding: "UTF-8",
+          "Content-Type": "application/json",
+        },
+        json: true,
+        rejectUnauthorized: false,
+      });
+      console.log("responseMaps", JSON.stringify(responseMaps, null, 2));
+      res.status(200).send({
+        message: "ok",
+      });
+    } catch (error) {
+      console.log('error',error);
+      res.status(500).send({
+        message: "fail",
+      });
+    }
+  },
   testMail: (req, res) => {
     getTestMail(req, res);
   },

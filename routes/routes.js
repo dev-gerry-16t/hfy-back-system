@@ -12,6 +12,7 @@ const ControllerCustomerSch = require("../controllers/customerSch");
 const ControllerExternalSch = require("../controllers/externalSch");
 const router = express.Router();
 router.get("/", ControllerTest.test);
+router.get("/getContactHubspotById", ControllerTest.getContactHubspotById);
 router.get("/test", ControllerTest.testPath);
 router.get("/testMail/:idEmailTemplate", ControllerTest.testMail);
 router.post("/compareFace", ControllerTest.compareFace);
@@ -134,10 +135,7 @@ router.put(
   "/invitation/processInvitation/:idInvitation",
   ControllerCustomerSch.processInvitation
 );
-router.post(
-  "/event/trackEvent",
-  ControllerCustomerSch.trackEvent
-);
+router.post("/event/trackEvent", ControllerCustomerSch.trackEvent);
 //customersch//
 
 //Catalogs//
