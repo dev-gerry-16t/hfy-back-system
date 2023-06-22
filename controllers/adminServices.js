@@ -2,7 +2,7 @@ const sql = require("mssql");
 const Stripe = require("stripe");
 const AWS = require("aws-sdk");
 const Docxtemplater = require("docxtemplater");
-const ImageModule = require("docxtemplater-image-module");
+// const ImageModule = require("docxtemplater-image-module");
 const PizZip = require("pizzip");
 const GLOBAL_CONSTANTS = require("../constants/constants");
 const isNil = require("lodash/isNil");
@@ -786,10 +786,10 @@ const executeAddDocument = async (resultGet, params, dataParams, file, res) => {
         } else {
           const zip = new PizZip(file);
           let doc;
-          const imageModule = new ImageModule(imageOpts);
+          // const imageModule = new ImageModule(imageOpts);
           try {
             doc = new Docxtemplater(zip, {
-              modules: [imageModule],
+              // modules: [imageModule],
               parser: replaceConditionsDocx,
               nullGetter: () => {
                 return "";
@@ -1189,9 +1189,9 @@ const executeGetContractV2 = async (params, res) => {
           //Procesamiento de Docxtemplater
           const zip = new PizZip(buff);
           let doc;
-          const imageModule = new ImageModule(imageOpts);
+          // const imageModule = new ImageModule(imageOpts);
           doc = await new Docxtemplater(zip, {
-            modules: [imageModule],
+            // modules: [imageModule],
             parser: replaceConditionsDocx,
             nullGetter: () => {
               return "";
@@ -1416,9 +1416,9 @@ const executeGetDocumentByIdContract = async (params, res, req) => {
           } else {
             const zip = new PizZip(buff);
             let doc;
-            const imageModule = new ImageModule(imageOpts);
+            // const imageModule = new ImageModule(imageOpts);
             doc = await new Docxtemplater(zip, {
-              modules: [imageModule],
+              // modules: [imageModule],
               parser: replaceConditionsDocx,
               nullGetter: () => {
                 return "";

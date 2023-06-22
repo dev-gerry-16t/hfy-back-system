@@ -2,7 +2,7 @@ const sql = require("mssql");
 const Stripe = require("stripe");
 const AWS = require("aws-sdk");
 const Docxtemplater = require("docxtemplater");
-const ImageModule = require("docxtemplater-image-module");
+// const ImageModule = require("docxtemplater-image-module");
 const PizZip = require("pizzip");
 const isEmpty = require("lodash/isEmpty");
 const isNil = require("lodash/isNil");
@@ -853,9 +853,9 @@ const executeGetRequestForProviderProperties = async (params, res) => {
       } else {
         const zip = new PizZip(buff);
         let doc;
-        const imageModule = new ImageModule(imageOpts);
+        // const imageModule = new ImageModule(imageOpts);
         doc = await new Docxtemplater(zip, {
-          modules: [imageModule],
+          // modules: [imageModule],
           parser: replaceConditionsDocx,
           nullGetter: () => {
             return "";
@@ -1472,9 +1472,9 @@ const executeGetRequestForProviderPropertiesv2 = async (params, res) => {
     } else {
       const zip = new PizZip(buff);
       let doc;
-      const imageModule = new ImageModule(imageOpts);
+      // const imageModule = new ImageModule(imageOpts);
       doc = await new Docxtemplater(zip, {
-        modules: [imageModule],
+        // modules: [imageModule],
         parser: replaceConditionsDocx,
         nullGetter: () => {
           return "";
