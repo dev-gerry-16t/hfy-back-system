@@ -27,7 +27,7 @@ const customerRoutes = require("./routes/customerRoutes");
 const externalRoutes = require("./routes/externalRoutes");
 const propertyRoutes = require("./routes/propertyRoutes");
 
-const port = process.env.PORT || GLOBAL_CONSTANTS.PORT;
+const port = GLOBAL_CONSTANTS.PORT;
 const storage = multer.memoryStorage({
   destination: (req, file, callback) => {
     callback(null, "");
