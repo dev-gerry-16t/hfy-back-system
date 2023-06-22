@@ -33,6 +33,7 @@ router.get("/connect/getPropertyPictures", ControllerTest.getPropertyPictures);
 router.post("/testStripeWebhook", ControllerTest.testStripeWebhook);
 router.post("/addExternalProspect", ControllerTest.addExternalProspect);
 router.post("/addExternalProspectV2", ControllerTest.addExternalProspectV2);
+router.post("/requestAdvanceRent", ControllerTest.requestAdvanceRent);
 router.post(
   "/webhookStripeSubscription",
   ControllerTest.webhookStripeSubscription
@@ -133,10 +134,7 @@ router.put(
   "/invitation/processInvitation/:idInvitation",
   ControllerCustomerSch.processInvitation
 );
-router.post(
-  "/event/trackEvent",
-  ControllerCustomerSch.trackEvent
-);
+router.post("/event/trackEvent", ControllerCustomerSch.trackEvent);
 //customersch//
 
 //Catalogs//

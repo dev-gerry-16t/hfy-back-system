@@ -41,6 +41,7 @@ const {
 } = require("../actions/getTokenMlUser");
 const executeSetSubscriptionWebhook = require("../actions/subscriptionPlatform");
 const executeMailTo = require("../actions/sendInformationUser");
+const smtpTransporter = require("../actions/smtpTransport");
 
 const executeGetZipCodeGoogle = async (location) => {
   try {
@@ -168,7 +169,45 @@ const getPropertiesOfEasyBrokerId = async (params) => {
   }
 };
 
+const executeAdvanceRent = async (params, res) => {
+  const { email, name, amount, phoneNumber } = params;
+  try {
+    await smtpTransporter.sendMail({
+      from: "Homify <no-reply@homify.ai>",
+      bcc:
+        GLOBAL_CONSTANTS.APP_ENVIRONMENT === "Prod"
+          ? "ejimenez@homify.ai,asgomez@homify.ai,rpando@homify.ai"
+          : "gagonzalez@homify.ai",
+      subject: "Solicitud de adelanto de renta",
+      html: `<div>
+      El usuario <strong>${name}</strong> se encuentra interesado por un adelanto de renta<br/>
+      Monto de renta: <strong>${amount}</strong><br/><br/>
+      Información del usuario:<br/>
+      Teléfono: <strong>${phoneNumber}</strong><br/>
+      Correo: <strong>${email}</strong>
+      </div>`,
+    });
+
+    res.status(200).send({
+      response: {
+        message: "Información enviada correctamente",
+      },
+    });
+  } catch (error) {
+    res.status(500).send({
+      response: {
+        message: "No se pudo enviar tu información",
+        errorMessage: error,
+      },
+    });
+  }
+};
+
 const ControllerTest = {
+  requestAdvanceRent: (req, res) => {
+    const params = req.body;
+    executeAdvanceRent(params, res);
+  },
   testMail: (req, res) => {
     getTestMail(req, res);
   },
@@ -1106,6 +1145,10 @@ const ControllerTest = {
         },
       });
     }
+  },
+  getPropertyCoincidencesV2: (req, res) => {
+    const params = req.body;
+    executeGetPropertyCoincidencesV2(params, res);
   },
 };
 
