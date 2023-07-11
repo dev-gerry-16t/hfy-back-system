@@ -60,6 +60,6 @@ app.use("/external", verifyToken, externalRoutes);
 
 app.listen(port, () => {
   console.log(
-    `Welcome to homify backend, you are connected to port ${GLOBAL_CONSTANTS.PORT} in version ${GLOBAL_CONSTANTS.VERSION}`
+    `Welcome to homify backend, you are connected to port ${port} in version ${GLOBAL_CONSTANTS.VERSION}`
   );
 });
