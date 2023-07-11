@@ -1,7 +1,7 @@
 const sql = require("mssql");
 const AWS = require("aws-sdk");
 const Docxtemplater = require("docxtemplater");
-const ImageModule = require("docxtemplater-image-module");
+// const ImageModule = require("docxtemplater-image-module");
 const PizZip = require("pizzip");
 const Stripe = require("stripe");
 const GLOBAL_CONSTANTS = require("../constants/constants");
@@ -3513,9 +3513,9 @@ const executeGenerateDocument = async (params, res, url) => {
         } else {
           const zip = new PizZip(buff);
           let doc;
-          const imageModule = new ImageModule(imageOpts);
+          // const imageModule = new ImageModule(imageOpts);
           doc = await new Docxtemplater(zip, {
-            modules: [imageModule],
+            // modules: [],
             parser: replaceConditionsDocx,
             nullGetter: () => {
               return "";
@@ -3690,9 +3690,9 @@ const executeGetDocumentProperties = async (params, res, url, ip) => {
         } else {
           const zip = new PizZip(buff);
           let doc;
-          const imageModule = new ImageModule(imageOpts);
+          // const imageModule = new ImageModule(imageOpts);
           doc = await new Docxtemplater(zip, {
-            modules: [imageModule],
+            // modules: [],
             parser: replaceConditionsDocx,
             nullGetter: () => {
               return "";
